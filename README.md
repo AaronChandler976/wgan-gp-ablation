@@ -22,7 +22,7 @@ conda env create -f environment.yml
 conda activate cwp
 pip install torch            # or the line for your GPU from the table below
 pip install -e .
-pytest                       # 30 tests, about 30 seconds
+pytest                       # about 30 seconds
 ```
 
 | Machine | PyTorch install |
