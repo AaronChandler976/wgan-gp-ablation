@@ -1,0 +1,20 @@
+# raw downloads are large; get them with `python -m cwp.data download`
+data/raw/*
+!data/raw/.gitkeep
+
+# trained weights are shared outside git (see README "Checkpoints")
+checkpoints/*
+!checkpoints/.gitkeep
+
+# exploratory runs (--tag) and logs stay local
+results/scratch/
+logs/
+
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+.vscode/
+.idea/
+.DS_Store

@@ -1,0 +1,9 @@
+# Hyperparameter search used by `python -m cwp.tune`. Every configuration gets the same grid
+# and the same budget, so no configuration wins because it was tuned harder.
+# The best setting (lowest validation MAPE) is written to configs/tuned/ and picked up by
+# `python -m cwp.train` automatically.
+
+epochs: 200               # shorter than a full run
+grid:
+  lr: [0.0001, 0.001, 0.01]     # applied to the chosen optimizer
+  data.window: [24, 48, 96]

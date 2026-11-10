@@ -1,0 +1,53 @@
+# Default hyperparameters. Override any value on the command line with dotted keys,
+# for example:  python -m cwp.train ... train.epochs=200 model.transformer.d_model=32
+# Unknown keys are an error.
+
+data:
+  window: 48              # history length n (number of past intervals the model sees)
+  split: [0.6, 0.2, 0.2]  # train / validation / test, in time order
+
+model:
+  lstm:                   # LoadDynamics-style LSTM
+    hidden: 64            # cell state size ("C size")
+    layers: 1
+    dropout: 0.0
+  transformer:            # generator of the WGAN-gp Transformer
+    d_model: 64
+    nhead: 4
+    enc_layers: 1
+    dec_layers: 1
+    dim_ff: 2048          # PyTorch default, which the released code uses
+    dropout: 0.1
+    input_embed: linear   # linear | broadcast (see docs/REPLICATION_NOTES.md)
+  critic:                 # 3 fully connected layers, LeakyReLU
+    hidden: 64
+    leaky_slope: 0.2
+
+optim:
+  adam:
+    lr: 0.001
+    betas: [0.9, 0.999]
+  adam_with_critic:       # the paper's Adam settings for its WGAN-gp + Adam run
+    enabled: true
+    lr: 0.0001
+    betas: [0.0, 0.9]
+  madgrad:
+    lr: 0.001
+    momentum: 0.9
+    weight_decay: 0.0
+    eps: 1.0e-6
+
+train:
+  epochs: 1000
+  batch_size: 64
+  loss: l1                # l1 (WGAN-gp paper) | mse (LoadDynamics)
+  n_critic: 5             # critic updates per generator update
+  gp_lambda: 10.0         # gradient penalty weight
+  adv_weight: 1.0         # weight of the critic term in the generator loss
+  eval_every: 10          # epochs between validation checks
+  patience: 0             # stop after this many epochs without improvement (0 = off)
+  select: best_val        # best_val | last
+  grad_clip: 0.0          # 0 = off
+
+eval:
+  timing_reps: 200        # single predictions timed for inference speed

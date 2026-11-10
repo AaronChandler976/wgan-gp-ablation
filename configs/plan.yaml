@@ -1,0 +1,44 @@
+# The experiment plan: datasets x configurations x seeds = the runs we need.
+# `python -m cwp.runs status` compares this plan with what is finished or claimed.
+# Adding seeds, datasets or configurations later only adds runs. Finished runs stay valid.
+
+seeds: [1, 2, 3]          # evaluation seeds. Add 4 and 5 for the 5-seed option.
+tuning_seed: 0            # used only by `python -m cwp.tune`, never for reported results
+
+datasets:
+  - {dataset: google, interval: 10}
+  - {dataset: azure_functions, interval: 5}
+  # - {dataset: google, interval: 30}
+  # - {dataset: azure_functions, interval: 10}
+
+# Which of the 8 configurations to run. Pick one design name from `designs` below.
+design: proposal
+
+designs:
+  one_chain:              # 4 runs: optimizer -> architecture -> critic
+    - [lstm, none, adam]
+    - [lstm, none, madgrad]
+    - [transformer, none, madgrad]
+    - [transformer, wgan-gp, madgrad]
+  proposal:               # 5 runs: the proposal as written
+    - [lstm, none, adam]
+    - [lstm, none, madgrad]
+    - [transformer, none, madgrad]
+    - [transformer, wgan-gp, madgrad]
+    - [transformer, wgan-gp, adam]
+  two_chains:             # 6 runs: each part measured in two different orders
+    - [lstm, none, adam]
+    - [lstm, none, madgrad]
+    - [transformer, none, madgrad]
+    - [transformer, wgan-gp, madgrad]
+    - [transformer, wgan-gp, adam]
+    - [transformer, none, adam]
+  full:                   # all 8: main effects and interactions
+    - [lstm, none, adam]
+    - [lstm, none, madgrad]
+    - [lstm, wgan-gp, adam]
+    - [lstm, wgan-gp, madgrad]
+    - [transformer, none, adam]
+    - [transformer, none, madgrad]
+    - [transformer, wgan-gp, adam]
+    - [transformer, wgan-gp, madgrad]

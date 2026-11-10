@@ -1,0 +1,16 @@
+# conda env create -f environment.yml && conda activate cwp
+# PyTorch and this package are installed with pip afterwards, so each machine can pick the
+# PyTorch build that matches its GPU. See README "Install".
+name: cwp
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - numpy=2.2
+  - pandas=2.2
+  - scipy=1.15
+  - pyyaml=6.0
+  - pytest=8
+  - pip:
+      - madgrad==1.3

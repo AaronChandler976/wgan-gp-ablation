@@ -1,0 +1,29 @@
+# Datasets the code knows about. `intervals` are the aggregation intervals in minutes
+# (the ones the paper reports for that dataset).
+
+google:
+  title: Google Cluster 2011 (job SUBMIT events)
+  intervals: [10, 30]
+  license: CC BY
+  source: https://github.com/google/cluster-data/blob/master/ClusterData2011_2.md
+  pattern: spiky
+
+azure_functions:
+  title: Azure Functions 2019 (total invocations)
+  intervals: [5, 10]
+  license: CC BY
+  source: https://github.com/Azure/AzurePublicDataset/blob/master/AzureFunctionsDataset2019.md
+  pattern: seasonal
+
+# Generated series for tests and timing only. Never report results on these.
+synthetic_seasonal:
+  title: Synthetic daily cycle (tests only)
+  intervals: [10]
+  synthetic: true
+  pattern: seasonal
+
+synthetic_spiky:
+  title: Synthetic bursts (tests only)
+  intervals: [10]
+  synthetic: true
+  pattern: spiky

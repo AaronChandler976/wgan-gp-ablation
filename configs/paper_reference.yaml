@@ -1,0 +1,8 @@
+# Test MAPE (%) reported in Table 3 of Arbat et al. (2022), for side-by-side comparison.
+# Keys are "<dataset>-<interval>m". Values are [LoadDynamics LSTM, WGAN-gp Transformer].
+# Our preprocessing is not guaranteed to match the paper's, so compare trends, not exact values.
+
+google-10m: [11.49, 10.58]
+google-30m: [9.12, 8.34]
+azure_functions-5m: [1.63, 3.05]
+azure_functions-10m: [2.06, 1.85]

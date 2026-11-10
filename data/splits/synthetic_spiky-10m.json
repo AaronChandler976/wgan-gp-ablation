@@ -1,0 +1,13 @@
+{
+  "dataset": "synthetic_spiky",
+  "interval_minutes": 10,
+  "n": 2016,
+  "train_end": 1209,
+  "val_end": 1612,
+  "fractions": [
+    0.6,
+    0.2,
+    0.2
+  ],
+  "processed_sha256": "99eef263c8a187e7"
+}
