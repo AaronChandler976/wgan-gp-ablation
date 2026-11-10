@@ -174,7 +174,13 @@ Change these in the YAML files, commit, and only then start planned runs.
 Paper-versus-code differences and our choices are in
 [`docs/REPLICATION_NOTES.md`](docs/REPLICATION_NOTES.md).
 
-## Optional tooling
+## Optional tooling (this branch: `tools/hpc-launcher`)
 
-The branch `tools/hpc-launcher` adds a timing benchmark (`python -m cwp.bench`), Slurm scripts
-for the SJSU HPC, and an interactive launcher (`python -m cwp.launch`).
+```bash
+python -m cwp.bench        # how long a run and the remaining plan take on this machine
+python -m cwp.launch       # pick the next runs, then train here or submit to the HPC
+```
+
+Slurm scripts for the SJSU HPC are in [`scripts/hpc/`](scripts/hpc/README.md): set up the
+environment, check free GPU nodes, submit runs as a job array, and push results.
+They were tested against a fake Slurm only, not on the cluster.
