@@ -2,6 +2,8 @@
 
     python -m cwp.tune --dataset google --interval 10 --arch lstm --critic none --optimizer adam
     python -m cwp.tune --plan        # every dataset x configuration in the plan that is not tuned yet
+    python -m cwp.tune --plan --only-dataset google --only-arch lstm   # one slice, so several
+                                     # terminals can tune different slices on one GPU at once
 
 The grid is in configs/tuning.yaml: a shared part (`grid`) plus a part per architecture
 (`arch_grid`), with the same number of trials for each architecture. The setting with the lowest
@@ -27,25 +29,28 @@ def tune(spec: RunSpec, device, epochs: int | None = None) -> dict:
     t = config.load_yaml("configs", "tuning.yaml")
     config.check_equal_tuning_budget(t)
     settings = config.tuning_settings(spec.arch, t)
+    fixed = config.tuning_fixed(t)            # tuning-only settings, not saved as tuned overrides
     custom_epochs = epochs is not None and epochs != t["epochs"]
     epochs = epochs or t["epochs"]
     trials = []
     for i, setting in enumerate(settings, 1):
         print(f"  [{i}/{len(settings)}]", end="", flush=True)
         overrides = {k: v for k, v in setting.items() if k != "lr"}
-        cfg, _ = config.resolve_config(spec, {**overrides, "train.epochs": epochs},
+        cfg, _ = config.resolve_config(spec, {**fixed, **overrides, "train.epochs": epochs},
                                        lr=setting.get("lr"), use_tuned=False)
         out = fit(spec, cfg, device, log=lambda *_: None)
         val = min(h["val_mape"] for h in out["history"])
-        trials.append({"setting": setting, "val_mape": val})
-        print(f"  {setting}  ->  val MAPE {val:.3f}%", flush=True)
+        trials.append({"setting": setting, "val_mape": val, "best_epoch": out["selected_epoch"],
+                       "epochs_run": out["epochs_run"]})
+        print(f"  {setting}  ->  val MAPE {val:.3f}% (best epoch {out['selected_epoch']}, "
+              f"ran {out['epochs_run']})", flush=True)
     best = min(trials, key=lambda r: r["val_mape"])
     tuned = {"lr": best["setting"].get("lr"),
              "overrides": {k: v for k, v in best["setting"].items() if k != "lr"},
              "val_mape": round(best["val_mape"], 4), "epochs": epochs,
              # a run with --epochs different from tuning.yaml never counts as current
              "grid_id": None if custom_epochs else config.tuning_grid_id(spec.arch, t),
-             "grid": config.tuning_grid(spec.arch, t), "trials": trials,
+             "grid": config.tuning_grid(spec.arch, t), "fixed": fixed, "trials": trials,
              "tuned_by": config.owner(), "date": date.today().isoformat()}
     p = config.tuned_path(spec)
     p.parent.mkdir(parents=True, exist_ok=True)
@@ -63,6 +68,8 @@ def main(argv=None) -> None:
     ap.add_argument("--critic", choices=CRITICS)
     ap.add_argument("--optimizer", choices=OPTIMIZERS)
     ap.add_argument("--epochs", type=int, help="override the epochs in configs/tuning.yaml")
+    ap.add_argument("--only-dataset", help="with --plan: only this dataset (to run several tunes at once)")
+    ap.add_argument("--only-arch", choices=ARCHS, help="with --plan: only this architecture")
     ap.add_argument("--device", default="auto")
     a = ap.parse_args(argv)
     seed = runs.plan()["tuning_seed"]
@@ -75,6 +82,10 @@ def main(argv=None) -> None:
                             RunSpec(s.dataset, s.interval, s.arch, s.critic, s.optimizer, seed))
         specs = []
         for s in seen.values():
+            if a.only_dataset and s.dataset != a.only_dataset:
+                continue
+            if a.only_arch and s.arch != a.only_arch:
+                continue
             if config.tuned_is_current(s):
                 continue
             if config.tuned_path(s).exists():

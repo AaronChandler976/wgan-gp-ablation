@@ -23,7 +23,7 @@ at commit `d9519dc` (the released code); Jayakumar et al., IPDPS 2020 (LoadDynam
 | MADGRAD | momentum 0.9, weight decay 0, eps 1e-6 | Library defaults (the same values) | Same |
 | Adam (for the Adam comparison) | beta1 = 0, beta2 = 0.9, lr = 0.0001 | Not in the repo | Same, when the critic is on (`optim.adam_with_critic`) |
 | Epochs | 1,000 | 1,000 | 1,000 |
-| Hyperparameter search | Grid over history length, batch size, `d_model` and heads (Table 2) | None: one setting per run, and `d_model` is set to the history length rounded to even | Learning rate, history length, `d_model` (32, 128), heads (4, 8): 36 trials, the same number every LSTM configuration gets |
+| Hyperparameter search | Grid over history length, batch size, `d_model` and heads (Table 2) | None: one setting per run, and `d_model` is set to the history length rounded to even | Learning rate (0.00001-0.0003), history length (48, 96), `d_model` (16-128), 8 heads: 32 trials of up to 1,000 epochs with early stopping, the same number every LSTM configuration gets |
 | Split | First 60% / next 20% / last 20% | Same | Same |
 | Scaling | Not stated | Min-max to (-1, 1), fitted **separately on train, validation and test** | Min-max to (-1, 1), fitted on the training part only |
 | Windows | Sliding, stride 1 | Built inside each part, so the first `n` points of validation and test are never predicted | Validation and test windows may use earlier points as history, so every point is predicted |
@@ -47,7 +47,7 @@ Two of these change results on purpose and are worth saying in the report:
 | Loss | Mean squared error | L1 by default for **every** configuration, so the loss is not a fourth difference. `train.loss=mse` gives the LoadDynamics loss. |
 | Optimizer | Adam | `--optimizer adam` (or `madgrad` for the ablation) |
 | Tuned settings | History length, cell size, layers, batch size | Same knobs: `data.window`, `model.lstm.hidden`, `model.lstm.layers`, `train.batch_size` |
-| Search | Bayesian optimization, 100 iterations. The WGAN-gp paper used the "brute force" version, with LoadDynamics' published settings where available and a grid search otherwise. | A grid (`configs/tuning.yaml`): learning rate and history length, plus cell size (16, 64) and layers (1, 2). 36 trials, the same number every Transformer configuration gets |
+| Search | Bayesian optimization, 100 iterations. The WGAN-gp paper used the "brute force" version, with LoadDynamics' published settings where available and a grid search otherwise. | A grid (`configs/tuning.yaml`): learning rate (0.001-0.03), history length (48, 96), cell size (16, 64) and layers (1, 2). 32 trials of up to 1,000 epochs with early stopping, the same number every Transformer configuration gets |
 | Learning rate, epochs, scaling | Not stated | Same as the other configurations |
 | Framework | TensorFlow 1 | PyTorch |
 
