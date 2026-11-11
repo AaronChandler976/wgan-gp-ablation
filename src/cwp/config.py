@@ -130,13 +130,20 @@ def tuning_settings(arch: str, t: dict | None = None) -> list[dict]:
     return [dict(zip(keys, values)) for values in itertools.product(*(grid[k] for k in keys))]
 
 
+def tuning_fixed(t: dict | None = None) -> dict:
+    """Settings used only while tuning (for example early stopping). Never copied into tuned files."""
+    t = load_yaml("configs", "tuning.yaml") if t is None else t
+    return dict(t.get("fixed") or {})
+
+
 def tuning_grid_id(arch: str, t: dict | None = None) -> str:
     """Short fingerprint of this architecture's grid and tuning epochs.
 
     Stored in every tuned file. If configs/tuning.yaml changes, old tuned files no longer match,
     so `tune --plan` re-tunes them and `train` refuses to use them."""
     t = load_yaml("configs", "tuning.yaml") if t is None else t
-    blob = json.dumps({"epochs": t.get("epochs"), "grid": tuning_grid(arch, t)}, sort_keys=True)
+    blob = json.dumps({"epochs": t.get("epochs"), "grid": tuning_grid(arch, t),
+                       "fixed": tuning_fixed(t)}, sort_keys=True)
     return hashlib.sha1(blob.encode()).hexdigest()[:10]
 
 

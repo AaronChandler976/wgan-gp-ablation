@@ -1,24 +1,34 @@
 # Hyperparameter search used by `python -m cwp.tune`.
 #
-# Each configuration is tuned over `grid` (shared by everyone) plus the `arch_grid` part for its
-# architecture. Both architectures must end up with the same number of trials (the tool checks),
-# so neither model wins because it was tuned harder. The critic and the optimizer are not
-# separate grids: a configuration with the critic or with MADGRAD gets its architecture's grid.
+# Each configuration is tuned over `grid` (shared) plus its architecture's `arch_grid` part.
+# Both architectures get the same number of trials (the tool checks), so neither model wins
+# because it was tuned harder. The critic and optimizer use their architecture's grid.
+# The best setting (lowest validation MAPE) is written to configs/tuned/ and used by
+# `python -m cwp.train`. Changing anything here makes old tuned files stale: `tune --plan`
+# re-tunes them and `train` refuses them.
 #
-# The best setting (lowest validation MAPE) is written to configs/tuned/ and picked up by
-# `python -m cwp.train` automatically. Changing anything here makes the old tuned files stale:
-# `tune --plan` re-tunes them and `train` refuses to use them.
+# Round 1 (shared lr 0.0001-0.01, 200 epochs) picked the top lr for every LSTM and the bottom lr
+# for every Transformer, never picked history 24, and picked Transformer width 32 (the lowest)
+# in 4 of 5 configurations. Round 2 therefore:
+#   - gives each architecture its own learning-rate range, extended past those edges,
+#   - drops history 24 and adds Transformer width 16,
+#   - trains each trial for up to the full 1,000 epochs with early stopping (tuning only),
+#     so short tuning runs no longer favor fast learning rates.
 
-epochs: 200               # shorter than a full run
+epochs: 1000              # same horizon as a full run
+
+fixed:                    # used while tuning only; never copied into the tuned files
+  train.patience: 150     # stop a trial after 150 epochs without validation improvement
 
 grid:                     # every configuration
-  lr: [0.0001, 0.001, 0.01]     # applied to the chosen optimizer
-  data.window: [24, 48, 96]     # history length
+  data.window: [48, 96]   # history length
 
-arch_grid:                # 2 x 2 = 4 extra combinations each -> 36 trials per configuration
+arch_grid:                # 4 x 2 x 2 = 16 per architecture -> 32 trials per configuration
   lstm:                   # what LoadDynamics tunes (its Table IV: cell size 8-99, 1-4 layers)
+    lr: [0.001, 0.003, 0.01, 0.03]
     model.lstm.hidden: [16, 64]
     model.lstm.layers: [1, 2]
   transformer:            # what the WGAN-gp paper tunes (its Table 2: d_model 8-512, 4 or 8 heads)
-    model.transformer.d_model: [32, 128]
-    model.transformer.nhead: [4, 8]
+    lr: [0.00001, 0.00003, 0.0001, 0.0003]
+    model.transformer.d_model: [16, 32, 64, 128]
+    model.transformer.nhead: [8]          # won in 4 of 5 configurations in round 1

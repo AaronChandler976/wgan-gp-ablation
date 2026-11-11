@@ -2,7 +2,7 @@
 # `python -m cwp.runs status` compares this plan with what is finished or claimed.
 # Adding seeds, datasets or configurations later only adds runs. Finished runs stay valid.
 
-seeds: [1, 2, 3]          # evaluation seeds. Add 4 and 5 for the 5-seed option.
+seeds: [1, 2, 3, 4, 5]    # evaluation seeds
 tuning_seed: 0            # used only by `python -m cwp.tune`, never for reported results
 
 datasets:
@@ -12,7 +12,7 @@ datasets:
   # - {dataset: azure_functions, interval: 10}
 
 # Which of the 8 configurations to run. Pick one design name from `designs` below.
-design: proposal
+design: full              # all 8 configurations
 
 designs:
   one_chain:              # 4 runs: optimizer -> architecture -> critic

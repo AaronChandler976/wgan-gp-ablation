@@ -123,14 +123,21 @@ Inference time depends on the machine. Use `timing` on **one** machine for the s
 ## Tuning
 
 ```bash
-python -m cwp.tune --plan                 # same budget for every configuration (36 trials each)
+python -m cwp.tune --plan                 # same budget for every configuration (32 trials each)
+python -m cwp.tune --plan --only-dataset google --only-arch lstm   # one slice; run several at once
 ```
 
-The grid is in [`configs/tuning.yaml`](configs/tuning.yaml): learning rate and history length
-for every configuration, plus cell size and layers for the LSTM (what LoadDynamics tunes) and
-width and attention heads for the Transformer (what the WGAN-gp paper tunes). Each
-configuration gets the same 36 trials of 200 epochs; the tool refuses a grid that would tune
-one architecture harder than the other.
+The grid is in [`configs/tuning.yaml`](configs/tuning.yaml): history length for every
+configuration, plus a learning rate range, cell size and layers for the LSTM (what LoadDynamics
+tunes) and a learning rate range and width for the Transformer (what the WGAN-gp paper tunes).
+Each configuration gets the same 32 trials. Each trial trains for up to the full 1,000 epochs
+and stops after 150 epochs without validation improvement; that early stopping applies to
+tuning only, not to the planned runs. The tool refuses a grid that would tune one architecture
+harder than the other. `tuning.yaml` explains why the ranges are where they are (round 1 picked
+the edges of a smaller grid).
+
+The models are small, so several tunes can share one GPU: run `--plan` with `--only-dataset`
+and `--only-arch` in separate terminals, one slice each.
 
 The best setting per dataset and configuration is saved in `configs/tuned/` and used by
 `train` automatically. Tuning uses its own seed and the validation part only. Each tuned file

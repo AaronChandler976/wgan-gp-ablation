@@ -27,7 +27,8 @@ def test_unequal_budget_is_refused():
 
 def test_shipped_grid_is_equal_and_valid(repo):
     n = config.check_equal_tuning_budget()
-    assert n == 36
+    assert n == 32
+    assert 'train.patience' in config.tuning_fixed()
     for arch in config.ARCHS:                        # every key must be a real config key
         for setting in config.tuning_settings(arch):
             config.apply_overrides(config.default_config(),
@@ -54,3 +55,9 @@ def test_stale_tuned_file_is_not_current_and_train_refuses_it(repo):
     assert config.tuned_is_current(spec)
     cfg, used = config.resolve_config(spec)
     assert used and cfg["data"]["window"] == 24
+
+
+def test_fixed_settings_change_the_grid_id():
+    with_fixed = {**GRID, "fixed": {"train.patience": 50}}
+    assert config.tuning_fixed(with_fixed) == {"train.patience": 50}
+    assert config.tuning_grid_id("lstm", GRID) != config.tuning_grid_id("lstm", with_fixed)

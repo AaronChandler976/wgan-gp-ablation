@@ -9,7 +9,8 @@ from conftest import TINY
 
 def test_tune_writes_the_best_setting_and_train_picks_it_up(repo):
     (repo / "configs" / "tuning.yaml").write_text(yaml.safe_dump(
-        {"epochs": 2, "grid": {"lr": [0.001, 0.01], "data.window": [8, 12]}}))
+        {"epochs": 2, "fixed": {"train.patience": 50},
+         "grid": {"lr": [0.001, 0.01], "data.window": [8, 12]}}))
     d = repo / "configs" / "default.yaml"
     d.write_text(yaml.safe_dump(config.apply_overrides(config.default_config(), TINY)))
 
@@ -22,5 +23,7 @@ def test_tune_writes_the_best_setting_and_train_picks_it_up(repo):
     cfg, used = config.resolve_config(planned)
     assert used and cfg["optim"]["madgrad"]["lr"] == tuned["lr"]
     assert cfg["data"]["window"] == tuned["overrides"]["data.window"]
+    assert cfg["train"]["patience"] == 0                   # tuning-only settings stay out of runs
+    assert all("best_epoch" in t and "epochs_run" in t for t in tuned["trials"])
     other = RunSpec("synthetic_seasonal", 10, "lstm", "none", "adam", 1)
     assert not config.resolve_config(other)[1]            # tuned settings are per configuration
