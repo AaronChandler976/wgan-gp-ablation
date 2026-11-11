@@ -111,7 +111,14 @@ python -m cwp.evaluate baselines          # naive, seasonal naive, moving averag
 python -m cwp.evaluate compare            # -> results/summary/summary.md
 python -m cwp.evaluate dm RUN_A RUN_B     # Diebold-Mariano test on two runs' test predictions
 python -m cwp.evaluate timing             # re-time all local checkpoints on this machine
+python -m cwp.timing_sweep                # inference time vs history length (fused vs step-by-step LSTM)
 ```
+
+`timing_sweep` tests why the paper's LSTM baseline was slow. It times untrained models
+(speed does not depend on the weights) at history lengths 24 to 672: a fused LSTM (one cuDNN
+kernel on a GPU), the same LSTM with cuDNN off, the same LSTM run one time step at a time,
+and the Transformer generator. Run it once with the GPU and once with `--device cpu`; results
+go to `results/summary/timing_sweep_<device>.md`.
 
 `compare` reports mean ± standard deviation over seeds for MAPE, MAE, RMSE and MASE, the
 baselines on the same test points, and the paper's Table 3 values. It then tests every pair of

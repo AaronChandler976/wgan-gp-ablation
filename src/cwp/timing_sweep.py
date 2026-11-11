@@ -1,0 +1,139 @@
+"""Inference time against history length: why did the paper's LSTM look slow?
+
+    python -m cwp.timing_sweep                    # this machine's GPU (or CPU if there is none)
+    python -m cwp.timing_sweep --device cpu
+    python -m cwp.timing_sweep --lengths 24 48 96 --reps 100
+
+The paper reports 25.57 ms per prediction for its LSTM baseline and 4.85 ms for the WGAN-gp
+Transformer. In this repo (same framework, same machine) the LSTM is faster. This sweep tests
+the likely explanation: an LSTM is only slow when it runs one time step after another as
+separate operations (no fused kernel) and the history is long.
+
+Speed does not depend on the learned weights, so the models are untrained. For each history
+length it times one prediction (batch of 1, median of `reps`) for:
+
+  lstm fused        nn.LSTM; on a GPU PyTorch runs the whole loop in one cuDNN kernel
+  lstm cudnn off    nn.LSTM with cuDNN disabled (GPU only): PyTorch's own step loop
+  lstm step loop    LSTMCell called once per time step from Python, like a plain loop in
+                    a framework without a fused kernel
+  transformer       the generator used in the experiments (1 encoder + 1 decoder layer)
+
+LSTM sizes cover the tuned range (16 cells x 1 layer, 64 cells x 2 layers); Transformer
+widths cover 32 and 128 with 8 heads and the 2,048-unit feed-forward layer, as in the runs.
+Results go to results/summary/timing_sweep_<device>.csv and .md.
+"""
+from __future__ import annotations
+
+import argparse
+import contextlib
+import platform
+import sys
+
+import pandas as pd
+import torch
+from torch import nn
+
+from . import config
+from .models import LSTMForecaster, TransformerForecaster
+from .train import pick_device, time_inference
+
+LENGTHS = [24, 48, 96, 192, 384, 672]          # 672 ~ the paper's longest Google history (676)
+
+
+class LSTMStepLoop(nn.Module):
+    """The same LSTM computation, one time step at a time with separate LSTMCell calls."""
+
+    def __init__(self, hidden: int, layers: int):
+        super().__init__()
+        self.cells = nn.ModuleList(nn.LSTMCell(1 if i == 0 else hidden, hidden) for i in range(layers))
+        self.out = nn.Linear(hidden, 1)
+
+    @classmethod
+    def from_lstm(cls, m: LSTMForecaster) -> "LSTMStepLoop":
+        """Copy the weights of an LSTMForecaster, so both give the same output."""
+        lstm = m.lstm
+        loop = cls(lstm.hidden_size, lstm.num_layers)
+        for i, cell in enumerate(loop.cells):
+            for name in ("weight_ih", "weight_hh", "bias_ih", "bias_hh"):
+                getattr(cell, name).data.copy_(getattr(lstm, f"{name}_l{i}").data)
+        loop.out.load_state_dict(m.out.state_dict())
+        return loop
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:          # x: [batch, window]
+        b = x.size(0)
+        state = [(x.new_zeros(b, c.hidden_size), x.new_zeros(b, c.hidden_size)) for c in self.cells]
+        for t in range(x.size(1)):
+            inp = x[:, t:t + 1]
+            for i, cell in enumerate(self.cells):
+                state[i] = cell(inp, state[i])
+                inp = state[i][0]
+        return self.out(inp).squeeze(-1)
+
+
+def variants(device: torch.device):
+    """(family, label, model, context) for every model to time."""
+    out = []
+    for hidden, layers in [(16, 1), (64, 2)]:
+        fused = LSTMForecaster(hidden=hidden, layers=layers)
+        size = f"{hidden} cells x {layers} layer{'s' if layers > 1 else ''}"
+        out.append(("lstm fused", size, fused, contextlib.nullcontext))
+        if device.type == "cuda":
+            out.append(("lstm cudnn off", size, fused,
+                        lambda: torch.backends.cudnn.flags(enabled=False)))
+        out.append(("lstm step loop", size, LSTMStepLoop.from_lstm(fused), contextlib.nullcontext))
+    for d_model in (32, 128):
+        out.append(("transformer", f"width {d_model}, 8 heads",
+                    TransformerForecaster(d_model=d_model, nhead=8, dropout=0.0),
+                    contextlib.nullcontext))
+    return out
+
+
+def sweep(device: torch.device, lengths, reps: int, log=print) -> pd.DataFrame:
+    torch.manual_seed(0)
+    rows = []
+    for family, size, model, ctx in variants(device):
+        model = model.to(device).eval()
+        for n in lengths:
+            X = torch.rand(8, n, device=device)
+            with ctx():
+                ms = time_inference(model, X, reps)
+            rows.append({"family": family, "size": size, "history": n, "ms": round(ms, 4)})
+            log(f"  {family:15s} {size:22s} history {n:4d}  {ms:8.3f} ms")
+    return pd.DataFrame(rows)
+
+
+def to_markdown(df: pd.DataFrame, device_label: str) -> str:
+    wide = df.pivot_table(index=["family", "size"], columns="history", values="ms", sort=False)
+    lines = [f"# Inference time against history length ({device_label})", "",
+             "Milliseconds per prediction (batch of 1, median). Untrained models: speed does not "
+             "depend on the weights. Generated by `python -m cwp.timing_sweep`.", "",
+             "| model | size | " + " | ".join(str(c) for c in wide.columns) + " |",
+             "| --- | --- | " + " | ".join("---" for _ in wide.columns) + " |"]
+    for (family, size), row in wide.iterrows():
+        lines.append(f"| {family} | {size} | " + " | ".join(f"{v:.3f}" for v in row.values) + " |")
+    return "\n".join(lines) + "\n"
+
+
+def main(argv=None) -> None:
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--device", default="auto")
+    ap.add_argument("--lengths", type=int, nargs="+", default=LENGTHS)
+    ap.add_argument("--reps", type=int, default=200)
+    a = ap.parse_args(argv)
+
+    device = pick_device(a.device)
+    name = torch.cuda.get_device_name(device) if device.type == "cuda" else platform.processor() or "CPU"
+    label = f"{device.type}: {name}, torch {torch.__version__}, {torch.get_num_threads()} CPU threads"
+    print(f"Timing on {label}")
+    df = sweep(device, a.lengths, a.reps)
+    df["device"] = device.type
+    out = config.path("results", "summary", f"timing_sweep_{device.type}")
+    out.parent.mkdir(parents=True, exist_ok=True)
+    df.to_csv(out.with_suffix(".csv"), index=False)
+    out.with_suffix(".md").write_text(to_markdown(df, label))
+    print("\n" + to_markdown(df, label))
+    print(f"saved to {out.with_suffix('.csv')} and .md")
+
+
+if __name__ == "__main__":
+    sys.exit(main())
