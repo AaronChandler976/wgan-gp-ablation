@@ -4,239 +4,281 @@ overrides:
   model.lstm.hidden: 16
   model.lstm.layers: 1
 val_mape: 19.2432
-epochs: 200
-grid_id: 80b551a60a
+epochs: 1000
+grid_id: 43135572d6
 grid:
-  lr:
-  - 0.0001
-  - 0.001
-  - 0.01
   data.window:
-  - 24
   - 48
   - 96
+  lr:
+  - 0.001
+  - 0.003
+  - 0.01
+  - 0.03
   model.lstm.hidden:
   - 16
   - 64
   model.lstm.layers:
   - 1
   - 2
+fixed:
+  train.patience: 150
 trials:
 - setting:
-    lr: 0.0001
-    data.window: 24
-    model.lstm.hidden: 16
-    model.lstm.layers: 1
-  val_mape: 20.85846814960978
-- setting:
-    lr: 0.0001
-    data.window: 24
-    model.lstm.hidden: 16
-    model.lstm.layers: 2
-  val_mape: 20.662280690705924
-- setting:
-    lr: 0.0001
-    data.window: 24
-    model.lstm.hidden: 64
-    model.lstm.layers: 1
-  val_mape: 20.758119637885528
-- setting:
-    lr: 0.0001
-    data.window: 24
-    model.lstm.hidden: 64
-    model.lstm.layers: 2
-  val_mape: 20.56553216807033
-- setting:
-    lr: 0.0001
     data.window: 48
+    lr: 0.001
     model.lstm.hidden: 16
     model.lstm.layers: 1
-  val_mape: 20.955285020506587
+  val_mape: 20.06051738329836
+  best_epoch: 290
+  epochs_run: 440
 - setting:
-    lr: 0.0001
     data.window: 48
-    model.lstm.hidden: 16
-    model.lstm.layers: 2
-  val_mape: 20.602100644423206
-- setting:
-    lr: 0.0001
-    data.window: 48
-    model.lstm.hidden: 64
-    model.lstm.layers: 1
-  val_mape: 20.66729120712663
-- setting:
-    lr: 0.0001
-    data.window: 48
-    model.lstm.hidden: 64
-    model.lstm.layers: 2
-  val_mape: 20.458929357644777
-- setting:
-    lr: 0.0001
-    data.window: 96
-    model.lstm.hidden: 16
-    model.lstm.layers: 1
-  val_mape: 20.991771723720227
-- setting:
-    lr: 0.0001
-    data.window: 96
-    model.lstm.hidden: 16
-    model.lstm.layers: 2
-  val_mape: 20.792634245362876
-- setting:
-    lr: 0.0001
-    data.window: 96
-    model.lstm.hidden: 64
-    model.lstm.layers: 1
-  val_mape: 20.82872743223816
-- setting:
-    lr: 0.0001
-    data.window: 96
-    model.lstm.hidden: 64
-    model.lstm.layers: 2
-  val_mape: 20.55767093831304
-- setting:
     lr: 0.001
-    data.window: 24
-    model.lstm.hidden: 16
-    model.lstm.layers: 1
-  val_mape: 20.090957931247814
-- setting:
-    lr: 0.001
-    data.window: 24
-    model.lstm.hidden: 16
-    model.lstm.layers: 2
-  val_mape: 20.052075042486
-- setting:
-    lr: 0.001
-    data.window: 24
-    model.lstm.hidden: 64
-    model.lstm.layers: 1
-  val_mape: 20.14184253055102
-- setting:
-    lr: 0.001
-    data.window: 24
-    model.lstm.hidden: 64
-    model.lstm.layers: 2
-  val_mape: 20.046319188444087
-- setting:
-    lr: 0.001
-    data.window: 48
-    model.lstm.hidden: 16
-    model.lstm.layers: 1
-  val_mape: 20.079490746398477
-- setting:
-    lr: 0.001
-    data.window: 48
     model.lstm.hidden: 16
     model.lstm.layers: 2
   val_mape: 20.048310167698986
+  best_epoch: 200
+  epochs_run: 350
 - setting:
-    lr: 0.001
     data.window: 48
+    lr: 0.001
     model.lstm.hidden: 64
     model.lstm.layers: 1
-  val_mape: 20.192423937669357
+  val_mape: 19.680496617758813
+  best_epoch: 310
+  epochs_run: 460
 - setting:
-    lr: 0.001
     data.window: 48
-    model.lstm.hidden: 64
-    model.lstm.layers: 2
-  val_mape: 19.825620129854904
-- setting:
     lr: 0.001
-    data.window: 96
-    model.lstm.hidden: 16
-    model.lstm.layers: 1
-  val_mape: 20.042237330896384
-- setting:
-    lr: 0.001
-    data.window: 96
-    model.lstm.hidden: 16
-    model.lstm.layers: 2
-  val_mape: 20.004196846517857
-- setting:
-    lr: 0.001
-    data.window: 96
-    model.lstm.hidden: 64
-    model.lstm.layers: 1
-  val_mape: 20.125525653345886
-- setting:
-    lr: 0.001
-    data.window: 96
     model.lstm.hidden: 64
     model.lstm.layers: 2
-  val_mape: 19.705934424801733
+  val_mape: 19.574699894944054
+  best_epoch: 240
+  epochs_run: 390
 - setting:
-    lr: 0.01
-    data.window: 24
-    model.lstm.hidden: 16
-    model.lstm.layers: 1
-  val_mape: 19.290640919340053
-- setting:
-    lr: 0.01
-    data.window: 24
-    model.lstm.hidden: 16
-    model.lstm.layers: 2
-  val_mape: 20.01985226230118
-- setting:
-    lr: 0.01
-    data.window: 24
-    model.lstm.hidden: 64
-    model.lstm.layers: 1
-  val_mape: 19.299357303775658
-- setting:
-    lr: 0.01
-    data.window: 24
-    model.lstm.hidden: 64
-    model.lstm.layers: 2
-  val_mape: 19.816481328087303
-- setting:
-    lr: 0.01
     data.window: 48
+    lr: 0.003
+    model.lstm.hidden: 16
+    model.lstm.layers: 1
+  val_mape: 19.67388971135242
+  best_epoch: 380
+  epochs_run: 530
+- setting:
+    data.window: 48
+    lr: 0.003
+    model.lstm.hidden: 16
+    model.lstm.layers: 2
+  val_mape: 19.865278909854986
+  best_epoch: 160
+  epochs_run: 310
+- setting:
+    data.window: 48
+    lr: 0.003
+    model.lstm.hidden: 64
+    model.lstm.layers: 1
+  val_mape: 19.410835493814087
+  best_epoch: 160
+  epochs_run: 310
+- setting:
+    data.window: 48
+    lr: 0.003
+    model.lstm.hidden: 64
+    model.lstm.layers: 2
+  val_mape: 19.48248113255609
+  best_epoch: 160
+  epochs_run: 310
+- setting:
+    data.window: 48
+    lr: 0.01
     model.lstm.hidden: 16
     model.lstm.layers: 1
   val_mape: 19.243212386901778
+  best_epoch: 190
+  epochs_run: 340
 - setting:
-    lr: 0.01
     data.window: 48
+    lr: 0.01
     model.lstm.hidden: 16
     model.lstm.layers: 2
   val_mape: 20.005492546439573
+  best_epoch: 40
+  epochs_run: 190
 - setting:
-    lr: 0.01
     data.window: 48
+    lr: 0.01
     model.lstm.hidden: 64
     model.lstm.layers: 1
   val_mape: 19.564681661887803
+  best_epoch: 150
+  epochs_run: 300
 - setting:
-    lr: 0.01
     data.window: 48
+    lr: 0.01
     model.lstm.hidden: 64
     model.lstm.layers: 2
   val_mape: 19.696338952332443
+  best_epoch: 60
+  epochs_run: 210
 - setting:
-    lr: 0.01
+    data.window: 48
+    lr: 0.03
+    model.lstm.hidden: 16
+    model.lstm.layers: 1
+  val_mape: 19.888448451271074
+  best_epoch: 60
+  epochs_run: 210
+- setting:
+    data.window: 48
+    lr: 0.03
+    model.lstm.hidden: 16
+    model.lstm.layers: 2
+  val_mape: 20.072795538012535
+  best_epoch: 70
+  epochs_run: 220
+- setting:
+    data.window: 48
+    lr: 0.03
+    model.lstm.hidden: 64
+    model.lstm.layers: 1
+  val_mape: 19.899833452585543
+  best_epoch: 100
+  epochs_run: 250
+- setting:
+    data.window: 48
+    lr: 0.03
+    model.lstm.hidden: 64
+    model.lstm.layers: 2
+  val_mape: 19.989678158003915
+  best_epoch: 40
+  epochs_run: 190
+- setting:
     data.window: 96
+    lr: 0.001
+    model.lstm.hidden: 16
+    model.lstm.layers: 1
+  val_mape: 20.042237330896384
+  best_epoch: 200
+  epochs_run: 350
+- setting:
+    data.window: 96
+    lr: 0.001
+    model.lstm.hidden: 16
+    model.lstm.layers: 2
+  val_mape: 19.93152764152109
+  best_epoch: 340
+  epochs_run: 490
+- setting:
+    data.window: 96
+    lr: 0.001
+    model.lstm.hidden: 64
+    model.lstm.layers: 1
+  val_mape: 19.4382835024988
+  best_epoch: 350
+  epochs_run: 500
+- setting:
+    data.window: 96
+    lr: 0.001
+    model.lstm.hidden: 64
+    model.lstm.layers: 2
+  val_mape: 19.705934424801733
+  best_epoch: 200
+  epochs_run: 350
+- setting:
+    data.window: 96
+    lr: 0.003
+    model.lstm.hidden: 16
+    model.lstm.layers: 1
+  val_mape: 19.6921360565124
+  best_epoch: 250
+  epochs_run: 400
+- setting:
+    data.window: 96
+    lr: 0.003
+    model.lstm.hidden: 16
+    model.lstm.layers: 2
+  val_mape: 20.034124999828602
+  best_epoch: 70
+  epochs_run: 220
+- setting:
+    data.window: 96
+    lr: 0.003
+    model.lstm.hidden: 64
+    model.lstm.layers: 1
+  val_mape: 20.070534317034177
+  best_epoch: 130
+  epochs_run: 280
+- setting:
+    data.window: 96
+    lr: 0.003
+    model.lstm.hidden: 64
+    model.lstm.layers: 2
+  val_mape: 19.701570644642473
+  best_epoch: 130
+  epochs_run: 280
+- setting:
+    data.window: 96
+    lr: 0.01
     model.lstm.hidden: 16
     model.lstm.layers: 1
   val_mape: 19.59053291474243
+  best_epoch: 120
+  epochs_run: 270
 - setting:
-    lr: 0.01
     data.window: 96
+    lr: 0.01
     model.lstm.hidden: 16
     model.lstm.layers: 2
   val_mape: 20.181825376262776
+  best_epoch: 90
+  epochs_run: 240
 - setting:
-    lr: 0.01
     data.window: 96
+    lr: 0.01
     model.lstm.hidden: 64
     model.lstm.layers: 1
   val_mape: 19.494380884765686
+  best_epoch: 100
+  epochs_run: 250
 - setting:
-    lr: 0.01
     data.window: 96
+    lr: 0.01
     model.lstm.hidden: 64
     model.lstm.layers: 2
   val_mape: 19.733698144867812
+  best_epoch: 80
+  epochs_run: 230
+- setting:
+    data.window: 96
+    lr: 0.03
+    model.lstm.hidden: 16
+    model.lstm.layers: 1
+  val_mape: 19.958564544802705
+  best_epoch: 70
+  epochs_run: 220
+- setting:
+    data.window: 96
+    lr: 0.03
+    model.lstm.hidden: 16
+    model.lstm.layers: 2
+  val_mape: 20.3897458595156
+  best_epoch: 70
+  epochs_run: 220
+- setting:
+    data.window: 96
+    lr: 0.03
+    model.lstm.hidden: 64
+    model.lstm.layers: 1
+  val_mape: 19.848552700000855
+  best_epoch: 80
+  epochs_run: 230
+- setting:
+    data.window: 96
+    lr: 0.03
+    model.lstm.hidden: 64
+    model.lstm.layers: 2
+  val_mape: 20.18176530084674
+  best_epoch: 70
+  epochs_run: 220
 tuned_by: AaronChandler976
 date: '2026-11-10'
