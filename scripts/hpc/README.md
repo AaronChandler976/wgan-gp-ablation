@@ -15,8 +15,8 @@ only, never on the cluster.** Run `check_slots.sh` first and fix the settings if
 
 ```bash
 ssh <sjsu-id>@coe-hpc1.sjsu.edu            # SJSU VPN on
-git clone https://github.com/AaronChandler976/cmpe252-wgan-ablation.git
-cd cmpe252-wgan-ablation && git checkout tools/hpc-launcher
+git clone https://github.com/AaronChandler976/wgan-gp-ablation.git
+cd wgan-gp-ablation && git checkout tools/hpc-launcher
 bash scripts/hpc/setup_env.sh
 bash scripts/hpc/check_slots.sh --gpu
 ```
