@@ -6,7 +6,7 @@ so the repo can be rebuilt or extended from one place.
 
 ---
 
-You are building the code repository for a three-person graduate course project (CMPE 252).
+You are building the code repository for a three-person graduate course project.
 The project is an **ablation study** of the WGAN-gp Transformer for cloud workload prediction
 (Arbat et al., AAAI 2022, https://github.com/shivaniarbat/wgan-gp-transformer), compared with
 the LoadDynamics LSTM (Jayakumar et al., IPDPS 2020). The research question is which of three

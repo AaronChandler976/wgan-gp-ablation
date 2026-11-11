@@ -1,4 +1,4 @@
-# CMPE 252: which part of the WGAN-gp Transformer helps?
+# Which part of the WGAN-gp Transformer helps?
 
 An ablation study of the WGAN-gp Transformer for cloud workload prediction
 ([Arbat et al., AAAI 2022](https://doi.org/10.1609/aaai.v36i11.21509)). The paper changes three
@@ -16,8 +16,8 @@ Team: Tung Nguyen, Angie Do, Aaron Chandler.
 ## Install
 
 ```bash
-git clone https://github.com/AaronChandler976/cmpe252-wgan-ablation.git
-cd cmpe252-wgan-ablation
+git clone https://github.com/AaronChandler976/wgan-gp-ablation.git
+cd wgan-gp-ablation
 conda env create -f environment.yml
 conda activate cwp
 pip install torch            # or the line for your GPU from the table below
