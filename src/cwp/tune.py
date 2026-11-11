@@ -3,14 +3,16 @@
     python -m cwp.tune --dataset google --interval 10 --arch lstm --critic none --optimizer adam
     python -m cwp.tune --plan        # every dataset x configuration in the plan that is not tuned yet
 
-The grid is in configs/tuning.yaml. The setting with the lowest validation MAPE is written to
-configs/tuned/<dataset>-<interval>m__<config>.yaml, and `python -m cwp.train` then uses it.
+The grid is in configs/tuning.yaml: a shared part (`grid`) plus a part per architecture
+(`arch_grid`), with the same number of trials for each architecture. The setting with the lowest
+validation MAPE is written to configs/tuned/<dataset>-<interval>m__<config>.yaml, and
+`python -m cwp.train` then uses it. Each tuned file records which grid made it; if the grid
+changes, `--plan` tunes that configuration again.
 Tuning uses its own seed (plan.yaml: tuning_seed), never an evaluation seed, and never the test set.
 """
 from __future__ import annotations
 
 import argparse
-import itertools
 import sys
 from datetime import date
 
@@ -23,11 +25,13 @@ from .train import fit, pick_device
 
 def tune(spec: RunSpec, device, epochs: int | None = None) -> dict:
     t = config.load_yaml("configs", "tuning.yaml")
+    config.check_equal_tuning_budget(t)
+    settings = config.tuning_settings(spec.arch, t)
+    custom_epochs = epochs is not None and epochs != t["epochs"]
     epochs = epochs or t["epochs"]
-    keys = list(t["grid"])
     trials = []
-    for values in itertools.product(*(t["grid"][k] for k in keys)):
-        setting = dict(zip(keys, values))
+    for i, setting in enumerate(settings, 1):
+        print(f"  [{i}/{len(settings)}]", end="", flush=True)
         overrides = {k: v for k, v in setting.items() if k != "lr"}
         cfg, _ = config.resolve_config(spec, {**overrides, "train.epochs": epochs},
                                        lr=setting.get("lr"), use_tuned=False)
@@ -38,7 +42,10 @@ def tune(spec: RunSpec, device, epochs: int | None = None) -> dict:
     best = min(trials, key=lambda r: r["val_mape"])
     tuned = {"lr": best["setting"].get("lr"),
              "overrides": {k: v for k, v in best["setting"].items() if k != "lr"},
-             "val_mape": round(best["val_mape"], 4), "epochs": epochs, "trials": trials,
+             "val_mape": round(best["val_mape"], 4), "epochs": epochs,
+             # a run with --epochs different from tuning.yaml never counts as current
+             "grid_id": None if custom_epochs else config.tuning_grid_id(spec.arch, t),
+             "grid": config.tuning_grid(spec.arch, t), "trials": trials,
              "tuned_by": config.owner(), "date": date.today().isoformat()}
     p = config.tuned_path(spec)
     p.parent.mkdir(parents=True, exist_ok=True)
@@ -49,7 +56,7 @@ def tune(spec: RunSpec, device, epochs: int | None = None) -> dict:
 
 def main(argv=None) -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--plan", action="store_true", help="tune everything in the plan that has no tuned file")
+    ap.add_argument("--plan", action="store_true", help="tune everything in the plan that has no current tuned file")
     ap.add_argument("--dataset")
     ap.add_argument("--interval", type=int)
     ap.add_argument("--arch", choices=ARCHS)
@@ -66,7 +73,16 @@ def main(argv=None) -> None:
         for s in runs.plan_specs():
             seen.setdefault((s.data_id, s.config_id),
                             RunSpec(s.dataset, s.interval, s.arch, s.critic, s.optimizer, seed))
-        specs = [s for s in seen.values() if not config.tuned_path(s).exists()]
+        specs = []
+        for s in seen.values():
+            if config.tuned_is_current(s):
+                continue
+            if config.tuned_path(s).exists():
+                print(f"{config.tuned_path(s).name}: made with an older grid, tuning again")
+            specs.append(s)
+        if specs:
+            n = config.check_equal_tuning_budget()
+            print(f"{len(specs)} configuration(s) to tune, {n} trials each")
     else:
         missing = [k for k in ("dataset", "interval", "arch", "critic", "optimizer") if getattr(a, k) is None]
         if missing:

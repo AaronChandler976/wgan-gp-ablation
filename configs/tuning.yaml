@@ -1,9 +1,24 @@
-# Hyperparameter search used by `python -m cwp.tune`. Every configuration gets the same grid
-# and the same budget, so no configuration wins because it was tuned harder.
+# Hyperparameter search used by `python -m cwp.tune`.
+#
+# Each configuration is tuned over `grid` (shared by everyone) plus the `arch_grid` part for its
+# architecture. Both architectures must end up with the same number of trials (the tool checks),
+# so neither model wins because it was tuned harder. The critic and the optimizer are not
+# separate grids: a configuration with the critic or with MADGRAD gets its architecture's grid.
+#
 # The best setting (lowest validation MAPE) is written to configs/tuned/ and picked up by
-# `python -m cwp.train` automatically.
+# `python -m cwp.train` automatically. Changing anything here makes the old tuned files stale:
+# `tune --plan` re-tunes them and `train` refuses to use them.
 
 epochs: 200               # shorter than a full run
-grid:
+
+grid:                     # every configuration
   lr: [0.0001, 0.001, 0.01]     # applied to the chosen optimizer
-  data.window: [24, 48, 96]
+  data.window: [24, 48, 96]     # history length
+
+arch_grid:                # 2 x 2 = 4 extra combinations each -> 36 trials per configuration
+  lstm:                   # what LoadDynamics tunes (its Table IV: cell size 8-99, 1-4 layers)
+    model.lstm.hidden: [16, 64]
+    model.lstm.layers: [1, 2]
+  transformer:            # what the WGAN-gp paper tunes (its Table 2: d_model 8-512, 4 or 8 heads)
+    model.transformer.d_model: [32, 128]
+    model.transformer.nhead: [4, 8]
