@@ -59,7 +59,7 @@ the MADGRAD optimizer.
 7. **Dataset metrics**, computed on the training part only: coefficient of variation, 99th
    percentile over median, kurtosis, autocorrelation at one day, seasonal strength, spectral
    entropy, share of near-zero intervals, and naive / seasonal-naive error.
-8. **Hyperparameter tuning** with the same small grid and budget for every configuration.
+8. **Hyperparameter tuning** with the same budget for every configuration: a shared grid (learning rate, history length) plus a per-architecture part (LSTM cell size and layers; Transformer width and heads) of equal size. Tuned files record a fingerprint of the grid, so a changed grid forces re-tuning.
 
 ## Optional tooling, on a separate branch (`tools/hpc-launcher`)
 

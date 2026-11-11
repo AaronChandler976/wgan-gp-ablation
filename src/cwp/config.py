@@ -2,6 +2,9 @@
 from __future__ import annotations
 
 import copy
+import hashlib
+import itertools
+import json
 import os
 import subprocess
 from dataclasses import dataclass
@@ -112,12 +115,59 @@ def tuned_path(spec: RunSpec) -> Path:
     return path("configs", "tuned", f"{spec.data_id}__{spec.config_id}.yaml")
 
 
+# --------------------------------------------------------------------------- tuning grid
+
+def tuning_grid(arch: str, t: dict | None = None) -> dict:
+    """The grid one architecture is tuned over: the shared `grid` plus its own `arch_grid` part."""
+    t = load_yaml("configs", "tuning.yaml") if t is None else t
+    return {**(t.get("grid") or {}), **((t.get("arch_grid") or {}).get(arch) or {})}
+
+
+def tuning_settings(arch: str, t: dict | None = None) -> list[dict]:
+    """Every combination in that grid, in a fixed order."""
+    grid = tuning_grid(arch, t)
+    keys = list(grid)
+    return [dict(zip(keys, values)) for values in itertools.product(*(grid[k] for k in keys))]
+
+
+def tuning_grid_id(arch: str, t: dict | None = None) -> str:
+    """Short fingerprint of this architecture's grid and tuning epochs.
+
+    Stored in every tuned file. If configs/tuning.yaml changes, old tuned files no longer match,
+    so `tune --plan` re-tunes them and `train` refuses to use them."""
+    t = load_yaml("configs", "tuning.yaml") if t is None else t
+    blob = json.dumps({"epochs": t.get("epochs"), "grid": tuning_grid(arch, t)}, sort_keys=True)
+    return hashlib.sha1(blob.encode()).hexdigest()[:10]
+
+
+def check_equal_tuning_budget(t: dict | None = None) -> int:
+    """Every architecture must get the same number of tuning trials. Returns that number."""
+    t = load_yaml("configs", "tuning.yaml") if t is None else t
+    counts = {arch: len(tuning_settings(arch, t)) for arch in ARCHS}
+    if len(set(counts.values())) != 1:
+        raise ValueError(f"configs/tuning.yaml gives the architectures different numbers of trials "
+                         f"{counts}. Make them equal so neither is tuned harder.")
+    return next(iter(counts.values()))
+
+
+def tuned_is_current(spec: RunSpec) -> bool:
+    """True if this configuration's tuned file exists and was made with the current grid."""
+    tp = tuned_path(spec)
+    if not tp.exists():
+        return False
+    tuned = yaml.safe_load(tp.read_text()) or {}
+    return tuned.get("grid_id") == tuning_grid_id(spec.arch)
+
+
 def resolve_config(spec: RunSpec, overrides=None, lr: float | None = None, use_tuned: bool = True):
     """Default config + tuned file (if any) + command-line overrides. Returns (cfg, tuned_used)."""
     cfg = default_config()
     tuned_used = False
     tp = tuned_path(spec)
     if use_tuned and tp.exists():
+        if not tuned_is_current(spec):
+            raise SystemExit(f"{tp.name} was tuned with an older configs/tuning.yaml. "
+                             f"Run `python -m cwp.tune --plan` again before training.")
         tuned = yaml.safe_load(tp.read_text()) or {}
         cfg = apply_overrides(cfg, tuned.get("overrides"))
         if lr is None and tuned.get("lr") is not None:

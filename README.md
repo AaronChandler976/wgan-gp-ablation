@@ -123,13 +123,20 @@ Inference time depends on the machine. Use `timing` on **one** machine for the s
 ## Tuning
 
 ```bash
-python -m cwp.tune --plan                 # same grid and budget for every configuration
+python -m cwp.tune --plan                 # same budget for every configuration (36 trials each)
 ```
 
-The grid is in [`configs/tuning.yaml`](configs/tuning.yaml). The best setting per dataset and
-configuration is saved in `configs/tuned/` and used by `train` automatically. Tuning uses its
-own seed and the validation part only. Commit `configs/tuned/` **before** anyone starts the
-planned runs, or runs will not be comparable.
+The grid is in [`configs/tuning.yaml`](configs/tuning.yaml): learning rate and history length
+for every configuration, plus cell size and layers for the LSTM (what LoadDynamics tunes) and
+width and attention heads for the Transformer (what the WGAN-gp paper tunes). Each
+configuration gets the same 36 trials of 200 epochs; the tool refuses a grid that would tune
+one architecture harder than the other.
+
+The best setting per dataset and configuration is saved in `configs/tuned/` and used by
+`train` automatically. Tuning uses its own seed and the validation part only. Each tuned file
+records the grid that made it: if `tuning.yaml` changes, `tune --plan` re-tunes that
+configuration and `train` refuses the old file. Commit `configs/tuned/` **before** anyone
+starts the planned runs, or runs will not be comparable.
 
 ## Checkpoints
 
