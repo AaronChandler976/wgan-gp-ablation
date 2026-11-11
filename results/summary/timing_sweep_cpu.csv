@@ -1,0 +1,37 @@
+family,size,history,ms,device
+lstm fused,16 cells x 1 layer,24,0.0844,cpu
+lstm fused,16 cells x 1 layer,48,0.1328,cpu
+lstm fused,16 cells x 1 layer,96,0.227,cpu
+lstm fused,16 cells x 1 layer,192,0.4175,cpu
+lstm fused,16 cells x 1 layer,384,0.7931,cpu
+lstm fused,16 cells x 1 layer,672,1.3629,cpu
+lstm step loop,16 cells x 1 layer,24,0.2527,cpu
+lstm step loop,16 cells x 1 layer,48,0.4787,cpu
+lstm step loop,16 cells x 1 layer,96,0.9478,cpu
+lstm step loop,16 cells x 1 layer,192,1.8888,cpu
+lstm step loop,16 cells x 1 layer,384,3.7745,cpu
+lstm step loop,16 cells x 1 layer,672,6.6114,cpu
+lstm fused,64 cells x 2 layers,24,0.173,cpu
+lstm fused,64 cells x 2 layers,48,0.2701,cpu
+lstm fused,64 cells x 2 layers,96,0.471,cpu
+lstm fused,64 cells x 2 layers,192,0.8663,cpu
+lstm fused,64 cells x 2 layers,384,1.6691,cpu
+lstm fused,64 cells x 2 layers,672,2.8513,cpu
+lstm step loop,64 cells x 2 layers,24,0.4972,cpu
+lstm step loop,64 cells x 2 layers,48,0.9832,cpu
+lstm step loop,64 cells x 2 layers,96,1.965,cpu
+lstm step loop,64 cells x 2 layers,192,3.9206,cpu
+lstm step loop,64 cells x 2 layers,384,7.8028,cpu
+lstm step loop,64 cells x 2 layers,672,13.6753,cpu
+transformer,"width 32, 8 heads",24,0.2445,cpu
+transformer,"width 32, 8 heads",48,0.2784,cpu
+transformer,"width 32, 8 heads",96,0.3648,cpu
+transformer,"width 32, 8 heads",192,0.5301,cpu
+transformer,"width 32, 8 heads",384,0.8332,cpu
+transformer,"width 32, 8 heads",672,1.3214,cpu
+transformer,"width 128, 8 heads",24,0.2992,cpu
+transformer,"width 128, 8 heads",48,0.3534,cpu
+transformer,"width 128, 8 heads",96,0.4671,cpu
+transformer,"width 128, 8 heads",192,0.6821,cpu
+transformer,"width 128, 8 heads",384,1.1604,cpu
+transformer,"width 128, 8 heads",672,1.7384,cpu

@@ -1,0 +1,49 @@
+family,size,history,ms,device
+lstm fused,16 cells x 1 layer,24,0.0431,cuda
+lstm fused,16 cells x 1 layer,48,0.0436,cuda
+lstm fused,16 cells x 1 layer,96,0.0536,cuda
+lstm fused,16 cells x 1 layer,192,0.0751,cuda
+lstm fused,16 cells x 1 layer,384,0.1181,cuda
+lstm fused,16 cells x 1 layer,672,0.1826,cuda
+lstm cudnn off,16 cells x 1 layer,24,0.3004,cuda
+lstm cudnn off,16 cells x 1 layer,48,0.5626,cuda
+lstm cudnn off,16 cells x 1 layer,96,1.0815,cuda
+lstm cudnn off,16 cells x 1 layer,192,2.1241,cuda
+lstm cudnn off,16 cells x 1 layer,384,4.2028,cuda
+lstm cudnn off,16 cells x 1 layer,672,7.3374,cuda
+lstm step loop,16 cells x 1 layer,24,0.3695,cuda
+lstm step loop,16 cells x 1 layer,48,0.7171,cuda
+lstm step loop,16 cells x 1 layer,96,1.4174,cuda
+lstm step loop,16 cells x 1 layer,192,2.8136,cuda
+lstm step loop,16 cells x 1 layer,384,5.6331,cuda
+lstm step loop,16 cells x 1 layer,672,9.8389,cuda
+lstm fused,64 cells x 2 layers,24,0.0691,cuda
+lstm fused,64 cells x 2 layers,48,0.0878,cuda
+lstm fused,64 cells x 2 layers,96,0.1267,cuda
+lstm fused,64 cells x 2 layers,192,0.2026,cuda
+lstm fused,64 cells x 2 layers,384,0.3529,cuda
+lstm fused,64 cells x 2 layers,672,0.5801,cuda
+lstm cudnn off,64 cells x 2 layers,24,0.573,cuda
+lstm cudnn off,64 cells x 2 layers,48,1.0903,cuda
+lstm cudnn off,64 cells x 2 layers,96,2.1363,cuda
+lstm cudnn off,64 cells x 2 layers,192,4.2096,cuda
+lstm cudnn off,64 cells x 2 layers,384,8.3718,cuda
+lstm cudnn off,64 cells x 2 layers,672,14.6212,cuda
+lstm step loop,64 cells x 2 layers,24,0.6968,cuda
+lstm step loop,64 cells x 2 layers,48,1.3624,cuda
+lstm step loop,64 cells x 2 layers,96,2.6932,cuda
+lstm step loop,64 cells x 2 layers,192,5.3565,cuda
+lstm step loop,64 cells x 2 layers,384,10.7628,cuda
+lstm step loop,64 cells x 2 layers,672,18.7645,cuda
+transformer,"width 32, 8 heads",24,0.2848,cuda
+transformer,"width 32, 8 heads",48,0.284,cuda
+transformer,"width 32, 8 heads",96,0.285,cuda
+transformer,"width 32, 8 heads",192,0.283,cuda
+transformer,"width 32, 8 heads",384,0.2857,cuda
+transformer,"width 32, 8 heads",672,0.2895,cuda
+transformer,"width 128, 8 heads",24,0.2607,cuda
+transformer,"width 128, 8 heads",48,0.2627,cuda
+transformer,"width 128, 8 heads",96,0.259,cuda
+transformer,"width 128, 8 heads",192,0.2623,cuda
+transformer,"width 128, 8 heads",384,0.257,cuda
+transformer,"width 128, 8 heads",672,0.3509,cuda
