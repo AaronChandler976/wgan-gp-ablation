@@ -1,0 +1,242 @@
+lr: 0.0001
+overrides:
+  data.window: 48
+  model.transformer.d_model: 128
+  model.transformer.nhead: 8
+val_mape: 18.4127
+epochs: 200
+grid_id: 90d28fd737
+grid:
+  lr:
+  - 0.0001
+  - 0.001
+  - 0.01
+  data.window:
+  - 24
+  - 48
+  - 96
+  model.transformer.d_model:
+  - 32
+  - 128
+  model.transformer.nhead:
+  - 4
+  - 8
+trials:
+- setting:
+    lr: 0.0001
+    data.window: 24
+    model.transformer.d_model: 32
+    model.transformer.nhead: 4
+  val_mape: 19.897842443416746
+- setting:
+    lr: 0.0001
+    data.window: 24
+    model.transformer.d_model: 32
+    model.transformer.nhead: 8
+  val_mape: 19.580579017784714
+- setting:
+    lr: 0.0001
+    data.window: 24
+    model.transformer.d_model: 128
+    model.transformer.nhead: 4
+  val_mape: 19.548063895056487
+- setting:
+    lr: 0.0001
+    data.window: 24
+    model.transformer.d_model: 128
+    model.transformer.nhead: 8
+  val_mape: 18.951143596669304
+- setting:
+    lr: 0.0001
+    data.window: 48
+    model.transformer.d_model: 32
+    model.transformer.nhead: 4
+  val_mape: 18.97874270691903
+- setting:
+    lr: 0.0001
+    data.window: 48
+    model.transformer.d_model: 32
+    model.transformer.nhead: 8
+  val_mape: 18.834782647766378
+- setting:
+    lr: 0.0001
+    data.window: 48
+    model.transformer.d_model: 128
+    model.transformer.nhead: 4
+  val_mape: 19.79325800054779
+- setting:
+    lr: 0.0001
+    data.window: 48
+    model.transformer.d_model: 128
+    model.transformer.nhead: 8
+  val_mape: 18.41269161309044
+- setting:
+    lr: 0.0001
+    data.window: 96
+    model.transformer.d_model: 32
+    model.transformer.nhead: 4
+  val_mape: 20.81539029286572
+- setting:
+    lr: 0.0001
+    data.window: 96
+    model.transformer.d_model: 32
+    model.transformer.nhead: 8
+  val_mape: 19.889209551405322
+- setting:
+    lr: 0.0001
+    data.window: 96
+    model.transformer.d_model: 128
+    model.transformer.nhead: 4
+  val_mape: 20.031238496437293
+- setting:
+    lr: 0.0001
+    data.window: 96
+    model.transformer.d_model: 128
+    model.transformer.nhead: 8
+  val_mape: 19.838293431580293
+- setting:
+    lr: 0.001
+    data.window: 24
+    model.transformer.d_model: 32
+    model.transformer.nhead: 4
+  val_mape: 20.91550029606191
+- setting:
+    lr: 0.001
+    data.window: 24
+    model.transformer.d_model: 32
+    model.transformer.nhead: 8
+  val_mape: 20.80623852197214
+- setting:
+    lr: 0.001
+    data.window: 24
+    model.transformer.d_model: 128
+    model.transformer.nhead: 4
+  val_mape: 23.50239855261471
+- setting:
+    lr: 0.001
+    data.window: 24
+    model.transformer.d_model: 128
+    model.transformer.nhead: 8
+  val_mape: 22.29771018082868
+- setting:
+    lr: 0.001
+    data.window: 48
+    model.transformer.d_model: 32
+    model.transformer.nhead: 4
+  val_mape: 21.0244618344166
+- setting:
+    lr: 0.001
+    data.window: 48
+    model.transformer.d_model: 32
+    model.transformer.nhead: 8
+  val_mape: 19.919479014309974
+- setting:
+    lr: 0.001
+    data.window: 48
+    model.transformer.d_model: 128
+    model.transformer.nhead: 4
+  val_mape: 23.327217912257467
+- setting:
+    lr: 0.001
+    data.window: 48
+    model.transformer.d_model: 128
+    model.transformer.nhead: 8
+  val_mape: 23.35493333171353
+- setting:
+    lr: 0.001
+    data.window: 96
+    model.transformer.d_model: 32
+    model.transformer.nhead: 4
+  val_mape: 23.783490452077988
+- setting:
+    lr: 0.001
+    data.window: 96
+    model.transformer.d_model: 32
+    model.transformer.nhead: 8
+  val_mape: 20.827471762741148
+- setting:
+    lr: 0.001
+    data.window: 96
+    model.transformer.d_model: 128
+    model.transformer.nhead: 4
+  val_mape: 24.33694615084253
+- setting:
+    lr: 0.001
+    data.window: 96
+    model.transformer.d_model: 128
+    model.transformer.nhead: 8
+  val_mape: 23.50590815531406
+- setting:
+    lr: 0.01
+    data.window: 24
+    model.transformer.d_model: 32
+    model.transformer.nhead: 4
+  val_mape: 20.83907015053775
+- setting:
+    lr: 0.01
+    data.window: 24
+    model.transformer.d_model: 32
+    model.transformer.nhead: 8
+  val_mape: 21.37145877727571
+- setting:
+    lr: 0.01
+    data.window: 24
+    model.transformer.d_model: 128
+    model.transformer.nhead: 4
+  val_mape: 28.017518706636878
+- setting:
+    lr: 0.01
+    data.window: 24
+    model.transformer.d_model: 128
+    model.transformer.nhead: 8
+  val_mape: 23.70785626936063
+- setting:
+    lr: 0.01
+    data.window: 48
+    model.transformer.d_model: 32
+    model.transformer.nhead: 4
+  val_mape: 21.684022976628825
+- setting:
+    lr: 0.01
+    data.window: 48
+    model.transformer.d_model: 32
+    model.transformer.nhead: 8
+  val_mape: 21.68760739537158
+- setting:
+    lr: 0.01
+    data.window: 48
+    model.transformer.d_model: 128
+    model.transformer.nhead: 4
+  val_mape: 27.653731063344633
+- setting:
+    lr: 0.01
+    data.window: 48
+    model.transformer.d_model: 128
+    model.transformer.nhead: 8
+  val_mape: 25.530487305833233
+- setting:
+    lr: 0.01
+    data.window: 96
+    model.transformer.d_model: 32
+    model.transformer.nhead: 4
+  val_mape: 22.105436602301182
+- setting:
+    lr: 0.01
+    data.window: 96
+    model.transformer.d_model: 32
+    model.transformer.nhead: 8
+  val_mape: 21.557604857971707
+- setting:
+    lr: 0.01
+    data.window: 96
+    model.transformer.d_model: 128
+    model.transformer.nhead: 4
+  val_mape: 27.64017003392858
+- setting:
+    lr: 0.01
+    data.window: 96
+    model.transformer.d_model: 128
+    model.transformer.nhead: 8
+  val_mape: 26.63573131010157
+tuned_by: AaronChandler976
+date: '2026-11-10'
