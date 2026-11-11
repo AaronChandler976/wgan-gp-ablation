@@ -1,0 +1,13 @@
+{
+  "dataset": "google",
+  "interval_minutes": 30,
+  "n": 1392,
+  "train_end": 835,
+  "val_end": 1113,
+  "fractions": [
+    0.6,
+    0.2,
+    0.2
+  ],
+  "processed_sha256": "c91c2ab59eafb95b"
+}

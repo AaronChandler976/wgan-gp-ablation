@@ -27,8 +27,8 @@ GOOGLE_URL = "https://storage.googleapis.com/clusterdata-2011-2/job_events/part-
 GOOGLE_PARTS = 500
 GOOGLE_START_US = 600_000_000          # the trace starts 600 s after its time origin
 GOOGLE_MINUTES = 29 * 24 * 60          # 29 days
-AZURE_URL = ("https://azurepublicdatasettraces.blob.core.windows.net/azurepublicdatasetv2/"
-             "azurefunctions_dataset2019/azurefunctions-dataset2019.tar.xz")
+AZURE_URL = ("https://github.com/Azure/AzurePublicDataset/releases/download/dataset-functions-2019/"
+             "azurefunctions_dataset2019_azurefunctions-dataset2019.tar.xz")
 
 
 # --------------------------------------------------------------------------- loading

@@ -1,0 +1,13 @@
+{
+  "dataset": "azure_functions",
+  "interval_minutes": 5,
+  "n": 4032,
+  "train_end": 2419,
+  "val_end": 3225,
+  "fractions": [
+    0.6,
+    0.2,
+    0.2
+  ],
+  "processed_sha256": "0aa9d4e24a3dfc84"
+}
