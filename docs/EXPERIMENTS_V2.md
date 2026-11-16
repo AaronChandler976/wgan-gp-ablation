@@ -400,3 +400,24 @@ the reported runs (same pipeline and settings, labeled by source). The workload 
 relates each series' Transformer effect to the training-part properties in
 `results/summary/dataset_stats.md` (seasonal strength, autocorrelation, spikiness). With six
 series this is a description, not a test. Diverged runs are reported and counted, not dropped.
+
+### 4a. `seeds_6_10`: five more seeds of the reported design
+
+*Written before the runs (2026-11-16).* The 8 configurations on `google-10m` and
+`azure_functions-5m` at their tuned settings, seeds 6 to 10, saved in `results/v2/seeds_6_10/`
+(80 runs). Nothing is selected. The report gives every borderline effect twice: with the 5
+reported seeds (`results/summary/`, unchanged) and with all 10 (`results/v2/summary/`,
+labeled). Ten seeds also make the Wilcoxon test usable (with 5 it cannot go below 0.0625).
+Effects that were significant with 5 seeds and are not with 10, or the other way round, are
+both reported.
+
+### 4b. `adam_control`: the critic with standard Adam
+
+*Written before the runs (2026-11-16).* In the reported design, switching the critic on with
+Adam also switches Adam to the paper's WGAN settings (beta1 = 0), so those cells change two
+things at once (code review, finding 2). This control trains the two critic + Adam
+configurations with standard Adam (`optim.adam_with_critic.enabled=false`), tuned learning
+rate reused, both datasets, seeds 1 to 5, in `results/v2/adam_control/` (20 runs). It is
+compared with the reported critic + Adam cells (beta1 = 0) and the reported no-critic + Adam
+cells. The learning rate was tuned under beta1 = 0, which favors the reported cells; the
+report says so.
