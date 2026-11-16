@@ -204,3 +204,31 @@ and the report says that no variant helped.
 variants per critic cell (the reference included). The matching no-critic cells get a screen of
 34 variants over their own knobs under the same protocol (`nocritic_s_reg`: dropout, weight
 decay, feed-forward width or cell size, gradient clipping), written down before it runs.
+
+### 3b. Candidate new datasets (waiting for approval; nothing downloaded)
+
+*Researched 2026-11-16 from the paper (arXiv 2203.06501, Tables 1 and 3) and each trace's own
+page. Sizes marked "to confirm" were not stated on the page and will be checked (file listing
+only) before any download.*
+
+| Dataset | Public now? | License | Download needed | How the job arrival rate would be derived | Paper's intervals and Table 3 MAPE (LSTM / WGAN-gp) | Character |
+| --- | --- | --- | --- | --- | --- | --- |
+| Azure VM 2017 (`AzurePublicDatasetV1`) | Yes, direct links | CC BY 4.0 (repo `LICENSE`) | Only the VM table (one file; size to confirm, the full trace is 78.5 GB compressed and is not needed) | Count VMs by "timestamp VM created" per interval; 30 days | 10 / 30 / 60 min: 42.63 / 41.32, 29.35 / 27.48, 16.11 / 12.77 | Bursty VM workload |
+| Azure VM 2019 (`AzurePublicDatasetV2`) | Yes, direct links | CC BY 4.0 | Only the VM table (size to confirm; full trace 156 GB compressed, not needed) | Same as 2017; 30 days | 30 / 60 min: 19.74 / 15.19, 13.5 / 10.82 | VM workload |
+| Alibaba 2018 (`cluster-trace-v2018`) | Yes, after a short survey (the page says it can be skipped) | No license file; "research or study purpose" only | `batch_task.tar.gz`, 125 MB | Count batch tasks by start time per interval; 8 days | 5 / 10 min: 17.95 / 15.76, 16.90 / 14.67 | Data-center batch jobs, short trace |
+| Wikipedia, as in the paper (WikiBench 2007 traces) | **No**: `wikibench.eu` no longer resolves | Unknown | - | Requests per interval | 10 / 30 min: 1.17 / 1.34, 1.75 / 3.43 | Strongly seasonal |
+| Wikipedia, substitute (Wikimedia hourly pageview dumps) | Yes | CC0 | Hourly project-level files (small; size to confirm) | Sum of page views per hour for one project (for example `en.wikipedia`) | Not in the paper: hourly only, so the paper's 10 and 30 min cannot be matched | Strongly seasonal |
+| Facebook (Hadoop traces, Chen et al. 2011) | Only 1-day samples in the SWIM repository | None stated | Small | Jobs by submit time | 5 / 10 min: 47.20 / 42.11, 43.68 / 39.31 | Bursty, but one day is too short to split 60/20/20 |
+
+**Recommendation (at most two).**
+
+1. **Azure VM 2017**: openly licensed, in the paper at three intervals, and a different kind of
+   workload (VM creations, bursty) from the two we have.
+2. **Wikipedia hourly page views** (the substitute): CC0 and strongly seasonal, which is the
+   property we want for tying "where does the Transformer help" to workload character. It is
+   **not** the paper's Wikipedia trace and has no Table 3 counterpart; the report must say so.
+
+Not recommended: Alibaba 2018 has no open license (the assignment asks for open-source data),
+Facebook is too short, and the paper's own Wikipedia trace is no longer online. One thing to
+know about Table 3: the paper's Table 1 lists Azure Functions at 30 and 60 minutes, while its
+Table 3 reports 5 and 10 minutes, so the paper is not consistent about that dataset's interval.
