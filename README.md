@@ -13,7 +13,7 @@ combination of those three switches so we can measure each one.
 
 Team: Tung Nguyen, Angie Do, Aaron Chandler.
 
-## Install
+## Setup
 
 ```bash
 git clone https://github.com/AaronChandler976/wgan-gp-ablation.git
@@ -22,8 +22,13 @@ conda env create -f environment.yml
 conda activate cwp
 pip install torch            # or the line for your GPU from the table below
 pip install -e .
-pytest                       # about 30 seconds
+pytest                       # 41 tests, well under a minute; needs no data download and no GPU
 ```
+
+The tests use only the bundled synthetic series. If `pytest` fails with import errors from
+another Python installation (for example on a machine with ROS, which sets `PYTHONPATH`), run
+`unset PYTHONPATH` first. If you already have a conda environment called `cwp`, pick another
+name with `conda env create -n <name> -f environment.yml`.
 
 | Machine | PyTorch install |
 | --- | --- |
