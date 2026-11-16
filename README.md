@@ -2,8 +2,11 @@
 
 An ablation study of the WGAN-gp Transformer for cloud workload prediction
 ([Arbat et al., AAAI 2022](https://doi.org/10.1609/aaai.v36i11.21509)). The paper changes three
-things at once compared with its LSTM baseline (LoadDynamics). This repo trains every
-combination of those three switches so we can measure each one.
+things at once compared with its LSTM baseline (LoadDynamics): the architecture, an adversarial
+critic, and the optimizer. **Research question: which of the three is responsible for the
+reported improvement?** This repo trains every combination of the three switches (2 x 2 x 2 = 8
+configurations) on two datasets with 5 seeds each, 80 runs in total, so each part can be
+measured on its own.
 
 | Switch | Off | On |
 | --- | --- | --- |
@@ -12,6 +15,49 @@ combination of those three switches so we can measure each one.
 | `--optimizer` | `adam` | `madgrad` |
 
 Team: Tung Nguyen, Angie Do, Aaron Chandler.
+
+## Results in short
+
+All 80 runs are finished. Every number below comes from
+[`results/summary/summary.md`](results/summary/summary.md); the per-run values are in
+[`results/summary/all_runs.csv`](results/summary/all_runs.csv).
+
+Average effect of switching each part on, across the other two (factorial main effect on test
+MAPE, 5 seeds; negative = lower error):
+
+| Part | Google Cluster 2011, 10 min | Azure Functions 2019, 5 min |
+| --- | --- | --- |
+| Transformer instead of LSTM | -4.8% (p = 0.002) | +0.1% (p = 0.85) |
+| WGAN-gp critic | +4.6% (p = 0.024) | +6.1% (p = 0.002) |
+| MADGRAD instead of Adam | -0.3% (p = 0.65) | -2.6% (p = 0.078) |
+
+- **The Transformer helps on Google only.** On Azure Functions it makes no measurable difference.
+- **The critic hurts on both datasets.**
+- **MADGRAD has no reliable effect** on either dataset.
+
+Test MAPE (%), mean ± standard deviation over 5 seeds, for four of the eight configurations:
+
+| Configuration | Google 10 min | Azure Functions 5 min |
+| --- | --- | --- |
+| LSTM, no critic, Adam (LoadDynamics baseline) | 22.69 ± 0.34 | 2.014 ± 0.054 |
+| Transformer, no critic, MADGRAD (lowest on both) | 20.66 ± 0.21 | 2.012 ± 0.021 |
+| Transformer, critic, MADGRAD (the paper's final model) | 22.62 ± 1.11 | 2.133 ± 0.057 |
+| Naive forecast (repeat the last value) | 27.60 | 3.452 |
+
+Notes for reading these:
+
+- The p-values above are for the main effects. Most single one-change comparisons are not
+  significant after the Holm correction; see the "One-change comparisons" table in `summary.md`.
+- Our absolute MAPE values do not match the paper's Table 3 (Google 10 min: 11.49 LSTM, 10.58
+  WGAN-gp Transformer; Azure Functions 5 min: 1.63 and 3.05). No variant of the public Google
+  trace we tried is smooth enough to give the paper's values
+  ([`google_variants.md`](results/summary/google_variants.md)), and the paper does not say how
+  it aggregated Azure Functions. Compare directions, not exact numbers.
+- Inference speed ([`timing_sweep_cuda.md`](results/summary/timing_sweep_cuda.md),
+  [`timing_sweep_cpu.md`](results/summary/timing_sweep_cpu.md)): at a history of 672 steps on the
+  GPU, a fused (cuDNN) LSTM takes 0.18 to 0.58 ms per prediction and the Transformer 0.29 to
+  0.35 ms, while the same LSTM run one time step at a time takes 9.8 to 18.8 ms. The LSTM is
+  only much slower than the Transformer when it is not run as one fused kernel.
 
 ## Setup
 
@@ -36,22 +82,35 @@ name with `conda env create -n <name> -f environment.yml`.
 | HPC with older GPUs (P100) | `pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cu121` |
 | No GPU | `pip install torch --index-url https://download.pytorch.org/whl/cpu` |
 
-## Quick start (no downloads needed)
+## Data
 
-Two small synthetic series are included so you can try everything right away.
+The processed series and the splits are in git, so nothing has to be downloaded to run the
+tests, retrain, or rebuild the summaries. To rebuild them from the published traces
+(Google: 500 small `job_events` files; Azure Functions: one archive of a few hundred MB):
 
 ```bash
-python -m cwp.train --dataset synthetic_seasonal --interval 10 \
-    --arch transformer --critic wgan-gp --optimizer madgrad --seed 1 \
-    --tag demo train.epochs=30
+python -m cwp.data download   --dataset google
+python -m cwp.data preprocess --dataset google            # -> data/processed/google_10m.csv, google_30m.csv
+python -m cwp.data download   --dataset azure_functions
+python -m cwp.data preprocess --dataset azure_functions   # -> data/processed/azure_functions_5m.csv, _10m.csv
+python -m cwp.stats                                       # -> results/summary/dataset_stats.md
 ```
 
-`--tag` marks an exploratory run: it is saved under `results/scratch/` and does not count
-toward the plan. `key=value` arguments override anything in `configs/default.yaml`.
+Downloads go to `data/raw/` (not in git). The split is chronological, 60% / 20% / 20%. Sources,
+licenses and file formats are in [`data/README.md`](data/README.md).
 
-## The 8 configurations
+## Tests
 
-One command, three switches:
+```bash
+pytest          # 41 tests; `unset PYTHONPATH` first if another Python installation interferes
+```
+
+The same tests run on every push (`.github/workflows/tests.yml`).
+
+## Reproduce the experiments
+
+Everything is driven by three flags; `key=value` arguments override
+[`configs/default.yaml`](configs/default.yaml) for exploratory runs.
 
 ```bash
 python -m cwp.train --dataset google --interval 10 \
@@ -69,138 +128,89 @@ python -m cwp.train --dataset google --interval 10 \
 | transformer | wgan-gp | adam | The paper's Adam comparison (its Fig. 3) |
 | transformer | wgan-gp | madgrad | The paper's final model |
 
-Which of these we run, on which datasets and with which seeds is set in
-[`configs/plan.yaml`](configs/plan.yaml). It currently holds the proposal's plan:
-2 datasets x 5 configurations x 3 seeds = 30 runs.
-
-## Data
-
-One person downloads and preprocesses; everyone else just pulls. Details in
-[`data/README.md`](data/README.md).
-
-```bash
-python -m cwp.data download   --dataset google
-python -m cwp.data preprocess --dataset google
-python -m cwp.data download   --dataset azure_functions
-python -m cwp.data preprocess --dataset azure_functions
-python -m cwp.stats           # how spiky / seasonal each dataset is (training part only)
-git add data/processed data/splits results/summary && git commit -m "Add processed datasets" && git push
-```
-
-## Team workflow
-
-A run is **done** when `results/<run_id>.json` exists and **claimed** when
-`runs/claims/<run_id>.json` exists. Each run has its own file, so we never get merge conflicts.
+The plan ([`configs/plan.yaml`](configs/plan.yaml)) is 2 datasets x 8 configurations x 5 seeds
+(1 to 5) = 80 runs. A run is **done** when `results/<run_id>.json` exists, and all 80 are, so
+`train` refuses to repeat them unless you pass `--force`.
 
 ```bash
 python -m cwp.runs status                 # what is done, claimed and left
-python -m cwp.runs next --seeds 1         # train commands for unclaimed runs (your seeds)
-python -m cwp.runs claim <run_id> ...     # reserve runs before a long session
-python -m cwp.runs sync                   # pull, commit your results and claims, push
+python -m cwp.runs next                   # train commands for the runs that are left
+python -m cwp.train ... --force           # retrain a finished run (overwrites its result)
+python -m cwp.train --dataset synthetic_seasonal --interval 10 --arch transformer \
+    --critic wgan-gp --optimizer madgrad --seed 1 --tag demo train.epochs=30   # quick try-out
 ```
 
-Then paste a command from `next`. Training claims the run, refuses to repeat a finished one,
-and saves the result, the test predictions and a checkpoint.
+`--tag` marks an exploratory run: it is saved under `results/scratch/` and does not count toward
+the plan. Each planned run uses the tuned settings in `configs/tuned/` (in git) and saves its
+result, its test predictions (`results/predictions/`) and a checkpoint (`checkpoints/`, not in
+git). The reported runs took 0.6 to 20 minutes each on one RTX 5070 Ti (`train_min` in
+`summary.md`).
 
-**Split the work by seed, not by configuration.** If one person ran all the MADGRAD runs and
-another all the Adam runs, any difference between their machines would look like an optimizer
-effect. With a split by seed, every configuration is trained on every machine.
+**Tuning.** `configs/tuned/` was produced by `python -m cwp.tune --plan` from the grid in
+[`configs/tuning.yaml`](configs/tuning.yaml): 32 trials for every configuration, validation
+part only, with its own seed. You only need to run it again if you change the grid; `train`
+refuses tuned files that were made from a different grid.
 
-Set your name once so claims and results show who ran what:
-`export CWP_OWNER=aaron` (otherwise your git user name is used).
-
-## Evaluate and compare
+## Reproduce the summaries
 
 ```bash
 python -m cwp.evaluate baselines          # naive, seasonal naive, moving average
-python -m cwp.evaluate compare            # -> results/summary/summary.md
+python -m cwp.evaluate compare            # -> results/summary/summary.md and the CSV files
 python -m cwp.evaluate dm RUN_A RUN_B     # Diebold-Mariano test on two runs' test predictions
 python -m cwp.evaluate timing             # re-time all local checkpoints on this machine
-python -m cwp.timing_sweep                # inference time vs history length (fused vs step-by-step LSTM)
+python -m cwp.timing_sweep                # inference time vs history length -> timing_sweep_<device>.md
+python -m cwp.timing_sweep --device cpu
 ```
 
-`timing_sweep` tests why the paper's LSTM baseline was slow. It times untrained models
-(speed does not depend on the weights) at history lengths 24 to 672: a fused LSTM (one cuDNN
-kernel on a GPU), the same LSTM with cuDNN off, the same LSTM run one time step at a time,
-and the Transformer generator. Run it once with the GPU and once with `--device cpu`; results
-go to `results/summary/timing_sweep_<device>.md`.
+`baselines`, `compare` and `dm` need only the files in git. `compare` reports mean ± standard
+deviation over seeds for MAPE, MAE, RMSE and MASE, the baselines on the same test points, and
+the paper's Table 3 values. It tests every pair of configurations that differ in exactly one
+switch (paired by seed, Holm-corrected) and reports each part's average effect and the
+interactions.
 
-`compare` reports mean ± standard deviation over seeds for MAPE, MAE, RMSE and MASE, the
-baselines on the same test points, and the paper's Table 3 values. It then tests every pair of
-configurations that differ in exactly one switch (paired by seed, Holm-corrected). When all 8
-configurations are finished it also reports each part's average effect and the interactions.
+`timing` needs the checkpoints, which are not in git. `timing_sweep` needs none: it times
+untrained models (speed does not depend on the weights) at history lengths 24 to 672: a fused
+LSTM (one cuDNN kernel on a GPU), the same LSTM with cuDNN off, the same LSTM run one time step
+at a time, and the Transformer generator. Inference time depends on the machine, so compare
+speeds measured on one machine only.
 
-Inference time depends on the machine. Use `timing` on **one** machine for the speed comparison.
-
-## Tuning
-
-```bash
-python -m cwp.tune --plan                 # same budget for every configuration (32 trials each)
-python -m cwp.tune --plan --only-dataset google --only-arch lstm   # one slice; run several at once
-```
-
-The grid is in [`configs/tuning.yaml`](configs/tuning.yaml): history length for every
-configuration, plus a learning rate range, cell size and layers for the LSTM (what LoadDynamics
-tunes) and a learning rate range and width for the Transformer (what the WGAN-gp paper tunes).
-Each configuration gets the same 32 trials. Each trial trains for up to the full 1,000 epochs
-and stops after 150 epochs without validation improvement; that early stopping applies to
-tuning only, not to the planned runs. The tool refuses a grid that would tune one architecture
-harder than the other. `tuning.yaml` explains why the ranges are where they are (round 1 picked
-the edges of a smaller grid).
-
-The models are small, so several tunes can share one GPU: run `--plan` with `--only-dataset`
-and `--only-arch` in separate terminals, one slice each.
-
-The best setting per dataset and configuration is saved in `configs/tuned/` and used by
-`train` automatically. Tuning uses its own seed and the validation part only. Each tuned file
-records the grid that made it: if `tuning.yaml` changes, `tune --plan` re-tunes that
-configuration and `train` refuses the old file. Commit `configs/tuned/` **before** anyone
-starts the planned runs, or runs will not be comparable.
-
-## Checkpoints
-
-`checkpoints/<run_id>.pt` holds the weights, the config and the scaler. They are not in git.
-Put them in a shared Drive folder if someone else needs them (for example for `timing`).
-
-## Layout
+## Repo map
 
 ```
-configs/      default.yaml (hyperparameters), plan.yaml (runs + seeds), datasets.yaml, tuning.yaml
-data/         raw/ (not in git), processed/, splits/
-src/cwp/      data, models, train, runs, evaluate, stats, tune, metrics, config
-results/      <run_id>.json, predictions/, baselines/, summary/
-runs/claims/  who is working on what
-docs/         REPLICATION_NOTES.md (paper vs released code vs this repo), BUILD_PROMPT.md
+configs/      default.yaml (hyperparameters), plan.yaml (runs + seeds), datasets.yaml,
+              tuning.yaml (search grid), tuned/ (chosen settings), paper_reference.yaml
+data/         raw/ (downloads, not in git), processed/ (one CSV per series), splits/
+src/cwp/      data, models, train, runs, tune, evaluate, metrics, stats, timing_sweep, config,
+              bench + launch (optional tooling)
+results/      <run_id>.json (one per run), predictions/, baselines/, summary/ (tables and CSVs)
+runs/claims/  who ran what (one file per run)
+checkpoints/  trained weights (not in git)
+scripts/hpc/  Slurm scripts for the SJSU HPC
+docs/         REPLICATION_NOTES.md, BUILD_PROMPT.md
 tests/        pytest
 ```
 
-## Decisions for the group
+## Replication notes
 
-1. **Plan size.** `configs/plan.yaml`: `design` (`one_chain` 4, `proposal` 5, `two_chains` 6,
-   `full` 8), `seeds`, and `datasets`. Adding more later never invalidates finished runs.
-2. **Loss.** Every configuration uses L1 (the WGAN-gp paper's loss) so the loss is not a fourth
-   difference. LoadDynamics originally used MSE (`train.loss`).
-3. **Early stopping.** Off by default (1,000 epochs, as in the paper). `train.patience: 100`
-   would save a lot of compute.
-4. **Tuning.** Tune every configuration with the shared grid, or use the defaults for all.
-5. **Adam with the critic.** The paper used WGAN-style Adam settings (beta1 = 0, lr = 0.0001) for
-   its Adam run. `optim.adam_with_critic.enabled: false` uses ordinary Adam everywhere.
+[`docs/REPLICATION_NOTES.md`](docs/REPLICATION_NOTES.md) lists, item by item, what the paper
+says, what its released code does, and what this repo does. Where the two disagree, this repo
+follows the paper. The choices that matter most for the results:
 
-Change these in the YAML files, commit, and only then start planned runs.
+- The scaler is fitted on the training part only (the released code fits it on each part).
+- Every model is scored on exactly the same test points, whatever its history length.
+- Every configuration uses the L1 loss, 1,000 epochs with no early stopping, and the epoch with
+  the best validation MAPE.
+- With the critic on, Adam uses the paper's WGAN-style settings (beta1 = 0; `optim.adam_with_critic`).
+- Every configuration gets the same tuning budget.
 
-## Not verified yet
+## How the runs were shared
 
-- **Download and preprocessing of the real datasets.** Written against the published file
-  formats and tested on small fake files in the same format, but never run on the real
-  downloads. Check the first rows and the point counts (Google 10-minute: 4,176 points; Azure
-  Functions 5-minute: 4,032 points).
-- **GPU training.** Everything was tested on CPU only.
-- The PyTorch install line for the HPC's P100 GPUs.
+Each run has its own result file and claim file (`runs/claims/<run_id>.json`), so several
+people can train and push at once without merge conflicts: `python -m cwp.runs claim <run_id>`
+reserves a run and `python -m cwp.runs sync` pulls, commits results and claims, and pushes.
+Set `CWP_OWNER` to label your runs (otherwise your git user name is used).
 
-Paper-versus-code differences and our choices are in
-[`docs/REPLICATION_NOTES.md`](docs/REPLICATION_NOTES.md).
-
-## Optional tooling (this branch: `tools/hpc-launcher`)
+## Optional tooling
 
 ```bash
 python -m cwp.bench        # how long a run and the remaining plan take on this machine
