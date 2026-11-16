@@ -224,6 +224,27 @@ follows the paper. The choices that matter most for the results:
 - With the critic on, Adam uses the paper's WGAN-style settings (beta1 = 0; `optim.adam_with_critic`).
 - Every configuration gets the same tuning budget.
 
+## Software and data credits
+
+- **WGAN-gp Transformer, released code** (Arbat et al., MIT license):
+  <https://github.com/shivaniarbat/wgan-gp-transformer>. We read it at commit `d9519dc` to
+  write the replication notes. The models here are our own implementation and follow the
+  [paper](https://doi.org/10.1609/aaai.v36i11.21509) where the paper and that code differ.
+- **LoadDynamics** (Jayakumar et al., IPDPS 2020): the LSTM baseline follows the paper's
+  description; none of its code is used.
+- **MADGRAD** optimizer package (`madgrad` 1.3): <https://github.com/facebookresearch/madgrad>,
+  described in [arXiv:2101.11075](https://arxiv.org/abs/2101.11075).
+- **PyTorch** (2.11.0): <https://pytorch.org/>.
+- **Google Cluster 2011 trace** (`job_events` tables), CC BY 4.0:
+  <https://github.com/google/cluster-data/blob/master/ClusterData2011_2.md>.
+- **Azure Functions 2019 trace**, CC BY:
+  <https://github.com/Azure/AzurePublicDataset/blob/master/AzureFunctionsDataset2019.md>.
+  The trace's authors ask users to cite Shahrad et al., "Serverless in the Wild: Characterizing
+  and Optimizing the Serverless Workload at a Large Cloud Provider", USENIX ATC 2020.
+
+The files in `data/processed/` are derived from the two traces (job submissions or function
+invocations counted per interval), so the traces' attribution terms apply to them too.
+
 ## How the runs were shared
 
 Each run has its own result file and claim file (`runs/claims/<run_id>.json`), so several
