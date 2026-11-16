@@ -82,3 +82,22 @@ def test_headroom_curve_and_target():
     h = analysis.headroom_for(curve, 0.0)
     assert h["headroom_pct"] == 11.0               # 90 * 1.11 = 99.9 -> 100 VMs
     assert np.isnan(analysis.headroom_for(curve.iloc[:3], 0.0)["headroom_pct"])
+
+
+def test_screen_table_applies_the_noise_rule():
+    cells = ["c1", "c2", "c3", "c4"]
+
+    def trials(screen, variant, values):
+        return [{"screen": screen, "cell": c, "variant": variant, "seed": seed, "val_mape": v + d}
+                for c, v in zip(cells, values) for seed, d in ((0, -0.1), (100, 0.1))]
+    df = pd.DataFrame(trials("s1", "ref", [10, 10, 10, 10])
+                      + trials("s1", "one_cell", [5, 10.1, 10.1, 10.1])      # big gain in one cell only
+                      + trials("s2", "broad", [9.7, 9.7, 9.7, 10.1])         # 3 of 4 cells, about -2%
+                      + trials("s2", "tiny", [9.95, 9.95, 9.95, 9.95]))      # all cells, under 1%
+    t = analysis.screen_table(df, ("s1", "ref")).set_index("variant")
+    assert t.index[0] == "one_cell"                                          # best average comes first
+    assert not t.loc["one_cell", "beats_reference"] and t.loc["one_cell", "cells_better"] == "1/4"
+    assert t.loc["broad", "beats_reference"]
+    assert not t.loc["tiny", "beats_reference"]
+    assert t.loc["ref", "mean_change_pct"] == pytest.approx(0.0)
+    assert t.loc["broad", "c1"] == pytest.approx(9.7)
