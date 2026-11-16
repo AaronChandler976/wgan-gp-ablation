@@ -198,20 +198,24 @@ def fit(spec: RunSpec, cfg: dict, device: torch.device, log=print, max_epochs: i
     d = prepare_data(spec, cfg, device)
     Xtr, ytr, _ = d["parts"]["train"]
     tc = cfg["train"]
-    with_critic = spec.critic == "wgan-gp"
+    with_critic = has_critic = spec.critic == "wgan-gp"
 
     model = build_forecaster(spec.arch, cfg).to(device)
     opt_g = build_optimizer(spec.optimizer, model.parameters(), cfg, with_critic)
     critic = opt_d = None
     if with_critic:
         critic = build_critic(cfg).to(device)
-        opt_d = build_optimizer(spec.optimizer, critic.parameters(), cfg, with_critic)
+        opt_d = build_optimizer(spec.optimizer, critic.parameters(), cfg, with_critic,
+                                lr_scale=tc["critic_lr_scale"])
     loss_fn = {"l1": F.l1_loss, "mse": F.mse_loss}[tc["loss"]]
 
     if tc["adv_sign"] not in ("minus", "plus") or tc["critic_batch"] not in ("random", "same"):
         raise ValueError("train.adv_sign must be minus|plus and train.critic_batch random|same")
-    same_batch = with_critic and tc["critic_batch"] == "same"
+    if tc["critic_rng"] not in ("shared", "own"):
+        raise ValueError("train.critic_rng must be shared|own")
     order = torch.Generator().manual_seed(spec.seed)       # batch order, same on every machine
+    # "own": critic batches no longer disturb the batch order, so it matches a no-critic run's.
+    critic_order = order if tc["critic_rng"] == "shared" else torch.Generator().manual_seed(spec.seed + 1_000_003)
     n, bs = Xtr.size(0), tc["batch_size"]
     epochs = max_epochs or tc["epochs"]
     best = {"val_mape": float("inf"), "epoch": 0, "state": None}
@@ -224,6 +228,12 @@ def fit(spec: RunSpec, cfg: dict, device: torch.device, log=print, max_epochs: i
         model.train()
         perm = (torch.randperm(n, generator=order) if tc["shuffle"] else torch.arange(n)).to(device)
         total = 0.0
+        # The critic can be switched on late (adv_warmup) and its weight raised gradually (adv_ramp).
+        with_critic = has_critic and epoch > tc["adv_warmup"]
+        adv_weight = tc["adv_weight"]
+        if with_critic and tc["adv_ramp"]:
+            adv_weight = adv_weight * min(1.0, (epoch - tc["adv_warmup"]) / tc["adv_ramp"])
+        same_batch = with_critic and tc["critic_batch"] == "same"
         for i in range(0, n, bs):
             b = perm[i:i + bs]
             xb, yb = Xtr[b], ytr[b]
@@ -236,7 +246,7 @@ def fit(spec: RunSpec, cfg: dict, device: torch.device, log=print, max_epochs: i
                     if same_batch:
                         xr, yr, fake_y = xb, yb, pred.detach()
                     else:
-                        j = torch.randint(0, n, (bs,), generator=order).to(device)
+                        j = torch.randint(0, n, (bs,), generator=critic_order).to(device)
                         xr, yr = Xtr[j], ytr[j]
                         with torch.no_grad():
                             fake_y = model(xr)
@@ -260,12 +270,12 @@ def fit(spec: RunSpec, cfg: dict, device: torch.device, log=print, max_epochs: i
             if with_critic:      # the generator also wants the critic to score its sequence highly
                 adv = critic(torch.cat([xb, pred.unsqueeze(1)], dim=1)).mean()
                 if tc["adv_sign"] == "minus":                   # paper Eq. 4
-                    loss = loss - tc["adv_weight"] * adv
+                    loss = loss - adv_weight * adv
                 else:                                           # released code: L1 + critic score
-                    loss = loss + tc["adv_weight"] * adv
+                    loss = loss + adv_weight * adv
                 if diag:
                     diag.generator_step(pred, pred_loss, adv,
-                                        tc["adv_weight"] * (1 if tc["adv_sign"] == "minus" else -1))
+                                        adv_weight * (1 if tc["adv_sign"] == "minus" else -1))
             opt_g.zero_grad(set_to_none=True)
             loss.backward()
             if diag:

@@ -14,7 +14,8 @@ model:
   lstm:                   # LoadDynamics-style LSTM
     hidden: 64            # cell state size ("C size")
     layers: 1
-    dropout: 0.0
+    dropout: 0.0          # between stacked layers (does nothing with 1 layer)
+    out_dropout: 0.0      # on the last hidden state, before the output layer
   transformer:            # generator of the WGAN-gp Transformer
     d_model: 64
     nhead: 4
@@ -28,11 +29,15 @@ model:
     hidden: 64
     leaky_slope: 0.2
     kind: mlp             # mlp (one score per sequence) | pointwise_tanh (released code)
+                          # | conditional (history and forecast enter separately)
+    norm: none            # none | spectral | layer (batch norm is not valid with a gradient penalty)
+    input: levels         # levels | diffs (the critic sees first differences)
 
 optim:
   adam:
     lr: 0.001
     betas: [0.9, 0.999]
+    weight_decay: 0.0
   adam_with_critic:       # the paper's Adam settings for its WGAN-gp + Adam run
     enabled: true
     lr: 0.0001
@@ -52,6 +57,10 @@ train:
   adv_weight: 1.0         # weight of the critic term in the generator loss
   adv_sign: minus         # minus (paper Eq. 4: L1 - critic score) | plus (released code)
   critic_batch: random    # random (own batches for the critic) | same (the generator's batch)
+  critic_rng: shared      # shared (critic batches draw from the batch-order generator) | own
+  critic_lr_scale: 1.0    # critic learning rate = this x the forecaster's (two time-scale rule)
+  adv_warmup: 0           # epochs of L1-only training before the critic is switched on
+  adv_ramp: 0             # epochs over which the critic weight then rises linearly to adv_weight
   shuffle: true           # false keeps the batches in time order (released code)
   eval_every: 10          # epochs between validation checks
   patience: 0             # stop after this many epochs without improvement (0 = off)

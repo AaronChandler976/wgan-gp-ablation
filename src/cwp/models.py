@@ -14,15 +14,18 @@ from torch import nn
 class LSTMForecaster(nn.Module):
     """LoadDynamics-style predictor: stacked LSTM, then one fully connected output layer."""
 
-    def __init__(self, hidden: int = 64, layers: int = 1, dropout: float = 0.0):
+    def __init__(self, hidden: int = 64, layers: int = 1, dropout: float = 0.0,
+                 out_dropout: float = 0.0):
         super().__init__()
         self.lstm = nn.LSTM(input_size=1, hidden_size=hidden, num_layers=layers, batch_first=True,
                             dropout=dropout if layers > 1 else 0.0)
         self.out = nn.Linear(hidden, 1)
+        self.drop = nn.Dropout(out_dropout) if out_dropout > 0 else None   # None draws no random numbers
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         h, _ = self.lstm(x.unsqueeze(-1))
-        return self.out(h[:, -1]).squeeze(-1)
+        last = h[:, -1] if self.drop is None else self.drop(h[:, -1])
+        return self.out(last).squeeze(-1)
 
 
 class PositionalEncoding(nn.Module):
@@ -86,21 +89,69 @@ class TransformerForecaster(nn.Module):
         return self.out(self.decoder(tgt, memory)).squeeze(-1).squeeze(-1)
 
 
+def _critic_layers(sizes: list[int], leaky_slope: float, norm: str) -> nn.Sequential:
+    """Linear layers of the given sizes with LeakyReLU between them and a linear last layer.
+
+    `norm="spectral"` bounds each layer's largest singular value; `norm="layer"` adds layer
+    normalization after each hidden layer. With `norm="none"` the layers are created in the
+    same order as before these options existed, so the initial weights are unchanged."""
+    if norm not in ("none", "spectral", "layer"):
+        raise ValueError("critic norm must be none, spectral or layer")
+    layers = []
+    for k, (i, o) in enumerate(zip(sizes[:-1], sizes[1:])):
+        lin = nn.Linear(i, o)
+        layers.append(nn.utils.parametrizations.spectral_norm(lin) if norm == "spectral" else lin)
+        if k < len(sizes) - 2:
+            if norm == "layer":
+                layers.append(nn.LayerNorm(o))
+            layers.append(nn.LeakyReLU(leaky_slope))
+    return nn.Sequential(*layers)
+
+
+def _diffs(seq: torch.Tensor) -> torch.Tensor:
+    return seq[:, 1:] - seq[:, :-1]
+
+
 class Critic(nn.Module):
     """WGAN critic: 3 fully connected layers with LeakyReLU, one unbounded score per sequence.
 
-    Its input is a history window followed by the next value (real or predicted).
+    Its input is a history window followed by the next value (real or predicted). With
+    `input="diffs"` it sees the changes between neighbouring values instead of the values.
     """
 
-    def __init__(self, seq_len: int, hidden: int = 64, leaky_slope: float = 0.2):
+    def __init__(self, seq_len: int, hidden: int = 64, leaky_slope: float = 0.2,
+                 norm: str = "none", input: str = "levels"):
         super().__init__()
-        self.net = nn.Sequential(
-            nn.Linear(seq_len, hidden), nn.LeakyReLU(leaky_slope),
-            nn.Linear(hidden, hidden * 2), nn.LeakyReLU(leaky_slope),
-            nn.Linear(hidden * 2, 1))
+        if input not in ("levels", "diffs"):
+            raise ValueError("critic input must be levels or diffs")
+        self.diffs = input == "diffs"
+        self.net = _critic_layers([seq_len - self.diffs, hidden, hidden * 2, 1], leaky_slope, norm)
 
     def forward(self, seq: torch.Tensor) -> torch.Tensor:   # seq: [batch, window + 1]
-        return self.net(seq).squeeze(-1)
+        return self.net(_diffs(seq) if self.diffs else seq).squeeze(-1)
+
+
+class ConditionalCritic(nn.Module):
+    """A critic that is handed the history and the next value as two separate inputs.
+
+    The history is summarized by one layer. The next value then enters next to that summary,
+    both as it is and as its change from the last observed value, so the part that differs
+    between a real and a predicted sequence is not one input among `window + 1`."""
+
+    def __init__(self, window: int, hidden: int = 64, leaky_slope: float = 0.2,
+                 norm: str = "none", input: str = "levels"):
+        super().__init__()
+        if input not in ("levels", "diffs"):
+            raise ValueError("critic input must be levels or diffs")
+        self.diffs = input == "diffs"
+        self.history = _critic_layers([window - self.diffs, hidden, hidden], leaky_slope, norm)
+        self.act = nn.LeakyReLU(leaky_slope)
+        self.head = _critic_layers([hidden + 2, hidden * 2, 1], leaky_slope, norm)
+
+    def forward(self, seq: torch.Tensor) -> torch.Tensor:   # seq: [batch, window + 1]
+        hist, y = seq[:, :-1], seq[:, -1:]
+        summary = self.act(self.history(_diffs(hist) if self.diffs else hist))
+        return self.head(torch.cat([summary, y, y - hist[:, -1:]], dim=1)).squeeze(-1)
 
 
 def build_forecaster(arch: str, cfg: dict) -> nn.Module:
@@ -129,25 +180,32 @@ class PointwiseTanhCritic(nn.Module):
 
 def build_critic(cfg: dict) -> nn.Module:
     c = cfg["model"]["critic"]
+    common = {"hidden": c["hidden"], "leaky_slope": c["leaky_slope"], "norm": c["norm"], "input": c["input"]}
     if c["kind"] == "mlp":
-        return Critic(seq_len=cfg["data"]["window"] + 1, hidden=c["hidden"], leaky_slope=c["leaky_slope"])
+        return Critic(seq_len=cfg["data"]["window"] + 1, **common)
+    if c["kind"] == "conditional":
+        return ConditionalCritic(window=cfg["data"]["window"], **common)
     if c["kind"] == "pointwise_tanh":
         return PointwiseTanhCritic(hidden=c["hidden"])
     raise ValueError(f"unknown critic kind '{c['kind']}'")
 
 
-def build_optimizer(name: str, params, cfg: dict, with_critic: bool) -> torch.optim.Optimizer:
-    """Adam or MADGRAD. With a critic, Adam uses the paper's WGAN settings if enabled."""
+def build_optimizer(name: str, params, cfg: dict, with_critic: bool,
+                    lr_scale: float = 1.0) -> torch.optim.Optimizer:
+    """Adam or MADGRAD. With a critic, Adam uses the paper's WGAN settings if enabled.
+
+    `lr_scale` multiplies the learning rate (used to give the critic its own)."""
     if name == "adam":
         o = dict(cfg["optim"]["adam"])
         awc = cfg["optim"]["adam_with_critic"]
         if with_critic and awc["enabled"]:
-            o = {"lr": awc["lr"], "betas": awc["betas"]}
-        return torch.optim.Adam(params, lr=o["lr"], betas=tuple(o["betas"]))
+            o = {**o, "lr": awc["lr"], "betas": awc["betas"]}
+        return torch.optim.Adam(params, lr=o["lr"] * lr_scale, betas=tuple(o["betas"]),
+                                weight_decay=o["weight_decay"])
     if name == "madgrad":
         from madgrad import MADGRAD
         o = cfg["optim"]["madgrad"]
-        return MADGRAD(params, lr=o["lr"], momentum=o["momentum"],
+        return MADGRAD(params, lr=o["lr"] * lr_scale, momentum=o["momentum"],
                        weight_decay=o["weight_decay"], eps=o["eps"])
     raise ValueError(f"unknown optimizer '{name}'")
 
