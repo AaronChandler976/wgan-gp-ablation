@@ -169,8 +169,9 @@ Transformer and the LSTM with the critic and MADGRAD, on `google-10m` and `azure
 finding 2). A variant's score is its validation MAPE relative to the reference variant in the
 same cell, averaged over the 4 cells on the log scale. Diverged trials count as they are.
 
-**Noise.** With 2 seeds per cell, differences below about 1% on Google and 2% on Azure-relative
-terms are within the seed-to-seed spread seen in the code review (finding 3). A variant is
+**Noise.** The seed-to-seed spread of validation MAPE at one setting is 1-4% of its value
+(code review, finding 3), so with 2 seeds per cell a difference of 1-2% in one cell means
+little. A variant is
 called better than another only if it is better in at least 3 of the 4 cells *and* its average
 is more than 1% lower.
 
