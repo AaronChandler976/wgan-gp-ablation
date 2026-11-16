@@ -1,0 +1,13 @@
+{
+  "dataset": "wikipedia",
+  "interval_minutes": 60,
+  "n": 4344,
+  "train_end": 2606,
+  "val_end": 3475,
+  "fractions": [
+    0.6,
+    0.2,
+    0.2
+  ],
+  "processed_sha256": "b75c4401d50c9d79"
+}
