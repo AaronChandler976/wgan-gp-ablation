@@ -1,0 +1,23 @@
+experiment: critic_s1_weight
+description: >
+  Stage 1 of the critic screen: the weight of the critic term in the generator loss, on a log
+  scale. `w1` is the reported setting. `w0` trains the critic but gives it no influence on the
+  forecaster, so it shows the same hyperparameters without the critic's push.
+seeds: [0, 100]                 # tuning seeds, never evaluation seeds
+fixed:
+  train.patience: 150           # as in configs/tuning.yaml
+reference: w1
+cells:
+  - {dataset: google, interval: 10, arch: transformer, critic: wgan-gp, optimizer: madgrad}
+  - {dataset: google, interval: 10, arch: lstm, critic: wgan-gp, optimizer: madgrad}
+  - {dataset: azure_functions, interval: 5, arch: transformer, critic: wgan-gp, optimizer: madgrad}
+  - {dataset: azure_functions, interval: 5, arch: lstm, critic: wgan-gp, optimizer: madgrad}
+variants:
+  w1: {}
+  w0.3: {train.adv_weight: 0.3}
+  w0.1: {train.adv_weight: 0.1}
+  w0.03: {train.adv_weight: 0.03}
+  w0.01: {train.adv_weight: 0.01}
+  w0.003: {train.adv_weight: 0.003}
+  w0.001: {train.adv_weight: 0.001}
+  w0: {train.adv_weight: 0.0}

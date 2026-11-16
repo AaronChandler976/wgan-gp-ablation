@@ -152,3 +152,54 @@ review (finding 13) predicts rejection: the same un-scaling applied to the repor
 predictions gives 20.1-22.0.
 
 **No selection** here either. Both epoch choices are recorded for every run.
+
+### 2a. Critic screen (validation only)
+
+*Written before the screen started (2026-11-16).*
+
+**Question.** Is there any way of using the critic that gives a lower validation MAPE than the
+reported critic setting, and does any of them reach the no-critic level?
+
+**Protocol.** `python -m cwp.screen run configs/screens/<stage>.yaml`. A trial is one cell x
+variant x tuning seed: the cell's tuned settings from `configs/tuned/`, plus the variant's
+overrides, trained with `train.patience: 150` (as in tuning). Only the best validation MAPE is
+stored; the screening tool never evaluates the test part. Tuning seeds 0 and 100. Cells: the
+Transformer and the LSTM with the critic and MADGRAD, on `google-10m` and `azure_functions-5m`
+(MADGRAD because the Adam cells mix the critic with a change of Adam's settings, code review
+finding 2). A variant's score is its validation MAPE relative to the reference variant in the
+same cell, averaged over the 4 cells on the log scale. Diverged trials count as they are.
+
+**Noise.** With 2 seeds per cell, differences below about 1% on Google and 2% on Azure-relative
+terms are within the seed-to-seed spread seen in the code review (finding 3). A variant is
+called better than another only if it is better in at least 3 of the 4 cells *and* its average
+is more than 1% lower.
+
+**Stages.** Each stage's file is committed before it runs, and its rule for what goes forward
+is fixed here.
+
+1. `critic_s1_weight`: `train.adv_weight` in {1 (reported), 0.3, 0.1, 0.03, 0.01, 0.003, 0.001},
+   plus 0 (the critic is trained but cannot influence the forecaster). 64 trials.
+   `nocritic_reference`: the 4 matching no-critic cells at their own tuned settings, 8 trials.
+   *Forward:* `w_best`, the weight with the lowest average; and `w_knob`, the **largest**
+   weight whose average is within 1% of `w_best`'s. Later stages use `w_knob`, because the
+   critic's own settings can only matter where the critic term still has some weight.
+2. `critic_s2_warmup`: at `w_knob` and at weight 1: L1 only for 50 epochs then the critic at
+   full weight; and 50 epochs L1 only then a linear ramp over 100 epochs. 4 variants.
+3. `critic_s3_knobs`: at `w_knob`: 16 of the 24 combinations of `train.n_critic` {1, 5},
+   `train.gp_lambda` {1, 10}, `model.critic.hidden` {32, 128}, `train.critic_lr_scale`
+   {0.25, 1, 4}, drawn with a fixed random seed. *Forward:* the best combination, if it is
+   better than the stage-1 setting by the noise rule; otherwise the stage-1 setting.
+4. `critic_s4_norm`: spectral normalization and layer normalization on the setting carried
+   forward. 2 variants.
+5. `critic_s5_input`: the conditional critic and the first-difference critic, each at `w_knob`
+   and at weight 1 (an informative critic may deserve more weight). 4 variants.
+
+**What is carried into the full design (2b, 2c).** The single best variant over all stages by
+average score, and additionally the best stage-5 variant if it is a different one. If nothing
+beats the reported setting by the noise rule, "critic v2" is the reported critic at `w_best`,
+and the report says that no variant helped.
+
+**Matched budget (rule 3).** The screen is tuning for the critic side: 8 + 4 + 16 + 2 + 4 = 34
+variants per critic cell (the reference included). The matching no-critic cells get a screen of
+34 variants over their own knobs under the same protocol (`nocritic_s_reg`: dropout, weight
+decay, feed-forward width or cell size, gradient clipping), written down before it runs.

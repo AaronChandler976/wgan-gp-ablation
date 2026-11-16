@@ -1,0 +1,14 @@
+experiment: nocritic_reference
+description: >
+  The matching no-critic configurations at their own tuned settings, under the same screening
+  protocol (tuning seeds, early stopping), as the level the critic variants are compared with.
+seeds: [0, 100]
+fixed:
+  train.patience: 150
+cells:
+  - {dataset: google, interval: 10, arch: transformer, critic: none, optimizer: madgrad}
+  - {dataset: google, interval: 10, arch: lstm, critic: none, optimizer: madgrad}
+  - {dataset: azure_functions, interval: 5, arch: transformer, critic: none, optimizer: madgrad}
+  - {dataset: azure_functions, interval: 5, arch: lstm, critic: none, optimizer: madgrad}
+variants:
+  base: {}
