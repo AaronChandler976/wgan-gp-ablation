@@ -262,9 +262,9 @@ python -m cwp.launch       # pick the next runs, then train here or submit to th
 ### HPC scripts (Slurm)
 
 > **Untested on the cluster.** The scripts in `scripts/hpc/` were only ever run against a fake
-> Slurm on a laptop, never on the SJSU HPC. All 80 reported runs were trained on one
-> workstation, not with these scripts. Expect to fix partition names, GPU requests and the
-> PyTorch build (the P100 install line is also untested) before they work.
+> Slurm, never on the SJSU HPC. All 80 reported runs were trained on one local machine, not
+> with these scripts. Expect to fix partition names, GPU requests and the PyTorch build (the
+> P100 install line is also untested) before they work.
 
 ```bash
 bash scripts/hpc/setup_env.sh               # once, on the login node: conda env, PyTorch, this package
