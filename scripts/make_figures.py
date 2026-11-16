@@ -100,7 +100,8 @@ def save(fig: plt.Figure, name: str) -> None:
     OUT.mkdir(exist_ok=True)
     for ext in ("png", "pdf"):
         path = OUT / f"{name}.{ext}"
-        fig.savefig(path)
+        # no creation date in the PDF, so drawing the same data again gives the same file
+        fig.savefig(path, metadata={"CreationDate": None} if ext == "pdf" else None)
         print(f"wrote {path.relative_to(ROOT)}")
     plt.close(fig)
 
