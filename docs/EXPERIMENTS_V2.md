@@ -308,3 +308,54 @@ plus 33 of the 35 other combinations, drawn with a fixed seed, of
 reported setting by the same noise rule as on the critic side (better in both cells and more
 than 1% lower on average; there are 2 cells per architecture here); otherwise the reported
 setting stays.
+
+### 2a, stage 1 result: `critic_s1_weight` and `nocritic_reference`
+
+*Recorded 2026-11-16. 64 + 8 trials, none diverged. Files: `results/v2/critic_s1_weight/`
+(`screen.md`, `screen_cells.csv`, `screen_variants.csv`, `trials/`) and
+`results/v2/nocritic_reference/`.*
+
+In plain terms: the critic does best when it is turned down almost to nothing, and even then it
+only matches the model that has no critic.
+
+Average change in validation MAPE against the reported weight 1 (negative is better), and the
+validation MAPE (%) in each cell (mean of tuning seeds 0 and 100):
+
+| weight | average change | Google TF | Google LSTM | Azure TF | Azure LSTM |
+| --- | --- | --- | --- | --- | --- |
+| 1 (reported) | 0.0% | 18.47 | 19.99 | 2.478 | 2.912 |
+| 0.3 | -3.0% | 18.75 | 19.92 | 2.478 | 2.548 |
+| 0.1 | -4.0% | 18.49 | 19.90 | 2.440 | 2.516 |
+| 0.03 | -4.2% | 18.77 | 19.32 | 2.463 | 2.517 |
+| 0.01 | -5.3% | 18.43 | 19.85 | 2.420 | 2.424 |
+| 0.003 | -4.3% | 18.52 | 19.85 | 2.426 | 2.505 |
+| 0.001 | -5.6% | 18.03 | 19.83 | 2.452 | 2.416 |
+| 0 (critic has no influence) | -3.1% | 18.47 | 19.88 | 2.455 | 2.601 |
+| no critic, own tuned settings | | 18.22 | 19.49 | 2.392 | 2.491 |
+
+What this shows:
+
+- **By the rule, `w_best` = 0.001 and `w_knob` = 0.01** (the largest weight whose average is
+  within 1 point of the best: -5.3% against -5.6%). Both pass the noise rule against weight 1
+  (better in all 4 cells, more than 1% lower on average).
+- **Most of the gain is one cell.** Azure LSTM improves by 12-17% at every weight below 1,
+  because the reported weight makes that cell unstable (seed gap 0.88 at weight 1, 0.01-0.3
+  below). In the other three cells every weight is within about 3% of weight 1, which is inside
+  the seed-to-seed spread.
+- **There is no dose-response.** From 0.3 down to 0.001 the averages lie between -3.0% and
+  -5.6% in no clear order, and weight 0 (critic trained, no influence) already gives -3.1%.
+  Less critic is never worse; that is the pattern of a term that adds noise, not information
+  (code review, finding 1).
+- **No weight beats the no-critic model.** The best critic weight per cell against the
+  no-critic reference: Google TF 18.03 vs 18.22, Google LSTM 19.32 vs 19.49, Azure TF 2.420 vs
+  2.392, Azure LSTM 2.416 vs 2.491. All four differences are smaller than the seed gap in the
+  same cells (0.1-0.55), and the critic numbers are the best of 8 variants while the reference
+  is one setting. (The critic and no-critic cells use their own tuned learning rates, so this
+  row is a level to compare with, not a controlled contrast.)
+
+Carried forward: stages 2, 3 and 5 use weight 0.01 (`w_knob`); stages 2 and 5 also use weight 1
+as planned. Their files (`configs/screens/critic_s2_warmup.yaml`, `critic_s3_knobs.yaml`,
+`critic_s5_input.yaml`) are committed with this note, before they run. Stage 4 follows stage 3.
+Each later stage is compared with the stage-1 trials `w0.01` and `w1` of the same cell and
+tuning seeds; the per-stage `screen.md` files show changes against the stage's first variant
+only.

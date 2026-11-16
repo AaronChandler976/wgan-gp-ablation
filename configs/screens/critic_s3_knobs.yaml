@@ -1,0 +1,129 @@
+experiment: critic_s3_knobs
+description: 'Stage 3 of the critic screen: the critic''s own settings at adversarial weight 0.01. 16
+  of the 24 combinations of critic updates per step {1, 5}, gradient penalty weight {1, 10}, critic width
+  {32, 128} and critic learning-rate scale {0.25, 1, 4}, drawn with random.Random(0).sample. Compare with
+  `w0.01` of critic_s1_weight.'
+seeds:
+- 0
+- 100
+fixed:
+  train.patience: 150
+reference: n1_gp1_h32_lr1
+cells:
+- dataset: google
+  interval: 10
+  arch: transformer
+  critic: wgan-gp
+  optimizer: madgrad
+- dataset: google
+  interval: 10
+  arch: lstm
+  critic: wgan-gp
+  optimizer: madgrad
+- dataset: azure_functions
+  interval: 5
+  arch: transformer
+  critic: wgan-gp
+  optimizer: madgrad
+- dataset: azure_functions
+  interval: 5
+  arch: lstm
+  critic: wgan-gp
+  optimizer: madgrad
+variants:
+  n1_gp1_h32_lr1:
+    train.adv_weight: 0.01
+    train.n_critic: 1
+    train.gp_lambda: 1.0
+    model.critic.hidden: 32
+    train.critic_lr_scale: 1.0
+  n1_gp1_h32_lr4:
+    train.adv_weight: 0.01
+    train.n_critic: 1
+    train.gp_lambda: 1.0
+    model.critic.hidden: 32
+    train.critic_lr_scale: 4.0
+  n1_gp1_h128_lr0.25:
+    train.adv_weight: 0.01
+    train.n_critic: 1
+    train.gp_lambda: 1.0
+    model.critic.hidden: 128
+    train.critic_lr_scale: 0.25
+  n1_gp1_h128_lr1:
+    train.adv_weight: 0.01
+    train.n_critic: 1
+    train.gp_lambda: 1.0
+    model.critic.hidden: 128
+    train.critic_lr_scale: 1.0
+  n1_gp1_h128_lr4:
+    train.adv_weight: 0.01
+    train.n_critic: 1
+    train.gp_lambda: 1.0
+    model.critic.hidden: 128
+    train.critic_lr_scale: 4.0
+  n1_gp10_h32_lr4:
+    train.adv_weight: 0.01
+    train.n_critic: 1
+    train.gp_lambda: 10.0
+    model.critic.hidden: 32
+    train.critic_lr_scale: 4.0
+  n1_gp10_h128_lr0.25:
+    train.adv_weight: 0.01
+    train.n_critic: 1
+    train.gp_lambda: 10.0
+    model.critic.hidden: 128
+    train.critic_lr_scale: 0.25
+  n1_gp10_h128_lr1:
+    train.adv_weight: 0.01
+    train.n_critic: 1
+    train.gp_lambda: 10.0
+    model.critic.hidden: 128
+    train.critic_lr_scale: 1.0
+  n5_gp1_h32_lr0.25:
+    train.adv_weight: 0.01
+    train.n_critic: 5
+    train.gp_lambda: 1.0
+    model.critic.hidden: 32
+    train.critic_lr_scale: 0.25
+  n5_gp1_h32_lr1:
+    train.adv_weight: 0.01
+    train.n_critic: 5
+    train.gp_lambda: 1.0
+    model.critic.hidden: 32
+    train.critic_lr_scale: 1.0
+  n5_gp1_h128_lr0.25:
+    train.adv_weight: 0.01
+    train.n_critic: 5
+    train.gp_lambda: 1.0
+    model.critic.hidden: 128
+    train.critic_lr_scale: 0.25
+  n5_gp1_h128_lr1:
+    train.adv_weight: 0.01
+    train.n_critic: 5
+    train.gp_lambda: 1.0
+    model.critic.hidden: 128
+    train.critic_lr_scale: 1.0
+  n5_gp10_h32_lr0.25:
+    train.adv_weight: 0.01
+    train.n_critic: 5
+    train.gp_lambda: 10.0
+    model.critic.hidden: 32
+    train.critic_lr_scale: 0.25
+  n5_gp10_h32_lr1:
+    train.adv_weight: 0.01
+    train.n_critic: 5
+    train.gp_lambda: 10.0
+    model.critic.hidden: 32
+    train.critic_lr_scale: 1.0
+  n5_gp10_h32_lr4:
+    train.adv_weight: 0.01
+    train.n_critic: 5
+    train.gp_lambda: 10.0
+    model.critic.hidden: 32
+    train.critic_lr_scale: 4.0
+  n5_gp10_h128_lr4:
+    train.adv_weight: 0.01
+    train.n_critic: 5
+    train.gp_lambda: 10.0
+    model.critic.hidden: 128
+    train.critic_lr_scale: 4.0
