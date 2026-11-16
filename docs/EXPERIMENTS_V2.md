@@ -289,3 +289,22 @@ Not recommended: Alibaba 2018 has no open license (the assignment asks for open-
 Facebook is too short, and the paper's own Wikipedia trace is no longer online. One thing to
 know about Table 3: the paper's Table 1 lists Azure Functions at 30 and 60 minutes, while its
 Table 3 reports 5 and 10 minutes, so the paper is not consistent about that dataset's interval.
+
+### 2a (matched side). `nocritic_reg_transformer` and `nocritic_reg_lstm`
+
+*Written as the screens started (2026-11-16); the screen files were committed before.*
+
+The no-critic Transformer and LSTM with MADGRAD, on both datasets, under the same protocol as
+the critic screen (tuning seeds 0 and 100, `train.patience: 150`, validation MAPE only). Each
+gets 34 variants, the number the critic side gets over its five stages: the reported setting
+plus 33 of the 35 other combinations, drawn with a fixed seed, of
+
+- Transformer: dropout {0.1 (reported), 0, 0.2, 0.3}, weight decay {0, 1e-4, 1e-3},
+  feed-forward width {2048 (reported), 512, 128};
+- LSTM: output dropout {0 (reported), 0.1, 0.2, 0.3}, weight decay {0, 1e-4, 1e-3},
+  gradient clipping {off (reported), 1.0, 0.1}.
+
+*Forward:* per architecture, the variant with the lowest average score, if it beats the
+reported setting by the same noise rule as on the critic side (better in both cells and more
+than 1% lower on average; there are 2 cells per architecture here); otherwise the reported
+setting stays.
