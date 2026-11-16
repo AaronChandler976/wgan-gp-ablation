@@ -259,6 +259,18 @@ python -m cwp.bench        # how long a run and the remaining plan take on this 
 python -m cwp.launch       # pick the next runs, then train here or submit to the HPC
 ```
 
-Slurm scripts for the SJSU HPC are in [`scripts/hpc/`](scripts/hpc/README.md): set up the
-environment, check free GPU nodes, submit runs as a job array, and push results.
-They were tested against a fake Slurm only, not on the cluster.
+### HPC scripts (Slurm)
+
+> **Untested on the cluster.** The scripts in `scripts/hpc/` were only ever run against a fake
+> Slurm on a laptop, never on the SJSU HPC. All 80 reported runs were trained on one
+> workstation, not with these scripts. Expect to fix partition names, GPU requests and the
+> PyTorch build (the P100 install line is also untested) before they work.
+
+```bash
+bash scripts/hpc/setup_env.sh               # once, on the login node: conda env, PyTorch, this package
+bash scripts/hpc/check_slots.sh --gpu       # free GPU nodes and the GPU model
+bash scripts/hpc/submit.sh -n 6 --seeds "1" # claim the next 6 runs and queue them as a job array
+bash scripts/hpc/sync_results.sh            # commit and push finished results
+```
+
+Settings and details are in [`scripts/hpc/README.md`](scripts/hpc/README.md).
