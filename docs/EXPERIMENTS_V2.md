@@ -421,3 +421,23 @@ rate reused, both datasets, seeds 1 to 5, in `results/v2/adam_control/` (20 runs
 compared with the reported critic + Adam cells (beta1 = 0) and the reported no-critic + Adam
 cells. The learning rate was tuned under beta1 = 0, which favors the reported cells; the
 report says so.
+
+**`critic_diagnostics` result (recorded 2026-11-16).** Files: `results/v2/critic_diagnostics/`
+(weight 1), `results/v2/critic_diagnostics_w0p01/` (weight 0.01; a first attempt under a name
+with a dot in it was refused by the tool before training, so nothing was lost), figure
+`figures/critic_diagnostics.pdf`. Medians over the 1,000 epochs:
+
+| run (final model, seed 1) | critic gradient / L1 gradient | cosine between them | Wasserstein estimate |
+| --- | --- | --- | --- |
+| Google, weight 1 | 0.155 | -0.046 | 0.0005 |
+| Google, weight 0.01 | 0.009 | 0.020 | 0.017 |
+| Azure, weight 1 | 0.268 | 0.077 | 0.008 |
+| Azure, weight 0.01 | 0.006 | 0.026 | 0.018 |
+
+In plain terms: at the reported weight the critic pushes the forecaster with a force about a
+sixth to a quarter of the L1 loss's, in a direction unrelated to it (cosine near 0), and on
+Google that push swings by a factor of 10 from epoch to epoch. The critic's own estimate of
+the distance between real and forecast sequences stays near zero: the forecasts already look
+like real sequences to it, so it has nothing to teach. At weight 0.01 the push is 1% of the L1
+gradient and steady. The Google weight-1 run repeats the reported run exactly (test MAPE
+24.19%). These are single runs chosen for the figure; their test values are not results.

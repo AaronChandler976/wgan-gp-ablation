@@ -399,7 +399,7 @@ def figure_critic_diagnostics() -> None:
     for col, f in enumerate(files):
         run = json.loads(f.read_text())
         diag = pd.DataFrame(run["diagnostics"])
-        low_file = V2 / "critic_diagnostics_w0.01" / f.name
+        low_file = V2 / "critic_diagnostics_w0p01" / f.name
         low = pd.DataFrame(json.loads(low_file.read_text())["diagnostics"]) if low_file.exists() else None
         for row, (key, label, log) in enumerate(panels):
             ax = axes[row, col]

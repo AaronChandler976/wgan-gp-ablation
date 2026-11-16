@@ -1,0 +1,20 @@
+{
+  "experiment": "nocritic_reg_lstm",
+  "cell": "azure_functions-5m__lstm-nocritic-madgrad",
+  "variant": "out_dropout0.3_weight_decay0.0_grad_clip0.0",
+  "seed": 0,
+  "overrides": {
+    "model.lstm.out_dropout": 0.3,
+    "optim.madgrad.weight_decay": 0.0,
+    "train.grad_clip": 0.0
+  },
+  "tuned_base": true,
+  "val_mape": 2.413288781618311,
+  "best_epoch": 640,
+  "epochs_run": 790,
+  "seconds": 125.1,
+  "git": {
+    "commit": "c948264",
+    "dirty": false
+  }
+}
