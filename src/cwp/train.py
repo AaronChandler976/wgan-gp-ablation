@@ -46,12 +46,12 @@ def warm_up(device: torch.device) -> None:
     The first GPU computation in a new process rounds slightly differently from later ones.
     Critic training amplifies that, so a critic run started on its own used to differ from the
     same run started after another one in the same process (as `cwp.launch` does, and as the
-    reported runs were made). Warming up first makes both give the later-run result. It is
-    called before the seeds are set and so does not change any random draw.
+    reported runs were made). Warming up first makes both give the later-run result. It draws
+    no random numbers.
     """
     if device.type == "cuda":
-        layer = torch.nn.Linear(4, 4).to(device)
-        layer(torch.zeros(2, 4, device=device)).sum().backward()
+        weight = torch.ones(4, 4, device=device, requires_grad=True)
+        torch.nn.functional.linear(torch.zeros(2, 4, device=device), weight).sum().backward()
 
 
 def pick_device(name: str = "auto") -> torch.device:

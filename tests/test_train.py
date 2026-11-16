@@ -107,3 +107,12 @@ def test_gradient_penalty_of_a_linear_critic():
     assert gp.item() == pytest.approx((5.0 - 1.0) ** 2, rel=1e-5)
     gp.backward()                                         # the penalty itself must be trainable
     assert critic.weight.grad is not None
+
+
+def test_warm_up_draws_no_seeded_random_numbers():
+    dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    train.set_seed(7)
+    expected = torch.rand(3)
+    train.set_seed(7)
+    train.warm_up(dev)
+    assert torch.equal(torch.rand(3), expected)
