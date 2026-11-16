@@ -67,7 +67,7 @@ cd wgan-gp-ablation
 conda env create -f environment.yml     # Python 3.11, PyTorch 2.11.0 (CUDA 12.8 build), the rest
 conda activate cwp
 pip install -e .
-pytest                                  # 41 tests, well under a minute; no data download, no GPU
+pytest                                  # 46 tests, well under a minute; no data download, no GPU
 ```
 
 [`environment.yml`](environment.yml) pins the versions the reported runs were made with. The
@@ -104,7 +104,7 @@ licenses and file formats are in [`data/README.md`](data/README.md).
 ## Tests
 
 ```bash
-pytest          # 41 tests; `unset PYTHONPATH` first if another Python installation interferes
+pytest          # 46 tests; `unset PYTHONPATH` first if another Python installation interferes
 ```
 
 The same tests run on every push (`.github/workflows/tests.yml`).
