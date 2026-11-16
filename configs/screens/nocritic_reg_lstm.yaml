@@ -1,0 +1,155 @@
+experiment: nocritic_reg_lstm
+description: 'Matched tuning budget for the no-critic LSTM: 34 variants (the reported setting plus 33
+  of the 35 other combinations of output dropout, weight decay and gradient clipping, drawn with a fixed
+  seed).'
+seeds:
+- 0
+- 100
+fixed:
+  train.patience: 150
+reference: base
+cells:
+- dataset: google
+  interval: 10
+  arch: lstm
+  critic: none
+  optimizer: madgrad
+- dataset: azure_functions
+  interval: 5
+  arch: lstm
+  critic: none
+  optimizer: madgrad
+variants:
+  base: {}
+  out_dropout0.1_weight_decay0.001_grad_clip0.1:
+    model.lstm.out_dropout: 0.1
+    optim.madgrad.weight_decay: 0.001
+    train.grad_clip: 0.1
+  out_dropout0.3_weight_decay0.0_grad_clip0.1:
+    model.lstm.out_dropout: 0.3
+    optim.madgrad.weight_decay: 0.0
+    train.grad_clip: 0.1
+  out_dropout0.2_weight_decay0.0001_grad_clip1.0:
+    model.lstm.out_dropout: 0.2
+    optim.madgrad.weight_decay: 0.0001
+    train.grad_clip: 1.0
+  out_dropout0.0_weight_decay0.001_grad_clip1.0:
+    model.lstm.out_dropout: 0.0
+    optim.madgrad.weight_decay: 0.001
+    train.grad_clip: 1.0
+  out_dropout0.1_weight_decay0.0001_grad_clip0.1:
+    model.lstm.out_dropout: 0.1
+    optim.madgrad.weight_decay: 0.0001
+    train.grad_clip: 0.1
+  out_dropout0.0_weight_decay0.001_grad_clip0.0:
+    model.lstm.out_dropout: 0.0
+    optim.madgrad.weight_decay: 0.001
+    train.grad_clip: 0.0
+  out_dropout0.0_weight_decay0.001_grad_clip0.1:
+    model.lstm.out_dropout: 0.0
+    optim.madgrad.weight_decay: 0.001
+    train.grad_clip: 0.1
+  out_dropout0.3_weight_decay0.001_grad_clip1.0:
+    model.lstm.out_dropout: 0.3
+    optim.madgrad.weight_decay: 0.001
+    train.grad_clip: 1.0
+  out_dropout0.2_weight_decay0.001_grad_clip0.1:
+    model.lstm.out_dropout: 0.2
+    optim.madgrad.weight_decay: 0.001
+    train.grad_clip: 0.1
+  out_dropout0.2_weight_decay0.0_grad_clip0.0:
+    model.lstm.out_dropout: 0.2
+    optim.madgrad.weight_decay: 0.0
+    train.grad_clip: 0.0
+  out_dropout0.3_weight_decay0.0001_grad_clip1.0:
+    model.lstm.out_dropout: 0.3
+    optim.madgrad.weight_decay: 0.0001
+    train.grad_clip: 1.0
+  out_dropout0.0_weight_decay0.0001_grad_clip0.1:
+    model.lstm.out_dropout: 0.0
+    optim.madgrad.weight_decay: 0.0001
+    train.grad_clip: 0.1
+  out_dropout0.3_weight_decay0.0001_grad_clip0.1:
+    model.lstm.out_dropout: 0.3
+    optim.madgrad.weight_decay: 0.0001
+    train.grad_clip: 0.1
+  out_dropout0.1_weight_decay0.0001_grad_clip0.0:
+    model.lstm.out_dropout: 0.1
+    optim.madgrad.weight_decay: 0.0001
+    train.grad_clip: 0.0
+  out_dropout0.2_weight_decay0.0001_grad_clip0.1:
+    model.lstm.out_dropout: 0.2
+    optim.madgrad.weight_decay: 0.0001
+    train.grad_clip: 0.1
+  out_dropout0.2_weight_decay0.0001_grad_clip0.0:
+    model.lstm.out_dropout: 0.2
+    optim.madgrad.weight_decay: 0.0001
+    train.grad_clip: 0.0
+  out_dropout0.3_weight_decay0.001_grad_clip0.1:
+    model.lstm.out_dropout: 0.3
+    optim.madgrad.weight_decay: 0.001
+    train.grad_clip: 0.1
+  out_dropout0.3_weight_decay0.001_grad_clip0.0:
+    model.lstm.out_dropout: 0.3
+    optim.madgrad.weight_decay: 0.001
+    train.grad_clip: 0.0
+  out_dropout0.0_weight_decay0.0001_grad_clip0.0:
+    model.lstm.out_dropout: 0.0
+    optim.madgrad.weight_decay: 0.0001
+    train.grad_clip: 0.0
+  out_dropout0.3_weight_decay0.0_grad_clip1.0:
+    model.lstm.out_dropout: 0.3
+    optim.madgrad.weight_decay: 0.0
+    train.grad_clip: 1.0
+  out_dropout0.3_weight_decay0.0_grad_clip0.0:
+    model.lstm.out_dropout: 0.3
+    optim.madgrad.weight_decay: 0.0
+    train.grad_clip: 0.0
+  out_dropout0.2_weight_decay0.0_grad_clip0.1:
+    model.lstm.out_dropout: 0.2
+    optim.madgrad.weight_decay: 0.0
+    train.grad_clip: 0.1
+  out_dropout0.0_weight_decay0.0001_grad_clip1.0:
+    model.lstm.out_dropout: 0.0
+    optim.madgrad.weight_decay: 0.0001
+    train.grad_clip: 1.0
+  out_dropout0.2_weight_decay0.001_grad_clip0.0:
+    model.lstm.out_dropout: 0.2
+    optim.madgrad.weight_decay: 0.001
+    train.grad_clip: 0.0
+  out_dropout0.2_weight_decay0.001_grad_clip1.0:
+    model.lstm.out_dropout: 0.2
+    optim.madgrad.weight_decay: 0.001
+    train.grad_clip: 1.0
+  out_dropout0.0_weight_decay0.0_grad_clip1.0:
+    model.lstm.out_dropout: 0.0
+    optim.madgrad.weight_decay: 0.0
+    train.grad_clip: 1.0
+  out_dropout0.3_weight_decay0.0001_grad_clip0.0:
+    model.lstm.out_dropout: 0.3
+    optim.madgrad.weight_decay: 0.0001
+    train.grad_clip: 0.0
+  out_dropout0.1_weight_decay0.001_grad_clip1.0:
+    model.lstm.out_dropout: 0.1
+    optim.madgrad.weight_decay: 0.001
+    train.grad_clip: 1.0
+  out_dropout0.1_weight_decay0.001_grad_clip0.0:
+    model.lstm.out_dropout: 0.1
+    optim.madgrad.weight_decay: 0.001
+    train.grad_clip: 0.0
+  out_dropout0.1_weight_decay0.0_grad_clip0.0:
+    model.lstm.out_dropout: 0.1
+    optim.madgrad.weight_decay: 0.0
+    train.grad_clip: 0.0
+  out_dropout0.1_weight_decay0.0_grad_clip0.1:
+    model.lstm.out_dropout: 0.1
+    optim.madgrad.weight_decay: 0.0
+    train.grad_clip: 0.1
+  out_dropout0.1_weight_decay0.0001_grad_clip1.0:
+    model.lstm.out_dropout: 0.1
+    optim.madgrad.weight_decay: 0.0001
+    train.grad_clip: 1.0
+  out_dropout0.1_weight_decay0.0_grad_clip1.0:
+    model.lstm.out_dropout: 0.1
+    optim.madgrad.weight_decay: 0.0
+    train.grad_clip: 1.0
