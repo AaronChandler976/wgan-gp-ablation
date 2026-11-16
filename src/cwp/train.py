@@ -61,19 +61,36 @@ def pick_device(name: str = "auto") -> torch.device:
 
 
 def prepare_data(spec: RunSpec, cfg: dict, device: torch.device) -> dict:
+    dc = cfg["data"]
     series = data.load_series(spec.dataset, spec.interval)
-    split = data.get_split(spec.dataset, spec.interval, tuple(cfg["data"]["split"]))
-    scaler = data.MinMaxScaler.fit(series[: split.train_end])   # training part only
-    scaled = scaler.transform(series)
+    if dc["drop_empty"]:                                        # released code: empty intervals vanish
+        series = series[series != 0]
+        split = data.compute_split(len(series), tuple(dc["split"]))
+    else:
+        split = data.get_split(spec.dataset, spec.interval, tuple(dc["split"]))
     bounds = {"train": (0, split.train_end), "val": (split.train_end, split.val_end),
               "test": (split.val_end, split.n)}
+    if dc["scaler"] == "train":
+        scaler = data.MinMaxScaler.fit(series[: split.train_end])   # training part only
+        scalers = {name: scaler for name in bounds}
+    elif dc["scaler"] == "per_split":                           # released code; leaks test statistics
+        scalers = {name: data.MinMaxScaler.fit(series[s:e]) for name, (s, e) in bounds.items()}
+    else:
+        raise ValueError("data.scaler must be 'train' or 'per_split'")
+    if dc["windows"] not in ("continuous", "inside_split"):
+        raise ValueError("data.windows must be 'continuous' or 'inside_split'")
     parts = {}
     for name, (s, e) in bounds.items():
-        X, y, idx = data.make_windows(scaled, cfg["data"]["window"], s, e)
+        X, y, idx = data.make_windows(scalers[name].transform(series), dc["window"], s, e,
+                                      inside=dc["windows"] == "inside_split")
         parts[name] = (torch.tensor(X, dtype=torch.float32, device=device),
                        torch.tensor(y, dtype=torch.float32, device=device), idx)
-    return {"series": series, "split": split, "scaler": scaler, "parts": parts,
-            "mase_scale": metrics.naive_scale(series[: split.train_end])}
+    # With the encoding indexed by batch position, a prediction depends on how the data is
+    # batched, so evaluation uses the training batch size, in time order, as the released code does.
+    by_batch = spec.arch == "transformer" and cfg["model"]["transformer"]["pos_encoding"] == "batch"
+    return {"series": series, "split": split, "scaler": scalers["train"], "scalers": scalers,
+            "parts": parts, "mase_scale": metrics.naive_scale(series[: split.train_end]),
+            "predict_batch": cfg["train"]["batch_size"] if by_batch else 1024}
 
 
 @torch.no_grad()
@@ -85,9 +102,30 @@ def predict(model, X: torch.Tensor, batch: int = 1024) -> np.ndarray:
 def evaluate(model, d: dict, part: str):
     """Metrics in original units for one part ('val' or 'test'). Returns (metrics, y, pred, idx)."""
     X, _, idx = d["parts"][part]
-    pred = d["scaler"].inverse(predict(model, X).astype(np.float64))
+    pred = d["scalers"][part].inverse(predict(model, X, d["predict_batch"]).astype(np.float64))
     y = d["series"][idx]
     return metrics.all_metrics(y, pred, d["mase_scale"]), y, pred, idx
+
+
+def released_units_mape(d: dict, part: str, y: np.ndarray, pred: np.ndarray) -> float:
+    """MAPE the way the released code computes it under per-split scaling.
+
+    It refits one scaler on train, test, then validation, and un-scales every part with that
+    last (validation) fit. True values and predictions of `part` therefore pass through the
+    same wrong affine map, and the result is not in jobs per interval."""
+    own, val = d["scalers"][part], d["scalers"]["val"]
+    return metrics.mape(val.inverse(own.transform(y)), val.inverse(own.transform(pred)))
+
+
+def score(model, d: dict) -> dict:
+    """Validation and test metrics of the model as it is now. For reporting, never for selection."""
+    out = {}
+    for part in ("val", "test"):
+        m, y, pred, _ = evaluate(model, d, part)
+        if d["scalers"]["val"] is not d["scalers"]["train"]:    # per-split scaling
+            m["mape_released_units"] = released_units_mape(d, part, y, pred)
+        out[part] = m
+    return out
 
 
 def gradient_penalty(critic, real: torch.Tensor, fake: torch.Tensor) -> torch.Tensor:
@@ -145,7 +183,7 @@ class Diagnostics:
         self.add(l1=pred_loss, adv_term=-adv_weight * adv, l1_grad=n_l1, adv_grad=n_adv,
                  adv_to_l1_grad=n_adv / n_l1.clamp_min(1e-12),
                  grad_cosine=(g_l1 * g_adv).sum() / (n_l1 * n_adv).clamp_min(1e-12),
-                 critic_slope=g_adv.abs().mean() * pred.numel() / max(adv_weight, 1e-12))
+                 critic_slope=g_adv.abs().mean() * pred.numel() / max(abs(adv_weight), 1e-12))
 
     def end_epoch(self, epoch: int) -> None:
         self.rows.append({"epoch": epoch, **{k: float(v / self.counts[k]) for k, v in self.sums.items()}})
@@ -170,6 +208,9 @@ def fit(spec: RunSpec, cfg: dict, device: torch.device, log=print, max_epochs: i
         opt_d = build_optimizer(spec.optimizer, critic.parameters(), cfg, with_critic)
     loss_fn = {"l1": F.l1_loss, "mse": F.mse_loss}[tc["loss"]]
 
+    if tc["adv_sign"] not in ("minus", "plus") or tc["critic_batch"] not in ("random", "same"):
+        raise ValueError("train.adv_sign must be minus|plus and train.critic_batch random|same")
+    same_batch = with_critic and tc["critic_batch"] == "same"
     order = torch.Generator().manual_seed(spec.seed)       # batch order, same on every machine
     n, bs = Xtr.size(0), tc["batch_size"]
     epochs = max_epochs or tc["epochs"]
@@ -181,19 +222,24 @@ def fit(spec: RunSpec, cfg: dict, device: torch.device, log=print, max_epochs: i
     for epoch in range(1, epochs + 1):
         t_epoch = time.time()
         model.train()
-        perm = torch.randperm(n, generator=order).to(device)
+        perm = (torch.randperm(n, generator=order) if tc["shuffle"] else torch.arange(n)).to(device)
         total = 0.0
         for i in range(0, n, bs):
             b = perm[i:i + bs]
             xb, yb = Xtr[b], ytr[b]
             if with_critic:
+                if same_batch:       # released code: one forward pass serves the critic and the generator
+                    pred = model(xb)
                 for p in critic.parameters():
                     p.requires_grad_(True)
                 for _ in range(tc["n_critic"]):
-                    j = torch.randint(0, n, (bs,), generator=order).to(device)
-                    xr, yr = Xtr[j], ytr[j]
-                    with torch.no_grad():
-                        fake_y = model(xr)
+                    if same_batch:
+                        xr, yr, fake_y = xb, yb, pred.detach()
+                    else:
+                        j = torch.randint(0, n, (bs,), generator=order).to(device)
+                        xr, yr = Xtr[j], ytr[j]
+                        with torch.no_grad():
+                            fake_y = model(xr)
                     real = torch.cat([xr, yr.unsqueeze(1)], dim=1)
                     fake = torch.cat([xr, fake_y.unsqueeze(1)], dim=1)
                     score_real, score_fake = critic(real).mean(), critic(fake).mean()
@@ -207,14 +253,19 @@ def fit(spec: RunSpec, cfg: dict, device: torch.device, log=print, max_epochs: i
                     opt_d.step()
                 for p in critic.parameters():
                     p.requires_grad_(False)
-            pred = model(xb)
+            if not same_batch:
+                pred = model(xb)
             pred_loss = loss_fn(pred, yb)
             loss = pred_loss
             if with_critic:      # the generator also wants the critic to score its sequence highly
                 adv = critic(torch.cat([xb, pred.unsqueeze(1)], dim=1)).mean()
-                loss = loss - tc["adv_weight"] * adv
+                if tc["adv_sign"] == "minus":                   # paper Eq. 4
+                    loss = loss - tc["adv_weight"] * adv
+                else:                                           # released code: L1 + critic score
+                    loss = loss + tc["adv_weight"] * adv
                 if diag:
-                    diag.generator_step(pred, pred_loss, adv, tc["adv_weight"])
+                    diag.generator_step(pred, pred_loss, adv,
+                                        tc["adv_weight"] * (1 if tc["adv_sign"] == "minus" else -1))
             opt_g.zero_grad(set_to_none=True)
             loss.backward()
             if diag:
@@ -243,12 +294,16 @@ def fit(spec: RunSpec, cfg: dict, device: torch.device, log=print, max_epochs: i
                 log(f"stopped early at epoch {epoch} (no improvement for {stale} epochs)")
                 break
 
+    # Both candidate models are kept so a run can report "best validation epoch" and "last epoch".
+    states = {"last": (epoch, copy.deepcopy({k: v.cpu() for k, v in model.state_dict().items()}))}
+    if best["state"] is not None:
+        states["best_val"] = (best["epoch"], best["state"])
     if tc["select"] == "best_val" and best["state"] is not None:
         model.load_state_dict(best["state"])
         selected = best["epoch"]
     else:
         selected = epoch
-    return {"model": model, "data": d, "history": history, "selected_epoch": selected,
+    return {"model": model, "data": d, "history": history, "selected_epoch": selected, "states": states,
             "diagnostics": diag.rows if diag else None, "epochs_run": epoch, "train_seconds": time.time() - start, "epoch_seconds": epoch_seconds}
 
 
@@ -260,34 +315,52 @@ def environment(device: torch.device) -> dict:
             "git": config.git_info()}
 
 
+def result_dir(tag: str | None = None, exp: str | None = None):
+    """Planned runs: results/. Tagged try-outs: results/scratch/. v2 experiments: results/v2/<exp>/."""
+    if exp:
+        return config.path("results", "v2", exp)
+    return config.path("results", "scratch") if tag else config.path("results")
+
+
 def run(spec: RunSpec, cfg: dict, device: torch.device, tag: str | None = None,
-        tuned: bool = False, log=print, diagnostics: bool = False) -> dict:
+        tuned: bool = False, log=print, diagnostics: bool = False, exp: str | None = None,
+        profile: str | None = None) -> dict:
     """Train, evaluate, and save the checkpoint, test predictions and result file."""
     out = fit(spec, cfg, device, log, diagnostics=diagnostics)
     model, d = out["model"], out["data"]
-    val_m = evaluate(model, d, "val")[0]
-    test_m, y, pred, idx = evaluate(model, d, "test")
+    by_selection = {}                # reporting only: the same run under both ways of picking an epoch
+    chosen = copy.deepcopy(model.state_dict())
+    for how, (ep, state) in out["states"].items():
+        model.load_state_dict(state)
+        by_selection[how] = {"epoch": ep, **score(model, d)}
+    model.load_state_dict(chosen)
+    scored = score(model, d)
+    val_m, test_m = scored["val"], scored["test"]
+    _, y, pred, idx = evaluate(model, d, "test")
     name = spec.run_id + (f"__{tag}" if tag else "")
-    base = config.path("results", "scratch") if tag else config.path("results")
+    base = result_dir(tag, exp)
     (base / "predictions").mkdir(parents=True, exist_ok=True)
     config.path("checkpoints").mkdir(exist_ok=True)
 
     result = {
         "run_id": spec.run_id, "tag": tag, "dataset": spec.dataset, "interval": spec.interval,
         "arch": spec.arch, "critic": spec.critic, "optimizer": spec.optimizer, "seed": spec.seed,
-        "metrics": {"val": val_m, "test": test_m},
+        "experiment": exp, "profile": profile,
+        "metrics": {"val": val_m, "test": test_m}, "metrics_by_selection": by_selection,
         "selected_epoch": out["selected_epoch"], "epochs_run": out["epochs_run"],
         "train_seconds": round(out["train_seconds"], 1),
         "inference_ms": time_inference(model, d["parts"]["test"][0], cfg["eval"]["timing_reps"]),
         "n_params": count_params(model),
         "config": cfg, "tuned": tuned, "scaler": d["scaler"].state(),
+        "scalers": {k: v.state() for k, v in d["scalers"].items()},
         "split": {"n": d["split"].n, "train_end": d["split"].train_end, "val_end": d["split"].val_end},
         "history": out["history"], **({"diagnostics": out["diagnostics"]} if diagnostics else {}),
         "owner": config.owner(), "env": environment(device),
         "finished_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
     }
     torch.save({"model": model.state_dict(), "spec": spec.__dict__, "config": cfg,
-                "scaler": d["scaler"].state()}, config.path("checkpoints", f"{name}.pt"))
+                "scaler": d["scaler"].state()},
+               config.path("checkpoints", (f"v2-{exp}__" if exp else "") + f"{name}.pt"))
     pd.DataFrame({"t": idx, "y_true": y, "y_pred": pred}).to_csv(
         base / "predictions" / f"{name}.csv", index=False)
     (base / f"{name}.json").write_text(json.dumps(result, indent=2) + "\n")
@@ -308,25 +381,35 @@ def main(argv=None) -> None:
     ap.add_argument("--no-tuned", action="store_true", help="ignore configs/tuned/ (needs --tag)")
     ap.add_argument("--force", action="store_true", help="retrain a finished or claimed run")
     ap.add_argument("--diagnostics", action="store_true",
-                    help="also save per-epoch critic and gradient diagnostics (needs --tag)")
+                    help="also save per-epoch critic and gradient diagnostics (needs --tag or --exp)")
+    ap.add_argument("--profile", help="apply configs/profiles/<name>.yaml (needs --tag or --exp)")
+    ap.add_argument("--exp", help="save as a run of the named v2 experiment under results/v2/<name>/")
     ap.add_argument("overrides", nargs="*", help="key=value config overrides (need --tag)")
     a = ap.parse_args(argv)
 
     spec = RunSpec(a.dataset, a.interval, a.arch, a.critic, a.optimizer, a.seed)
-    changed = bool(a.overrides or a.lr is not None or a.no_tuned)
-    if changed and not a.tag:
+    changed = bool(a.overrides or a.lr is not None or a.no_tuned or a.profile)
+    if changed and not (a.tag or a.exp):
         sys.exit("Overrides change the configuration, so this would not be the planned run.\n"
-                 "Add --tag NAME to save it as an exploratory run (results/scratch/).")
-    if a.diagnostics and not a.tag:
+                 "Add --tag NAME to save it as an exploratory run (results/scratch/), "
+                 "or --exp NAME for a v2 experiment (results/v2/NAME/).")
+    if a.diagnostics and not (a.tag or a.exp):
         sys.exit("--diagnostics is for exploratory runs. Add --tag NAME (results/scratch/).")
-    cfg, tuned = config.resolve_config(spec, a.overrides, a.lr, use_tuned=not a.no_tuned)
+    if a.exp and not a.exp.replace("_", "").replace("-", "").isalnum():
+        sys.exit("--exp must be a simple name (letters, digits, - and _).")
+    cfg, tuned = config.resolve_config(spec, a.overrides, a.lr, use_tuned=not a.no_tuned,
+                                       profile=a.profile)
 
     if not data.processed_path(spec.dataset, spec.interval).exists():
         sys.exit(f"No processed data for {spec.data_id}. Run `python -m cwp.data preprocess "
                  f"--dataset {spec.dataset}` after `download`, or pull it from the repo.")
 
     new_claim = False
-    if not a.tag:
+    if a.exp:                                   # v2 experiments: additive, no claims, never the plan
+        done = result_dir(a.tag, a.exp) / f"{spec.run_id}{'__' + a.tag if a.tag else ''}.json"
+        if done.exists() and not a.force:
+            sys.exit(f"{done.name} already exists in experiment '{a.exp}'. Use --force to redo it.")
+    elif not a.tag:
         st, info = runs.state(spec)
         if st == "done" and not a.force:
             sys.exit(f"{spec.run_id} is already finished ({info['owner']}, "
@@ -339,19 +422,20 @@ def main(argv=None) -> None:
             new_claim = True
 
     device = pick_device(a.device)
-    print(f"{spec.run_id}{' [' + a.tag + ']' if a.tag else ''} on {device}"
+    print(f"{spec.run_id}{' [' + a.tag + ']' if a.tag else ''}{' {' + a.exp + '}' if a.exp else ''} on {device}"
           f"{' (tuned settings)' if tuned else ''}")
     try:
-        result = run(spec, cfg, device, tag=a.tag, tuned=tuned, diagnostics=a.diagnostics)
+        result = run(spec, cfg, device, tag=a.tag, tuned=tuned, diagnostics=a.diagnostics,
+                     exp=a.exp, profile=a.profile)
     except BaseException:
         if new_claim:                                  # do not leave a claim for a run that failed
             runs.claim_path(spec.run_id).unlink(missing_ok=True)
         raise
     t = result["metrics"]["test"]
-    print(f"done in {result['train_seconds']:.0f}s, best epoch {result['selected_epoch']}: "
+    print(f"done in {result['train_seconds']:.0f}s, selected epoch {result['selected_epoch']}: "
           f"test MAPE {t['mape']:.2f}%  MAE {t['mae']:.2f}  RMSE {t['rmse']:.2f}  MASE {t['mase']:.3f}  "
           f"inference {result['inference_ms']:.2f} ms")
-    if not a.tag:
+    if not (a.tag or a.exp):
         print("Share it with the team: python -m cwp.runs sync")
 
 

@@ -5,7 +5,9 @@ Everything here is **additive**. The 80 reported runs (`results/*.json`), their 
 name and its own results folder, and results from different setups are never put in one table
 without a label.
 
-**Status: proposed at checkpoint 1, not approved yet. No v2 experiment has been run.**
+**Status: approved on 2026-11-16** with these decisions: the proposed order stands (the
+one-item-at-a-time ablation stays at step 6); new tuning rechecks the best 4 settings with 2 more
+tuning seeds (rule 4); the Adam control (4b) is included.
 The only training done so far is for the code review (`docs/CODE_REVIEW.md`, findings 1 and
 14): reruns of 8 reported runs at seed 1, saved under `results/scratch/` (not in git) with the
 tags `diag`, `diagcold` and `repro`. They reproduce reported runs and add no new result.
@@ -94,4 +96,59 @@ needs no GPU and can happen alongside steps 1-3.
 
 ## Log
 
-Nothing yet. Each experiment gets a section here before it starts.
+Each experiment gets a section here before it starts; results are added to the same section.
+
+### 1a. `released_full`: the released code's choices, all together
+
+*Written before the runs started (2026-11-16).*
+
+**Question.** What does our pipeline give when it makes every choice the released code makes?
+
+**What is run.** `--profile released_code --exp released_full` for the paper's final model
+(`transformer`, `wgan-gp`, `madgrad`) and the LSTM baseline (`lstm`, `none`, `adam`), on
+`google-10m` and `azure_functions-5m`, seeds 1-5: 20 runs, 1,000 epochs each. The profile
+(`configs/profiles/released_code.yaml`) sets: learning rate 0.01; Tanh critic that scores each
+value on its own; 1 critic update per generator update on the generator's own batch;
+gradient-penalty weight 0.1; generator loss L1 *plus* the critic score; positional encoding by
+batch position; broadcast input embedding; scaler fitted separately on each part; windows
+inside each part; no shuffling; last epoch reported; empty intervals dropped (there are none).
+For the LSTM baseline only the learning rate, the data handling, the batch order and the epoch
+choice apply.
+
+**What is not reproduced.** The released code takes history length, `d_model`, heads, dropout
+and batch size from the command line and the paper does not list the values used, so these
+stay at this repo's tuned values (batch size 64, dropout 0.1). Its critic is as wide as
+`d_model`; ours stays at 64. Its gradient penalty draws one mixing weight per time position;
+ours draws one per sample. The released repository has no LSTM, so "LSTM under the released
+profile" is our construction.
+
+**No selection.** Nothing is tuned or chosen in this experiment; the settings are fixed in
+advance. Test metrics are reported as they come, including runs that diverge.
+
+**Reported.** `results/v2/summary/released_code.md`: test MAPE in true units and in the
+released code's units, at the last epoch and at the best validation epoch, next to the
+reported paper-settings runs and the paper's Table 3. These settings are labeled **not a fair
+evaluation** (per-split scaling uses the test part's minimum and maximum).
+
+### 1b. `released_data`: data handling only
+
+*Written before the runs started (2026-11-16).*
+
+**Hypothesis.** The paper's lower Google MAPE (10.58 / 11.49 against our 21-23) is explained by
+data handling: per-split scaling, windows inside each part, last-epoch reporting, and
+un-scaling with the validation part's range.
+
+**What is run.** `--profile released_data --exp released_data`: the paper settings and this
+repo's tuned hyperparameters, with only `data.scaler=per_split`, `data.windows=inside_split`,
+`data.drop_empty=true` and `train.select=last` changed. Same 2 configurations, 2 datasets,
+seeds 1-5: 20 runs.
+
+**Decision rule, fixed in advance.** The hypothesis counts as **supported** if, on Google
+10 min, mean test MAPE in the released code's units falls at least halfway from our reported
+value to the paper's for both configurations (below 16.6 for the final model, below 17.1 for
+the LSTM; reported 22.62 and 22.69). If it moves less than a quarter of the way (stays above
+19.6 and 19.9) it is **rejected**. In between is "partly". The zero-training check in the code
+review (finding 13) predicts rejection: the same un-scaling applied to the reported runs'
+predictions gives 20.1-22.0.
+
+**No selection** here either. Both epoch choices are recorded for every run.

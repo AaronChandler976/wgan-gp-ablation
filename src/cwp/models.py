@@ -26,10 +26,17 @@ class LSTMForecaster(nn.Module):
 
 
 class PositionalEncoding(nn.Module):
-    """Sinusoidal encoding added per time step."""
+    """Sinusoidal encoding added per time step.
 
-    def __init__(self, d_model: int, max_len: int = 4096):
+    `by="batch"` reproduces the released code, which indexes the encoding by a sample's position
+    in its batch: every time step of sample b gets encoding b, so time order is not encoded.
+    """
+
+    def __init__(self, d_model: int, max_len: int = 4096, by: str = "time"):
         super().__init__()
+        if by not in ("time", "batch"):
+            raise ValueError("pos_encoding must be 'time' or 'batch'")
+        self.by = by
         pos = torch.arange(max_len, dtype=torch.float).unsqueeze(1)
         div = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
         pe = torch.zeros(max_len, d_model)
@@ -38,6 +45,8 @@ class PositionalEncoding(nn.Module):
         self.register_buffer("pe", pe)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:   # x: [batch, time, d_model]
+        if self.by == "batch":
+            return x + self.pe[: x.size(0)].unsqueeze(1)
         return x + self.pe[: x.size(1)]
 
 
@@ -49,13 +58,14 @@ class TransformerForecaster(nn.Module):
     """
 
     def __init__(self, d_model: int = 64, nhead: int = 4, enc_layers: int = 1, dec_layers: int = 1,
-                 dim_ff: int = 2048, dropout: float = 0.1, input_embed: str = "linear"):
+                 dim_ff: int = 2048, dropout: float = 0.1, input_embed: str = "linear",
+                 pos_encoding: str = "time"):
         super().__init__()
         if input_embed not in ("linear", "broadcast"):
             raise ValueError("input_embed must be 'linear' or 'broadcast'")
         self.d_model = d_model
         self.embed = nn.Linear(1, d_model) if input_embed == "linear" else None
-        self.pos = PositionalEncoding(d_model)
+        self.pos = PositionalEncoding(d_model, by=pos_encoding)
         enc = nn.TransformerEncoderLayer(d_model, nhead, dim_ff, dropout, batch_first=True)
         dec = nn.TransformerDecoderLayer(d_model, nhead, dim_ff, dropout, batch_first=True)
         self.encoder = nn.TransformerEncoder(enc, enc_layers, norm=nn.LayerNorm(d_model),
@@ -101,8 +111,29 @@ def build_forecaster(arch: str, cfg: dict) -> nn.Module:
     raise ValueError(f"unknown arch '{arch}'")
 
 
-def build_critic(cfg: dict) -> Critic:
-    return Critic(seq_len=cfg["data"]["window"] + 1, **cfg["model"]["critic"])
+class PointwiseTanhCritic(nn.Module):
+    """The released code's critic: the same small network scores every value on its own, with
+    Tanh after every layer including the last. Returns one bounded score per value
+    [batch, window + 1]; it never sees two values together."""
+
+    def __init__(self, hidden: int = 64):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(1, hidden), nn.Tanh(),
+            nn.Linear(hidden, hidden * 2), nn.Tanh(),
+            nn.Linear(hidden * 2, 1), nn.Tanh())
+
+    def forward(self, seq: torch.Tensor) -> torch.Tensor:   # seq: [batch, window + 1]
+        return self.net(seq.unsqueeze(-1)).squeeze(-1)
+
+
+def build_critic(cfg: dict) -> nn.Module:
+    c = cfg["model"]["critic"]
+    if c["kind"] == "mlp":
+        return Critic(seq_len=cfg["data"]["window"] + 1, hidden=c["hidden"], leaky_slope=c["leaky_slope"])
+    if c["kind"] == "pointwise_tanh":
+        return PointwiseTanhCritic(hidden=c["hidden"])
+    raise ValueError(f"unknown critic kind '{c['kind']}'")
 
 
 def build_optimizer(name: str, params, cfg: dict, with_critic: bool) -> torch.optim.Optimizer:

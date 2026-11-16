@@ -1,0 +1,9 @@
+description: >
+  Only the released code's data handling and epoch choice, on top of the paper settings and
+  this repo's tuned hyperparameters. Tests whether data handling explains the paper's lower
+  MAPE. NOT a fair evaluation: per-split scaling uses the test part's own minimum and maximum.
+overrides:
+  data.scaler: per_split
+  data.windows: inside_split
+  data.drop_empty: true
+  train.select: last

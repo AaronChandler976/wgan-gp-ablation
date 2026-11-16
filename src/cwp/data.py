@@ -116,14 +116,17 @@ class MinMaxScaler:
         return {"lo": self.lo, "hi": self.hi}
 
 
-def make_windows(series: np.ndarray, window: int, start: int, end: int):
+def make_windows(series: np.ndarray, window: int, start: int, end: int, inside: bool = False):
     """Inputs X [N, window] and targets y [N] for target positions t in [start, end).
 
     The history of a target may reach back before `start` (into the previous part of the
     series). It never contains the target or anything after it, so nothing leaks, and every
     model is scored on the same target points whatever its window size.
+
+    `inside=True` builds the windows inside [start, end) only, as the released code does, so
+    the first `window` points of the part are never predicted.
     """
-    first = max(start, window)
+    first = start + window if inside else max(start, window)
     if first >= end:
         raise ValueError(f"window {window} leaves no targets in [{start}, {end})")
     idx = np.arange(first, end)
