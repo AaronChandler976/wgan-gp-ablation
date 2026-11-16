@@ -64,23 +64,25 @@ Notes for reading these:
 ```bash
 git clone https://github.com/AaronChandler976/wgan-gp-ablation.git
 cd wgan-gp-ablation
-conda env create -f environment.yml
+conda env create -f environment.yml     # Python 3.11, PyTorch 2.11.0 (CUDA 12.8 build), the rest
 conda activate cwp
-pip install torch            # or the line for your GPU from the table below
 pip install -e .
-pytest                       # 41 tests, well under a minute; needs no data download and no GPU
+pytest                                  # 41 tests, well under a minute; no data download, no GPU
 ```
+
+[`environment.yml`](environment.yml) pins the versions the reported runs were made with. The
+PyTorch wheel brings its own CUDA libraries and also runs on a machine without a GPU. If you
+need a different build, install it over the pinned one after creating the environment:
+
+| Machine | PyTorch install |
+| --- | --- |
+| Older GPUs (for example the HPC's P100 nodes; not tested) | `pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cu121` |
+| No GPU, smaller download | `pip install torch --index-url https://download.pytorch.org/whl/cpu` |
 
 The tests use only the bundled synthetic series. If `pytest` fails with import errors from
 another Python installation (for example on a machine with ROS, which sets `PYTHONPATH`), run
 `unset PYTHONPATH` first. If you already have a conda environment called `cwp`, pick another
 name with `conda env create -n <name> -f environment.yml`.
-
-| Machine | PyTorch install |
-| --- | --- |
-| RTX 50-series (needs a recent build) | `pip install torch --index-url https://download.pytorch.org/whl/cu128` |
-| HPC with older GPUs (P100) | `pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cu121` |
-| No GPU | `pip install torch --index-url https://download.pytorch.org/whl/cpu` |
 
 ## Data
 

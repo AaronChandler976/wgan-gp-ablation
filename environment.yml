@@ -1,6 +1,7 @@
-# conda env create -f environment.yml && conda activate cwp
-# PyTorch and this package are installed with pip afterwards, so each machine can pick the
-# PyTorch build that matches its GPU. See README "Install".
+# conda env create -f environment.yml && conda activate cwp && pip install -e .
+# Matches the environment the reported runs were made in: Python 3.11 and PyTorch 2.11.0 built
+# for CUDA 12.8 (the wheel brings its own CUDA libraries; it also runs on a machine with no GPU).
+# For another PyTorch build (older GPUs, CPU only), see README "Setup".
 name: cwp
 channels:
   - conda-forge
@@ -12,5 +13,8 @@ dependencies:
   - scipy=1.15
   - pyyaml=6.0
   - pytest=8
+  - matplotlib-base=3.11    # only for scripts/make_figures.py
   - pip:
+      - --extra-index-url https://download.pytorch.org/whl/cu128
+      - torch==2.11.0+cu128
       - madgrad==1.3
