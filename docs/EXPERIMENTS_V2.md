@@ -369,3 +369,34 @@ these runs. They are the source of the critic-diagnostics figure: per epoch, the
 critic term, the size of each one's gradient on the forecast, the angle between the two
 gradients, the critic's loss, its Wasserstein estimate and the gradient penalty. Their test
 MAPE is not reported as a result (the weight-1 runs repeat reported runs).
+
+### 3. `more_data`: four more series through the unchanged pipeline
+
+*Written before tuning started (2026-11-16).*
+
+**Question.** Do the effects seen on the two reported series (the Transformer helps on Google
+and not on Azure Functions; the critic hurts on both) hold on other workloads, and which
+properties of a workload go with a Transformer gain?
+
+**Series.** `google-30m` and `azure_functions-10m` (in the paper's Table 3; already
+preprocessed), `azure_vm_2017-10m` (in the paper's Table 3; added in this branch) and
+`wikipedia-60m` (not in the paper; a strongly seasonal web workload that stands in for the
+paper's Wikipedia trace, which is offline). The 30 and 60 minute versions of Azure VM 2017 are
+left out to keep the cost down.
+
+**Protocol.** Exactly the pipeline of the reported runs, nothing new switched on:
+
+1. `python -m cwp.tune --dataset D --interval I --arch A --critic C --optimizer O` for all 8
+   configurations of each series: the grid of `configs/tuning.yaml` (32 trials each, tuning
+   seed 0, lowest validation MAPE wins), written to `configs/tuned/`.
+2. `python -m cwp.train ... --seed 1..5 --exp more_data` for the 8 configurations: 160 runs in
+   `results/v2/more_data/`. The reported runs in `results/` and `results/summary/` are not
+   touched, and `configs/plan.yaml` stays as it is.
+
+**Reporting.** `python -m cwp.evaluate v2 more_data --name more_data` (per-series tables next
+to the paper's values where it has them), `python -m cwp.analysis effects --exp more_data`
+(factorial effects with Holm correction), and the effects across all six series together with
+the reported runs (same pipeline and settings, labeled by source). The workload analysis
+relates each series' Transformer effect to the training-part properties in
+`results/summary/dataset_stats.md` (seasonal strength, autocorrelation, spikiness). With six
+series this is a description, not a test. Diverged runs are reported and counted, not dropped.
