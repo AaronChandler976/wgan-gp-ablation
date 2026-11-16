@@ -359,3 +359,13 @@ as planned. Their files (`configs/screens/critic_s2_warmup.yaml`, `critic_s3_kno
 Each later stage is compared with the stage-1 trials `w0.01` and `w1` of the same cell and
 tuning seeds; the per-stage `screen.md` files show changes against the stage's first variant
 only.
+
+### 2a (diagnosis). `critic_diagnostics`: per-epoch logs of what the critic does
+
+*Written before the runs (2026-11-16).* Four runs of the paper's final model (Transformer,
+critic, MADGRAD), seed 1, with `--diagnostics`: `google-10m` and `azure_functions-5m`, each at
+the reported adversarial weight 1 and at the stage-1 weight 0.01. Nothing is selected from
+these runs. They are the source of the critic-diagnostics figure: per epoch, the L1 loss, the
+critic term, the size of each one's gradient on the forecast, the angle between the two
+gradients, the critic's loss, its Wasserstein estimate and the gradient penalty. Their test
+MAPE is not reported as a result (the weight-1 runs repeat reported runs).
