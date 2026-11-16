@@ -70,3 +70,40 @@ def test_compare_runs_paired_tests_and_factorial_effects(repo, capsys):
     evaluate.cmd_compare()
     assert (repo / "results" / "summary" / "summary.md").exists()
     assert "One-change comparisons" in capsys.readouterr().out
+
+
+@pytest.mark.parametrize("arch", ARCHS)
+def test_diagnostics_do_not_change_the_trained_model(repo, arch):
+    spec = RunSpec("synthetic_spiky", 10, arch, "wgan-gp", "madgrad", 3)
+    cfg = config.apply_overrides(config.default_config(), TINY)
+    dev = torch.device("cpu")
+    plain = train.fit(spec, cfg, dev, log=lambda *_: None)
+    logged = train.fit(spec, cfg, dev, log=lambda *_: None, diagnostics=True)
+    assert plain["diagnostics"] is None
+    for a, b in zip(plain["model"].state_dict().values(), logged["model"].state_dict().values()):
+        assert torch.equal(a, b)
+    rows = logged["diagnostics"]
+    assert [r["epoch"] for r in rows] == [1, 2]
+    for key in ("critic_loss", "wasserstein", "gp", "l1", "adv_term", "adv_to_l1_grad",
+                "grad_cosine", "critic_slope", "gen_grad_norm"):
+        assert all(key in r and r[key] == r[key] for r in rows)       # present and not NaN
+    assert all(-1.0001 <= r["grad_cosine"] <= 1.0001 for r in rows)
+
+
+def test_diagnostics_need_a_tag(repo):
+    with pytest.raises(SystemExit) as stop:
+        train.main(["--dataset", "synthetic_spiky", "--interval", "10", "--arch", "lstm",
+                    "--critic", "wgan-gp", "--optimizer", "adam", "--seed", "1", "--diagnostics"])
+    assert "--tag" in str(stop.value)
+
+
+def test_gradient_penalty_of_a_linear_critic():
+    # For critic(x) = w . x the gradient is w everywhere, so the penalty is (|w| - 1)^2.
+    critic = torch.nn.Linear(5, 1, bias=False)
+    with torch.no_grad():
+        critic.weight.copy_(torch.tensor([[3.0, 0.0, 4.0, 0.0, 0.0]]))
+    real, fake = torch.randn(9, 5), torch.randn(9, 5)
+    gp = train.gradient_penalty(lambda x: critic(x).squeeze(-1), real, fake)
+    assert gp.item() == pytest.approx((5.0 - 1.0) ** 2, rel=1e-5)
+    gp.backward()                                         # the penalty itself must be trainable
+    assert critic.weight.grad is not None

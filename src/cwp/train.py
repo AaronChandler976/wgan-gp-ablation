@@ -101,7 +101,45 @@ def time_inference(model, X: torch.Tensor, reps: int) -> float:
     return float(np.median(times))
 
 
-def fit(spec: RunSpec, cfg: dict, device: torch.device, log=print, max_epochs: int | None = None) -> dict:
+class Diagnostics:
+    """Per-epoch averages of what the critic and the two generator loss terms are doing.
+
+    It only reads values the training step has already computed (plus two cheap gradients with
+    respect to the predictions), draws no random numbers and changes no update, so a run gives
+    the same model with or without it.
+    """
+
+    def __init__(self):
+        self.rows, self.sums, self.counts = [], {}, {}
+
+    def add(self, **values) -> None:
+        for k, v in values.items():
+            self.sums[k] = self.sums.get(k, 0.0) + v.detach()
+            self.counts[k] = self.counts.get(k, 0) + 1
+
+    def generator_step(self, pred, pred_loss, adv, adv_weight: float) -> None:
+        """Compare the two terms of the generator loss by their gradients on the predictions.
+
+        `adv_to_l1_grad` is the size of the critic term's gradient over the L1 term's. `grad_cosine`
+        is +1 when the critic pushes every prediction the same way the L1 loss does, 0 when the
+        two are unrelated and -1 when they pull in opposite directions. `critic_slope` is the
+        mean absolute slope of the critic score along the predicted value (the L1 loss has slope 1).
+        """
+        g_l1, = torch.autograd.grad(pred_loss, pred, retain_graph=True)
+        g_adv, = torch.autograd.grad(-adv_weight * adv, pred, retain_graph=True)
+        n_l1, n_adv = g_l1.norm(), g_adv.norm()
+        self.add(l1=pred_loss, adv_term=-adv_weight * adv, l1_grad=n_l1, adv_grad=n_adv,
+                 adv_to_l1_grad=n_adv / n_l1.clamp_min(1e-12),
+                 grad_cosine=(g_l1 * g_adv).sum() / (n_l1 * n_adv).clamp_min(1e-12),
+                 critic_slope=g_adv.abs().mean() * pred.numel() / max(adv_weight, 1e-12))
+
+    def end_epoch(self, epoch: int) -> None:
+        self.rows.append({"epoch": epoch, **{k: float(v / self.counts[k]) for k, v in self.sums.items()}})
+        self.sums, self.counts = {}, {}
+
+
+def fit(spec: RunSpec, cfg: dict, device: torch.device, log=print, max_epochs: int | None = None,
+        diagnostics: bool = False) -> dict:
     """Train one configuration and return the model, data and training record."""
     set_seed(spec.seed)
     d = prepare_data(spec, cfg, device)
@@ -122,6 +160,7 @@ def fit(spec: RunSpec, cfg: dict, device: torch.device, log=print, max_epochs: i
     epochs = max_epochs or tc["epochs"]
     best = {"val_mape": float("inf"), "epoch": 0, "state": None}
     history, epoch_seconds, stale = [], [], 0
+    diag = Diagnostics() if diagnostics else None
     start = time.time()
 
     for epoch in range(1, epochs + 1):
@@ -142,8 +181,12 @@ def fit(spec: RunSpec, cfg: dict, device: torch.device, log=print, max_epochs: i
                         fake_y = model(xr)
                     real = torch.cat([xr, yr.unsqueeze(1)], dim=1)
                     fake = torch.cat([xr, fake_y.unsqueeze(1)], dim=1)
-                    d_loss = (critic(fake).mean() - critic(real).mean()
-                              + tc["gp_lambda"] * gradient_penalty(critic, real, fake))
+                    score_real, score_fake = critic(real).mean(), critic(fake).mean()
+                    gp = gradient_penalty(critic, real, fake)
+                    d_loss = score_fake - score_real + tc["gp_lambda"] * gp
+                    if diag:
+                        diag.add(critic_loss=d_loss, wasserstein=score_real - score_fake, gp=gp,
+                                 score_real=score_real, score_fake=score_fake)
                     opt_d.zero_grad(set_to_none=True)
                     d_loss.backward()
                     opt_d.step()
@@ -153,14 +196,22 @@ def fit(spec: RunSpec, cfg: dict, device: torch.device, log=print, max_epochs: i
             pred_loss = loss_fn(pred, yb)
             loss = pred_loss
             if with_critic:      # the generator also wants the critic to score its sequence highly
-                loss = loss - tc["adv_weight"] * critic(torch.cat([xb, pred.unsqueeze(1)], dim=1)).mean()
+                adv = critic(torch.cat([xb, pred.unsqueeze(1)], dim=1)).mean()
+                loss = loss - tc["adv_weight"] * adv
+                if diag:
+                    diag.generator_step(pred, pred_loss, adv, tc["adv_weight"])
             opt_g.zero_grad(set_to_none=True)
             loss.backward()
+            if diag:
+                diag.add(gen_grad_norm=torch.sqrt(sum((p.grad ** 2).sum() for p in model.parameters()
+                                                      if p.grad is not None)))
             if tc["grad_clip"]:
                 torch.nn.utils.clip_grad_norm_(model.parameters(), tc["grad_clip"])
             opt_g.step()
             total += pred_loss.item() * xb.size(0)
         epoch_seconds.append(time.time() - t_epoch)
+        if diag:
+            diag.end_epoch(epoch)
 
         if epoch % tc["eval_every"] == 0 or epoch == epochs:
             val = evaluate(model, d, "val")[0]["mape"]
@@ -183,7 +234,7 @@ def fit(spec: RunSpec, cfg: dict, device: torch.device, log=print, max_epochs: i
     else:
         selected = epoch
     return {"model": model, "data": d, "history": history, "selected_epoch": selected,
-            "epochs_run": epoch, "train_seconds": time.time() - start, "epoch_seconds": epoch_seconds}
+            "diagnostics": diag.rows if diag else None, "epochs_run": epoch, "train_seconds": time.time() - start, "epoch_seconds": epoch_seconds}
 
 
 def environment(device: torch.device) -> dict:
@@ -195,9 +246,9 @@ def environment(device: torch.device) -> dict:
 
 
 def run(spec: RunSpec, cfg: dict, device: torch.device, tag: str | None = None,
-        tuned: bool = False, log=print) -> dict:
+        tuned: bool = False, log=print, diagnostics: bool = False) -> dict:
     """Train, evaluate, and save the checkpoint, test predictions and result file."""
-    out = fit(spec, cfg, device, log)
+    out = fit(spec, cfg, device, log, diagnostics=diagnostics)
     model, d = out["model"], out["data"]
     val_m = evaluate(model, d, "val")[0]
     test_m, y, pred, idx = evaluate(model, d, "test")
@@ -216,7 +267,8 @@ def run(spec: RunSpec, cfg: dict, device: torch.device, tag: str | None = None,
         "n_params": count_params(model),
         "config": cfg, "tuned": tuned, "scaler": d["scaler"].state(),
         "split": {"n": d["split"].n, "train_end": d["split"].train_end, "val_end": d["split"].val_end},
-        "history": out["history"], "owner": config.owner(), "env": environment(device),
+        "history": out["history"], **({"diagnostics": out["diagnostics"]} if diagnostics else {}),
+        "owner": config.owner(), "env": environment(device),
         "finished_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
     }
     torch.save({"model": model.state_dict(), "spec": spec.__dict__, "config": cfg,
@@ -240,6 +292,8 @@ def main(argv=None) -> None:
     ap.add_argument("--tag", help="save as an exploratory run under results/scratch/")
     ap.add_argument("--no-tuned", action="store_true", help="ignore configs/tuned/ (needs --tag)")
     ap.add_argument("--force", action="store_true", help="retrain a finished or claimed run")
+    ap.add_argument("--diagnostics", action="store_true",
+                    help="also save per-epoch critic and gradient diagnostics (needs --tag)")
     ap.add_argument("overrides", nargs="*", help="key=value config overrides (need --tag)")
     a = ap.parse_args(argv)
 
@@ -248,6 +302,8 @@ def main(argv=None) -> None:
     if changed and not a.tag:
         sys.exit("Overrides change the configuration, so this would not be the planned run.\n"
                  "Add --tag NAME to save it as an exploratory run (results/scratch/).")
+    if a.diagnostics and not a.tag:
+        sys.exit("--diagnostics is for exploratory runs. Add --tag NAME (results/scratch/).")
     cfg, tuned = config.resolve_config(spec, a.overrides, a.lr, use_tuned=not a.no_tuned)
 
     if not data.processed_path(spec.dataset, spec.interval).exists():
@@ -271,7 +327,7 @@ def main(argv=None) -> None:
     print(f"{spec.run_id}{' [' + a.tag + ']' if a.tag else ''} on {device}"
           f"{' (tuned settings)' if tuned else ''}")
     try:
-        result = run(spec, cfg, device, tag=a.tag, tuned=tuned)
+        result = run(spec, cfg, device, tag=a.tag, tuned=tuned, diagnostics=a.diagnostics)
     except BaseException:
         if new_claim:                                  # do not leave a claim for a run that failed
             runs.claim_path(spec.run_id).unlink(missing_ok=True)
