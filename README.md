@@ -176,6 +176,24 @@ LSTM (one cuDNN kernel on a GPU), the same LSTM with cuDNN off, the same LSTM ru
 at a time, and the Transformer generator. Inference time depends on the machine, so compare
 speeds measured on one machine only.
 
+## Report figures
+
+```bash
+python scripts/make_figures.py              # all three -> figures/*.png and figures/*.pdf
+python scripts/make_figures.py --only mape  # or: effects, timing
+```
+
+| File in [`figures/`](figures/) | Shows | Read from |
+| --- | --- | --- |
+| `mape_by_configuration` | Test MAPE of the 8 configurations on each dataset: one point per seed, mean ± standard deviation | `results/summary/all_runs.csv` |
+| `factorial_main_effects` | Average effect of the Transformer, the critic and MADGRAD on MAPE, per dataset, with p-values | `results/summary/factorial_effects.csv` |
+| `timing_sweep` | Inference time against history length on the GPU and the CPU, log scales | `results/summary/timing_sweep_cuda.csv`, `timing_sweep_cpu.csv` |
+
+The script reads the CSV files and hard-codes no values, so run it again after `compare` or
+`timing_sweep`. It needs matplotlib, which `environment.yml` installs; in an environment made
+before that was added, run `conda install -c conda-forge matplotlib-base`. The PDFs are sized
+for a full text width (6.5 in) with 9 pt serif text; use them with `\includegraphics` in LaTeX.
+
 ## Repo map
 
 ```
@@ -187,7 +205,8 @@ src/cwp/      data, models, train, runs, tune, evaluate, metrics, stats, timing_
 results/      <run_id>.json (one per run), predictions/, baselines/, summary/ (tables and CSVs)
 runs/claims/  who ran what (one file per run)
 checkpoints/  trained weights (not in git)
-scripts/hpc/  Slurm scripts for the SJSU HPC
+scripts/      make_figures.py (report figures), hpc/ (Slurm scripts for the SJSU HPC)
+figures/      report figures (PNG and PDF), made by scripts/make_figures.py
 docs/         REPLICATION_NOTES.md, BUILD_PROMPT.md
 tests/        pytest
 ```
