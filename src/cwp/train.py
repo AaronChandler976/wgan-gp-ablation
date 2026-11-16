@@ -40,6 +40,20 @@ def set_seed(seed: int) -> None:
     torch.backends.cudnn.allow_tf32 = False
 
 
+def warm_up(device: torch.device) -> None:
+    """Run one tiny forward and backward pass so the GPU libraries are initialized.
+
+    The first GPU computation in a new process rounds slightly differently from later ones.
+    Critic training amplifies that, so a critic run started on its own used to differ from the
+    same run started after another one in the same process (as `cwp.launch` does, and as the
+    reported runs were made). Warming up first makes both give the later-run result. It is
+    called before the seeds are set and so does not change any random draw.
+    """
+    if device.type == "cuda":
+        layer = torch.nn.Linear(4, 4).to(device)
+        layer(torch.zeros(2, 4, device=device)).sum().backward()
+
+
 def pick_device(name: str = "auto") -> torch.device:
     if name == "auto":
         name = "cuda" if torch.cuda.is_available() else "cpu"
@@ -141,6 +155,7 @@ class Diagnostics:
 def fit(spec: RunSpec, cfg: dict, device: torch.device, log=print, max_epochs: int | None = None,
         diagnostics: bool = False) -> dict:
     """Train one configuration and return the model, data and training record."""
+    warm_up(device)
     set_seed(spec.seed)
     d = prepare_data(spec, cfg, device)
     Xtr, ytr, _ = d["parts"]["train"]
