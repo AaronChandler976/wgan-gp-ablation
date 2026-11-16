@@ -153,6 +153,63 @@ predictions gives 20.1-22.0.
 
 **No selection** here either. Both epoch choices are recorded for every run.
 
+#### Results of 1a and 1b (2026-11-16)
+
+All 40 runs finished; none diverged. Full table: `results/v2/summary/released_code.md`
+(per-run values in `released_code_runs.csv`). Test MAPE in %, mean ± SD over 5 seeds.
+
+| Google 10 min | LSTM baseline | Paper's final model | Fair? |
+| --- | --- | --- | --- |
+| Paper's Table 3 | 11.49 | 10.58 | - |
+| Paper settings, reported runs (best validation epoch) | 22.69 ± 0.34 | 22.62 ± 1.11 | yes |
+| 1b data handling only, last epoch, true units | 25.62 ± 0.59 | 25.69 ± 1.30 | no |
+| 1b data handling only, last epoch, **released code's units** | 24.86 ± 0.59 | 24.94 ± 1.25 | no |
+| 1b, same runs at their best validation epoch, true units | 22.07 ± 0.47 | 23.48 ± 0.97 | no |
+| 1a full released profile, last epoch, true units | 27.69 ± 2.83 | 30.06 ± 1.30 | no |
+| 1a full released profile, last epoch, released code's units | 26.84 ± 2.70 | 29.22 ± 1.26 | no |
+
+| Azure Functions 5 min | LSTM baseline | Paper's final model | Fair? |
+| --- | --- | --- | --- |
+| Paper's Table 3 | 1.63 | 3.05 | - |
+| Paper settings, reported runs (best validation epoch) | 2.01 ± 0.05 | 2.13 ± 0.06 | yes |
+| 1b data handling only, last epoch, true units | 2.51 ± 0.37 | 2.28 ± 0.10 | no |
+| 1b data handling only, last epoch, released code's units | 5.19 ± 0.74 | 4.70 ± 0.19 | no |
+| 1a full released profile, last epoch, true units | 2.44 ± 0.31 | 3.82 ± 0.03 | no |
+| 1a full released profile, last epoch, released code's units | 5.03 ± 0.62 | 7.92 ± 0.08 | no |
+
+The rows marked "no" use per-split scaling (the test part's own minimum and maximum) and are
+scored on 48 fewer test points (windows inside the split). They explain or fail to explain the
+gap; they are not improvements and must not be compared with the fair rows as if they were.
+
+**Verdict on the hypothesis: rejected**, by the rule fixed in advance. On Google 10 min the
+data-handling bundle in the released code's units gives 24.9 for both configurations, above
+the rejection thresholds (19.6 and 19.9) and in fact *higher* than our reported values. Data
+handling does not explain the paper's 10.6-11.5.
+
+What the two experiments do show:
+
+- **Reporting the last epoch costs 2-5 MAPE points on Google** (25.6 at the last epoch against
+  22.1 at the best validation epoch for the same LSTM runs), because the models overfit after
+  the first few hundred epochs (code review, finding 6).
+- **Per-split scaling with windows inside the split changes little** when the epoch is chosen
+  the same way (LSTM 22.07 against 22.69; final model 23.48 against 22.62).
+- **The released code's un-scaling** hardly moves Google (25.6 to 24.9) and doubles Azure
+  (2.5 to 5.2), as the zero-training check predicted.
+- **The full released profile is worse than the paper settings on both datasets**, most of all
+  for the final model (Google 30.1, Azure 3.82). Which of its items does the damage is what
+  step 1c (one item at a time) will tell.
+- **One direction does match the paper:** on Azure Functions 5 min the paper has its own model
+  behind the LSTM (3.05 against 1.63), and so does the full released profile (3.82 against 2.44).
+
+So the gap to Table 3 on Google remains unexplained by anything in the released code that we
+can run. The remaining candidates are a different input series (no variant of the public trace
+we tried is smooth enough, `results/summary/google_variants.md`) or settings that are in
+neither the paper nor the repository.
+
+Provenance: these runs started while later commits were being prepared, so their result files
+record commit `5f0cdce` or a later one, some with `dirty: true`. The code path they exercise
+did not change in those commits (checked by the default-path reproduction after each).
+
 ### 2a. Critic screen (validation only)
 
 *Written before the screen started (2026-11-16).*

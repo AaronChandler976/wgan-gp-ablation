@@ -1,0 +1,61 @@
+data_id,config_id,seed,setup,test_points,selected_by,mape,mape_released_units,mape_best_val_epoch,mape_last_epoch,fair
+azure_functions-5m,lstm-nocritic-adam,1,paper settings (reported runs),807,best_val,1.9660186857692008,,1.9660186857692008,,True
+azure_functions-5m,lstm-nocritic-adam,2,paper settings (reported runs),807,best_val,1.9953436713693227,,1.9953436713693227,,True
+azure_functions-5m,lstm-nocritic-adam,3,paper settings (reported runs),807,best_val,2.093305919054644,,2.093305919054644,,True
+azure_functions-5m,lstm-nocritic-adam,4,paper settings (reported runs),807,best_val,2.043764727197107,,2.043764727197107,,True
+azure_functions-5m,lstm-nocritic-adam,5,paper settings (reported runs),807,best_val,1.9713854671486735,,1.9713854671486735,,True
+azure_functions-5m,transformer-critic-madgrad,1,paper settings (reported runs),807,best_val,2.0415917407499125,,2.0415917407499125,,True
+azure_functions-5m,transformer-critic-madgrad,2,paper settings (reported runs),807,best_val,2.192541627315434,,2.192541627315434,,True
+azure_functions-5m,transformer-critic-madgrad,3,paper settings (reported runs),807,best_val,2.1638996627506666,,2.1638996627506666,,True
+azure_functions-5m,transformer-critic-madgrad,4,paper settings (reported runs),807,best_val,2.135357475306242,,2.135357475306242,,True
+azure_functions-5m,transformer-critic-madgrad,5,paper settings (reported runs),807,best_val,2.130734645387109,,2.130734645387109,,True
+google-10m,lstm-nocritic-adam,1,paper settings (reported runs),836,best_val,22.850835593125957,,22.850835593125957,,True
+google-10m,lstm-nocritic-adam,2,paper settings (reported runs),836,best_val,22.755264466313836,,22.755264466313836,,True
+google-10m,lstm-nocritic-adam,3,paper settings (reported runs),836,best_val,23.14518039123233,,23.14518039123233,,True
+google-10m,lstm-nocritic-adam,4,paper settings (reported runs),836,best_val,22.293582528179755,,22.293582528179755,,True
+google-10m,lstm-nocritic-adam,5,paper settings (reported runs),836,best_val,22.415245152169426,,22.415245152169426,,True
+google-10m,transformer-critic-madgrad,1,paper settings (reported runs),836,best_val,24.19315987367097,,24.19315987367097,,True
+google-10m,transformer-critic-madgrad,2,paper settings (reported runs),836,best_val,21.219472439026458,,21.219472439026458,,True
+google-10m,transformer-critic-madgrad,3,paper settings (reported runs),836,best_val,21.992057615901476,,21.992057615901476,,True
+google-10m,transformer-critic-madgrad,4,paper settings (reported runs),836,best_val,22.899317901551974,,22.899317901551974,,True
+google-10m,transformer-critic-madgrad,5,paper settings (reported runs),836,best_val,22.783585327145452,,22.783585327145452,,True
+azure_functions-5m,lstm-nocritic-adam,1,released_data,759,last,3.0066421041466227,6.172118711422637,2.4144006012488544,3.0066421041466227,False
+azure_functions-5m,lstm-nocritic-adam,2,released_data,759,last,2.178947302771913,4.507605413888121,2.2505063217595933,2.178947302771913,False
+azure_functions-5m,lstm-nocritic-adam,3,released_data,759,last,2.2684081420003155,4.685163232827608,2.4063102261029012,2.2684081420003155,False
+azure_functions-5m,lstm-nocritic-adam,4,released_data,759,last,2.7958656985156183,5.778647570006952,2.1526933310367133,2.7958656985156183,False
+azure_functions-5m,lstm-nocritic-adam,5,released_data,759,last,2.3152034361310423,4.785462570092814,2.108590289148472,2.3152034361310423,False
+azure_functions-5m,transformer-critic-madgrad,1,released_data,759,last,2.419635143544743,4.975955540819978,2.185776792188493,2.419635143544743,False
+azure_functions-5m,transformer-critic-madgrad,2,released_data,759,last,2.2435759052970856,4.640314397817819,2.0830784991668976,2.2435759052970856,False
+azure_functions-5m,transformer-critic-madgrad,3,released_data,759,last,2.1518365104132924,4.442210431185265,2.15285673125212,2.1518365104132924,False
+azure_functions-5m,transformer-critic-madgrad,4,released_data,759,last,2.283429701793981,4.7401880142969155,2.0623348251306344,2.283429701793981,False
+azure_functions-5m,transformer-critic-madgrad,5,released_data,759,last,2.281597625763835,4.682822535692031,2.161003817460669,2.281597625763835,False
+google-10m,lstm-nocritic-adam,1,released_data,788,last,25.04298304713678,24.29021543953475,21.662759535407456,25.04298304713678,False
+google-10m,lstm-nocritic-adam,2,released_data,788,last,26.130869977137777,25.35972000620571,22.714030585008157,26.130869977137777,False
+google-10m,lstm-nocritic-adam,3,released_data,788,last,26.212399892852666,25.446398003263344,21.885432656457244,26.212399892852666,False
+google-10m,lstm-nocritic-adam,4,released_data,788,last,24.9502585924077,24.19073872340137,22.410903581119513,24.9502585924077,False
+google-10m,lstm-nocritic-adam,5,released_data,788,last,25.76440136085499,24.995753561452126,21.667390328947235,25.76440136085499,False
+google-10m,transformer-critic-madgrad,1,released_data,788,last,24.46088453513986,23.77537614324643,23.799708499535914,24.46088453513986,False
+google-10m,transformer-critic-madgrad,2,released_data,788,last,24.31953831725649,23.598740730219042,21.848607146903362,24.31953831725649,False
+google-10m,transformer-critic-madgrad,3,released_data,788,last,26.007292885518353,25.22699331832253,23.71671239297962,26.007292885518353,False
+google-10m,transformer-critic-madgrad,4,released_data,788,last,27.389207164368656,26.573445816343717,24.426529976527657,27.389207164368656,False
+google-10m,transformer-critic-madgrad,5,released_data,788,last,26.27032914162785,25.540147504490495,23.62502486459444,26.27032914162785,False
+azure_functions-5m,lstm-nocritic-adam,1,released_full,759,last,2.26693462633511,4.669134564244566,2.2747885197822963,2.26693462633511,False
+azure_functions-5m,lstm-nocritic-adam,2,released_full,759,last,2.3279042447728213,4.818573853844697,2.3873186752935887,2.3279042447728213,False
+azure_functions-5m,lstm-nocritic-adam,3,released_full,759,last,3.003020912646487,6.138662923411595,2.2709198458103708,3.003020912646487,False
+azure_functions-5m,lstm-nocritic-adam,4,released_full,759,last,2.2938535957877484,4.729425345227486,2.18475226788231,2.2938535957877484,False
+azure_functions-5m,lstm-nocritic-adam,5,released_full,759,last,2.3317374291930095,4.812803448340273,2.2923575335381496,2.3317374291930095,False
+azure_functions-5m,transformer-critic-madgrad,1,released_full,759,last,3.806363460515304,7.938437386423779,3.380292754083654,3.806363460515304,False
+azure_functions-5m,transformer-critic-madgrad,2,released_full,759,last,3.866978318562986,8.01238333595392,3.25500897247447,3.866978318562986,False
+azure_functions-5m,transformer-critic-madgrad,3,released_full,759,last,3.823526137108964,7.955971387818639,3.265585927026992,3.823526137108964,False
+azure_functions-5m,transformer-critic-madgrad,4,released_full,759,last,3.795759969819478,7.9045438392440825,3.235252752278856,3.795759969819478,False
+azure_functions-5m,transformer-critic-madgrad,5,released_full,759,last,3.7842998592730095,7.803969131090394,3.3574653039814377,3.7842998592730095,False
+google-10m,lstm-nocritic-adam,1,released_full,788,last,24.59348831553745,23.861903374436068,23.14491514791847,24.59348831553745,False
+google-10m,lstm-nocritic-adam,2,released_full,788,last,28.106250480006068,27.234759027098875,22.20107438981352,28.106250480006068,False
+google-10m,lstm-nocritic-adam,3,released_full,788,last,26.183245975693715,25.404843556165513,21.99402790578119,26.183245975693715,False
+google-10m,lstm-nocritic-adam,4,released_full,788,last,27.419354730293822,26.599224401469296,22.41845186311181,27.419354730293822,False
+google-10m,lstm-nocritic-adam,5,released_full,788,last,32.14281169031982,31.08434556543801,22.894999672614126,32.14281169031982,False
+google-10m,transformer-critic-madgrad,1,released_full,788,last,29.041202976693974,28.252120059747327,25.741843518353946,29.041202976693974,False
+google-10m,transformer-critic-madgrad,2,released_full,788,last,30.7116092799573,29.906324201855544,24.756048793895683,30.7116092799573,False
+google-10m,transformer-critic-madgrad,3,released_full,788,last,28.71997344447878,27.897614996517085,25.737729320191406,28.71997344447878,False
+google-10m,transformer-critic-madgrad,4,released_full,788,last,31.918278612358186,30.996425275820865,24.80573216100757,31.918278612358186,False
+google-10m,transformer-critic-madgrad,5,released_full,788,last,29.918442536505236,29.053473804192738,25.482195378569877,29.918442536505236,False
