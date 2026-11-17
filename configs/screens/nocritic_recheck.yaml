@@ -1,0 +1,34 @@
+experiment: nocritic_recheck
+description: Confirmation of the no-critic LSTM screen's winner (gradient clipping at 1.0) on tuning seeds
+  it has not seen (200, 300), and on the Adam cells. Nothing is selected here.
+seeds:
+- 200
+- 300
+fixed:
+  train.patience: 150
+reference: base
+cells:
+- dataset: google
+  interval: 10
+  arch: lstm
+  critic: none
+  optimizer: madgrad
+- dataset: google
+  interval: 10
+  arch: lstm
+  critic: none
+  optimizer: adam
+- dataset: azure_functions
+  interval: 5
+  arch: lstm
+  critic: none
+  optimizer: madgrad
+- dataset: azure_functions
+  interval: 5
+  arch: lstm
+  critic: none
+  optimizer: adam
+variants:
+  base: {}
+  grad_clip1.0:
+    train.grad_clip: 1.0

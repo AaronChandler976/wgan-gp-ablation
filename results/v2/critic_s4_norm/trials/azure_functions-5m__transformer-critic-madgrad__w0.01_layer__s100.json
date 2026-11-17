@@ -1,0 +1,19 @@
+{
+  "experiment": "critic_s4_norm",
+  "cell": "azure_functions-5m__transformer-critic-madgrad",
+  "variant": "w0.01_layer",
+  "seed": 100,
+  "overrides": {
+    "train.adv_weight": 0.01,
+    "model.critic.norm": "layer"
+  },
+  "tuned_base": true,
+  "val_mape": 2.4891338753814867,
+  "best_epoch": 520,
+  "epochs_run": 670,
+  "seconds": 910.6,
+  "git": {
+    "commit": "03cd842",
+    "dirty": true
+  }
+}

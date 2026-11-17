@@ -1,0 +1,3 @@
+variant,cells,worst_cell_pct,best_cell_pct,mean_change_pct
+w0.01_spectral,4,0.0,0.0,0.0
+w0.01_layer,4,3.667077421491882,-1.3691848456837796,1.2406822000015971

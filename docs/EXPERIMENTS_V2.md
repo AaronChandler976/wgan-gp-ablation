@@ -538,3 +538,63 @@ Each item is compared with seeds 1 to 3 of the reported runs of the same configu
 given in the released code's units and is labeled as not a fair evaluation. Nothing is
 selected from these runs. With 3 seeds only large differences can be told from noise, and the
 report says so.
+
+### 2a, stage 4 result, and what the screen carries forward
+
+*Recorded 2026-11-16. 16 trials, none diverged. `results/v2/critic_s4_norm/`; the two summary
+tables in `results/v2/summary/` now hold all 5 stages (272 trials, 34 variants).*
+
+Normalizing the critic's layers does not help: at weight 0.01, spectral normalization is 1.4%
+worse than no normalization (better in 1 of 4 cells) and layer normalization 2.7% worse
+(0 of 4).
+
+**Outcome of the screen, by the rules fixed before it ran.**
+
+- The best variant over all stages by average score is stage 1's weight 0.001 (-5.6% against
+  the reported weight 1). No variant of stages 2 to 5 beats weight 0.01 by the noise rule.
+  **"Critic v2" is the reported critic with `train.adv_weight: 0.001`.** No change to the
+  critic itself helped.
+- The best stage-5 variant is the first-difference critic at weight 0.01 (-3.4% against
+  weight 1; no better than a critic with no influence, -3.1%). By the rule it is carried
+  forward as a second variant, **"critic v2-diffs"**, so that the richer critic is also tested
+  on the test part.
+- Matched side: the no-critic LSTM gets `train.grad_clip: 1.0`; the no-critic Transformer
+  keeps its reported setting.
+
+### 2b. `critic_recheck` and `nocritic_recheck`: confirmation on fresh tuning seeds
+
+*Written before the runs (2026-11-16).* The screens chose among 34 variants per side with
+tuning seeds 0 and 100, so the winners' gains are partly selection. These two screens rerun
+the finalists on tuning seeds 200 and 300, which no choice has used, and add the Adam cells,
+which the screens did not cover (the settings are transferred to them, on both sides alike).
+Validation MAPE only. **Nothing is selected here**: the variants for 2c are already fixed
+above; this tells the report how much of the screen's gain is real.
+
+- `critic_recheck`: weights 1, 0.01, 0.001 and the first-difference critic at 0.01, on the 8
+  critic cells (both architectures, both optimizers, both datasets). 64 trials.
+- `nocritic_recheck`: reported setting against gradient clipping at 1.0, on the 4 no-critic
+  LSTM cells. 16 trials.
+
+This replaces the "16 extra tuning trials per configuration" of the original cost table: each
+side already got 34 variants in 2a, which is the matched budget.
+
+### 2c. `critic_v2` and `critic_v2_diffs`: the full design again
+
+*Written before the runs (2026-11-16).*
+
+**Question.** With the critic used in the best way the screen found, and the no-critic side
+given the same search budget, does the critic help on the test part?
+
+- `critic_v2`: all 8 configurations, both datasets, seeds 1 to 5, at their tuned settings plus:
+  critic cells `train.adv_weight=0.001`; no-critic LSTM cells `train.grad_clip=1.0`; no-critic
+  Transformer cells nothing (they repeat the reported runs, and are run again so that the
+  folder holds a complete design). 80 runs in `results/v2/critic_v2/`.
+- `critic_v2_diffs`: the 4 critic configurations with the first-difference critic at weight
+  0.01, both datasets, seeds 1 to 5. 40 runs in `results/v2/critic_v2_diffs/`. Its factorial
+  uses the no-critic cells of `critic_v2`, and the table says so.
+
+**Reporting.** Test MAPE per configuration next to the reported runs (labeled, not pooled),
+and the factorial effects of each design with Holm correction. The comparison that answers the
+question is the critic main effect in `critic_v2`, and the paired difference between each
+critic cell and its no-critic partner. Whatever the outcome, the reported design (weight 1)
+stays in the report as the paper's own setting.

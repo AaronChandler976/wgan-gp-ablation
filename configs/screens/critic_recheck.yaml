@@ -1,0 +1,59 @@
+experiment: critic_recheck
+description: Confirmation of the critic screen on tuning seeds it has not seen (200, 300), and on the
+  Adam cells, which the screen did not cover. Nothing is selected here.
+seeds:
+- 200
+- 300
+fixed:
+  train.patience: 150
+reference: w1
+cells:
+- dataset: google
+  interval: 10
+  arch: transformer
+  critic: wgan-gp
+  optimizer: madgrad
+- dataset: google
+  interval: 10
+  arch: transformer
+  critic: wgan-gp
+  optimizer: adam
+- dataset: google
+  interval: 10
+  arch: lstm
+  critic: wgan-gp
+  optimizer: madgrad
+- dataset: google
+  interval: 10
+  arch: lstm
+  critic: wgan-gp
+  optimizer: adam
+- dataset: azure_functions
+  interval: 5
+  arch: transformer
+  critic: wgan-gp
+  optimizer: madgrad
+- dataset: azure_functions
+  interval: 5
+  arch: transformer
+  critic: wgan-gp
+  optimizer: adam
+- dataset: azure_functions
+  interval: 5
+  arch: lstm
+  critic: wgan-gp
+  optimizer: madgrad
+- dataset: azure_functions
+  interval: 5
+  arch: lstm
+  critic: wgan-gp
+  optimizer: adam
+variants:
+  w1: {}
+  w0.01:
+    train.adv_weight: 0.01
+  w0.001:
+    train.adv_weight: 0.001
+  w0.01_diffs:
+    train.adv_weight: 0.01
+    model.critic.input: diffs

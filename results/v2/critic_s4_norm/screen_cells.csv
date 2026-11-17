@@ -1,0 +1,9 @@
+cell,variant,seeds,val_mape,seed_gap,seconds,vs_reference_pct
+google-10m__transformer-critic-madgrad,w0.01_spectral,2,18.4671724375508,0.04647441231617577,261.25,0.0
+google-10m__transformer-critic-madgrad,w0.01_layer,2,18.580007795102258,0.49107027069471343,368.7,0.611005057395908
+google-10m__lstm-critic-madgrad,w0.01_spectral,2,19.68508543537063,0.23239255835400385,508.85,0.0
+google-10m__lstm-critic-madgrad,w0.01_layer,2,20.102894376959206,0.5590259781731497,336.5,2.1224644564551642
+azure_functions-5m__transformer-critic-madgrad,w0.01_spectral,2,2.4642097074219693,0.17711082038779935,530.2,0.0
+azure_functions-5m__transformer-critic-madgrad,w0.01_layer,2,2.430470121542079,0.11732750767881539,773.25,-1.3691848456837796
+azure_functions-5m__lstm-critic-madgrad,w0.01_spectral,2,2.5369029917774943,0.10283649666419548,422.35,0.0
+azure_functions-5m__lstm-critic-madgrad,w0.01_layer,2,2.629933188594119,0.40422252495327715,258.15,3.667077421491882
