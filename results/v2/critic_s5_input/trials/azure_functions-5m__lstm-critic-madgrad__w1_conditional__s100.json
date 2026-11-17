@@ -1,0 +1,19 @@
+{
+  "experiment": "critic_s5_input",
+  "cell": "azure_functions-5m__lstm-critic-madgrad",
+  "variant": "w1_conditional",
+  "seed": 100,
+  "overrides": {
+    "train.adv_weight": 1.0,
+    "model.critic.kind": "conditional"
+  },
+  "tuned_base": true,
+  "val_mape": 3.530093990112318,
+  "best_epoch": 70,
+  "epochs_run": 220,
+  "seconds": 64.2,
+  "git": {
+    "commit": "d858457",
+    "dirty": false
+  }
+}

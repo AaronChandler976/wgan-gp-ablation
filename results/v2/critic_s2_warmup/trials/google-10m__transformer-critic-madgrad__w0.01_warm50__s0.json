@@ -1,0 +1,19 @@
+{
+  "experiment": "critic_s2_warmup",
+  "cell": "google-10m__transformer-critic-madgrad",
+  "variant": "w0.01_warm50",
+  "seed": 0,
+  "overrides": {
+    "train.adv_weight": 0.01,
+    "train.adv_warmup": 50
+  },
+  "tuned_base": true,
+  "val_mape": 18.35742929863175,
+  "best_epoch": 230,
+  "epochs_run": 380,
+  "seconds": 415.3,
+  "git": {
+    "commit": "31482c1",
+    "dirty": false
+  }
+}

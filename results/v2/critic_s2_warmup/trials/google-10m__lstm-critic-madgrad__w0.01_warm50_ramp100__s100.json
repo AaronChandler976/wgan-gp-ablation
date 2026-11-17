@@ -1,0 +1,20 @@
+{
+  "experiment": "critic_s2_warmup",
+  "cell": "google-10m__lstm-critic-madgrad",
+  "variant": "w0.01_warm50_ramp100",
+  "seed": 100,
+  "overrides": {
+    "train.adv_weight": 0.01,
+    "train.adv_warmup": 50,
+    "train.adv_ramp": 100
+  },
+  "tuned_base": true,
+  "val_mape": 19.215616871355973,
+  "best_epoch": 540,
+  "epochs_run": 690,
+  "seconds": 737.2,
+  "git": {
+    "commit": "c948264",
+    "dirty": false
+  }
+}

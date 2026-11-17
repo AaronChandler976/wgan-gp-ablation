@@ -1,0 +1,19 @@
+{
+  "experiment": "critic_s5_input",
+  "cell": "azure_functions-5m__lstm-critic-madgrad",
+  "variant": "w1_diffs",
+  "seed": 100,
+  "overrides": {
+    "train.adv_weight": 1.0,
+    "model.critic.input": "diffs"
+  },
+  "tuned_base": true,
+  "val_mape": 2.7720125042152435,
+  "best_epoch": 120,
+  "epochs_run": 270,
+  "seconds": 61.1,
+  "git": {
+    "commit": "d858457",
+    "dirty": false
+  }
+}

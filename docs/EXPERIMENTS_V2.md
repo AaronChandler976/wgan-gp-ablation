@@ -462,3 +462,54 @@ nothing. Their reported settings were already close to the best we can find.
   these cells: 2.6% and 7.5% of the value), so little should be expected of it on the test part.
 - **Transformer:** nothing passes; the reported setting stays. 29 of the 33 new variants are
   worse than it. More dropout, no dropout and weight decay 1e-3 all hurt.
+
+### 2a, stages 2, 3 and 5 result
+
+*Recorded 2026-11-16. 32 + 128 + 32 trials. Files: `results/v2/critic_s2_warmup/`,
+`critic_s3_knobs/`, `critic_s5_input/`; all stages in one table against the reported weight 1
+in `results/v2/summary/critic_screen.md` and against stage 1's weight 0.01 in
+`results/v2/summary/critic_screen_vs_w0p01.md`
+(`python -m cwp.analysis screens ... --reference critic_s1_weight:w1 --name critic_screen`).*
+
+In plain terms: once the critic's weight is turned down to 0.01, nothing else we changed about
+the critic made a difference we can tell from noise. A critic that sees more of the data did
+not help either, and at the reported weight it made things worse.
+
+Average change in validation MAPE over the 4 cells (negative is better):
+
+| stage | variant | vs. weight 1 (reported) | vs. weight 0.01 (stage 1) | beats weight 0.01 by the rule? |
+| --- | --- | --- | --- | --- |
+| 1 | weight 0.001 | -5.6% | -0.3% | no |
+| 1 | weight 0.01 | -5.3% | 0 | – |
+| 2 | weight 0.01, 50 epochs L1 only, then a 100-epoch ramp | -5.5% | -0.3% | no (2 of 4 cells) |
+| 2 | weight 0.01, 50 epochs L1 only | -5.1% | +0.2% | no |
+| 2 | weight 1, 50 epochs L1 only, then a 100-epoch ramp | -2.8% | +2.6% | no |
+| 2 | weight 1, 50 epochs L1 only | -2.7% | +2.7% | no |
+| 3 | best of 16: 5 critic steps, penalty weight 1, width 32, same learning rate | -5.3% | -0.03% | no (1 of 4 cells) |
+| 3 | median of 16 | -3.3% | +2.1% | no |
+| 3 | worst of 16: 5 critic steps, penalty 10, width 128, critic learning rate x4 | diverged | diverged | no |
+| 5 | first-difference critic, weight 0.01 | -3.4% | +2.0% | no |
+| 5 | conditional critic, weight 0.01 | -2.9% | +2.5% | no |
+| 5 | conditional critic, weight 1 | +2.0% | +7.6% | no |
+| 5 | first-difference critic, weight 1 | +4.1% | +9.9% | no |
+
+What this shows:
+
+- **Warm-up does not rescue the reported weight.** Letting the forecaster train alone first
+  and then switching the critic on at weight 1 recovers about half of what turning the weight
+  down recovers (-2.7% against -5.3%), and is worse than weight 0.01 in every cell.
+- **The critic's own settings do not matter at weight 0.01.** No combination of 16 passes the
+  rule. The pattern inside the 16 is that 1 critic step per forecaster step is worse than 5
+  (all eight `n1` combinations are worse than weight 0.01 in every cell): a less-trained
+  critic is a noisier one.
+- **One failure.** 5 critic steps, penalty 10, width 128 and a critic learning rate 4 times
+  the forecaster's diverged on the Google LSTM (validation MAPE 1.5 million % on one tuning
+  seed) and reached 3.24% on the Azure LSTM. It is kept in the tables as it is.
+- **A richer critic does not help.** The conditional critic and the first-difference critic at
+  weight 0.01 land where weight 0 does (-2.9% and -3.4% against -3.1% for a critic with no
+  influence). At weight 1 both are worse than the reported critic. So the reason the critic
+  does not help is not that it sees too little.
+
+Carried forward from stage 3 by its rule: the stage-1 setting (weight 0.01, reported critic
+settings). Stage 4 (`configs/screens/critic_s4_norm.yaml`, committed with this note) adds
+spectral and layer normalization to it.

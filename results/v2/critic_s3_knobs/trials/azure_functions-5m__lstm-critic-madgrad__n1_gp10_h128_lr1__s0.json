@@ -1,0 +1,22 @@
+{
+  "experiment": "critic_s3_knobs",
+  "cell": "azure_functions-5m__lstm-critic-madgrad",
+  "variant": "n1_gp10_h128_lr1",
+  "seed": 0,
+  "overrides": {
+    "train.adv_weight": 0.01,
+    "train.n_critic": 1,
+    "train.gp_lambda": 10.0,
+    "model.critic.hidden": 128,
+    "train.critic_lr_scale": 1.0
+  },
+  "tuned_base": true,
+  "val_mape": 2.500212987092824,
+  "best_epoch": 380,
+  "epochs_run": 530,
+  "seconds": 172.5,
+  "git": {
+    "commit": "e06093c",
+    "dirty": false
+  }
+}
