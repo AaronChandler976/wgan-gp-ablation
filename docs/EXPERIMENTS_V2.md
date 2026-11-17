@@ -598,3 +598,131 @@ and the factorial effects of each design with Holm correction. The comparison th
 question is the critic main effect in `critic_v2`, and the paired difference between each
 critic cell and its no-critic partner. Whatever the outcome, the reported design (weight 1)
 stays in the report as the paper's own setting.
+
+### 3 result: `more_data` (recorded 2026-11-17)
+
+In plain terms: on four more workloads the picture of the two reported series repeats. The
+critic made the forecasts worse on every one of the six series, and the Transformer was a
+little better than the LSTM on five of six, clearly so on only two.
+
+All 32 tunings and all 160 runs finished; no run ended without a finite test MAPE. Files:
+`configs/tuned/` (32 new files), `results/v2/more_data/`, tables
+`results/v2/summary/more_data.md`, `effects_more_data.md`, `pairs_more_data.md`,
+`autoscale_more_data.md`, and, together with the reported runs (same pipeline, labeled by
+source), `effects_reported+more_data.md`, `pooled_reported+more_data.md`,
+`workload_reported+more_data.md`.
+
+Test MAPE (%), mean ± standard deviation over 5 seeds, `more_data` runs only:
+
+| configuration | google-30m | azure_functions-10m | azure_vm_2017-10m | wikipedia-60m |
+| --- | --- | --- | --- | --- |
+| lstm-nocritic-adam (LoadDynamics) | 19.96 ± 0.56 | 1.92 ± 0.08 | 34.80 ± 0.57 | 1.52 ± 0.08 |
+| lstm-nocritic-madgrad | 20.44 ± 0.36 | 1.80 ± 0.05 | 35.03 ± 0.63 | 1.50 ± 0.04 |
+| lstm-critic-adam | 20.59 ± 0.91 | 1.92 ± 0.09 | 35.47 ± 0.33 | 1.63 ± 0.13 |
+| lstm-critic-madgrad | 24.25 ± 3.43 | 3.14 ± 0.78 | 37.71 ± 1.43 | 1.58 ± 0.06 |
+| transformer-nocritic-adam | 19.78 ± 0.64 | 2.04 ± 0.07 | 34.42 ± 0.55 | 1.45 ± 0.03 |
+| transformer-nocritic-madgrad | 19.23 ± 0.60 | 2.10 ± 0.14 | 33.93 ± 0.47 | 1.43 ± 0.04 |
+| transformer-critic-adam | 19.79 ± 0.31 | 2.14 ± 0.04 | 37.31 ± 1.93 | 1.47 ± 0.04 |
+| transformer-critic-madgrad (paper's model) | 21.57 ± 1.43 | 1.99 ± 0.05 | 35.58 ± 0.71 | 1.48 ± 0.04 |
+| paper, Table 3 (LSTM / final model) | 9.12 / 8.34 | 2.06 / 1.85 | not compared | not in the paper |
+
+The paper's Azure VM 2017 values are left out of the table because our series is rebuilt from
+the public trace and its match with the paper's has not been checked. On Azure Functions 10m
+our values are close to the paper's; on Google 30m, as on Google 10m, ours are about twice the
+paper's.
+
+Main effects (change in test MAPE from switching the part on, 95% interval over seeds; `p` is
+the raw t-test, `Holm` is corrected over the 12 main effects of the four new series):
+
+| series | Transformer | critic | MADGRAD |
+| --- | --- | --- | --- |
+| google-30m | -5.4% (-11.3 to +1.0), p 0.078, Holm 0.39 | +8.0% (+0.4 to +16.1), p 0.042, Holm 0.31 | +6.1% (+0.5 to +12.0), p 0.039, Holm 0.31 |
+| azure_functions-10m | -2.5% (-10.2 to +5.8), p 0.44 | +14.0% (+5.4 to +23.2), p 0.010, Holm 0.097 | +9.2% (-0.5 to +20.0), p 0.059 |
+| azure_vm_2017-10m | -1.3% (-3.8 to +1.3), p 0.25 | +5.6% (+3.4 to +7.9), p 0.002, Holm 0.025 | +0.2% (-1.7 to +2.0), p 0.82 |
+| wikipedia-60m | -6.2% (-9.4 to -2.9), p 0.007, Holm 0.074 | +4.2% (+0.6 to +7.9), p 0.032, Holm 0.29 | -1.3% (-5.8 to +3.3), p 0.46 |
+
+The critic's effect has the same sign in 5 of 5 seeds on all four series. After the Holm
+correction only the critic on Azure VM 2017 stays under 0.05; with 5 seeds per series the
+single-series tests are weak, and the pooled view below is the stronger statement.
+
+Across all six series (random-effects pooling, `pooled_reported+more_data.md`):
+
+| effect | per series (az-5m, g-10m, az-10m, vm-10m, g-30m, wiki-60m) | pooled | 95% interval | differs between series? |
+| --- | --- | --- | --- | --- |
+| Transformer | +0.1, -4.8, -2.5, -1.3, -5.4, -6.2 | -3.3% | -5.8 to -0.6 (p 0.015) | p 0.074 |
+| critic | +6.1, +4.6, +14.0, +5.6, +8.0, +4.2 | +5.9% | +4.4 to +7.5 (p < 0.0001) | p 0.017 |
+| MADGRAD | -2.6, -0.3, +9.2, +0.2, +6.1, -1.3 | +0.6% | -1.3 to +2.6 (p 0.55) | p 0.0008 |
+
+So: the critic costs about 6% of MAPE on average and never helps; the Transformer gains about
+3% on average; MADGRAD has no consistent effect and its effect depends on the series.
+
+**One failure mode worth reporting.** The LSTM with critic and MADGRAD blows up late in
+training on all four new series: its last-epoch test MAPE is in the millions of percent
+(`mape_last_epoch` in `more_data.md`), while the epoch picked on validation is still usable.
+The reported numbers use the validation-picked epoch, as planned, so this shows up only as
+that configuration being the worst or near-worst on three of four series. The Transformer
+with the same critic and optimizer does not do this.
+
+**Workload properties** (`workload_reported+more_data.md`). The Transformer's gain does not
+line up with any measured property: the rank correlations with its effect are all between
+-0.2 and +0.03 over the six series. Its two largest gains are on the most seasonal series
+(Wikipedia, seasonal strength 0.91) and on a weakly seasonal, bursty one (Google 30m, 0.30),
+and it gains nothing on Azure Functions 5m (0.74). The critic's damage is larger on series
+with fewer training points (rho -0.89), which is one pattern in six points and is reported as
+a description only. The earlier reading "the Transformer helps on bursty workloads and not on
+seasonal ones", which two series suggested, is not supported by six.
+
+**Provisioning** (`autoscale_more_data.md`). The fixed extra capacity needed to keep short
+intervals at or under 5% is set by the series, not the model: about 3% on Wikipedia, 5 to 11%
+on Azure Functions 10m, 55 to 67% on Google 30m, and over 150% on Azure VM 2017 (three runs
+there do not reach 5% even with 200% extra, the largest value tried; they are blank in the
+table and left out of the mean). Within a series the configurations differ by a few points.
+
+### 4a result: `seeds_6_10` (recorded 2026-11-17)
+
+In plain terms: with ten seeds instead of five, every conclusion of the reported runs holds
+and the borderline ones become clear.
+
+All 80 runs finished with a finite test MAPE. Files: `results/v2/seeds_6_10/`; tables with all
+10 seeds (sources labeled) `results/v2/summary/effects_reported+seeds_6_10.md`,
+`pooled_...`, `pairs_...`, `autoscale_...`. The 5-seed tables in `results/summary/` and
+`effects_reported.md` are unchanged.
+
+| series | effect | 5 reported seeds | 10 seeds | same sign | t-test p (Holm over 6 main effects) | Wilcoxon p |
+| --- | --- | --- | --- | --- | --- | --- |
+| google-10m | Transformer | -4.8% | -5.2% (-6.3 to -4.1) | 10/10 | < 0.0001 (< 0.0001) | 0.002 |
+| google-10m | critic | +4.6% | +4.4% (+2.9 to +6.0) | 10/10 | 0.0001 (0.0004) | 0.002 |
+| google-10m | MADGRAD | -0.3% | -1.3% (-2.8 to +0.2) | 7/10 | 0.077 (0.15) | 0.11 |
+| azure_functions-5m | Transformer | +0.1% | +0.6% (-0.6 to +1.8) | 6/10 | 0.28 (0.28) | 0.43 |
+| azure_functions-5m | critic | +6.1% | +6.4% (+5.3 to +7.6) | 10/10 | < 0.0001 (< 0.0001) | 0.002 |
+| azure_functions-5m | MADGRAD | -2.6% | -3.4% (-5.1 to -1.6) | 10/10 | 0.002 (0.006) | 0.002 |
+
+What changed with more seeds: the critic's harm on Google, which was 0.094 after the Holm
+correction with 5 seeds, is 0.0004 with 10. MADGRAD's small gain on Azure Functions 5m is now
+significant (it was not with 5). Nothing that was significant with 5 seeds stopped being so.
+Among single switches (`pairs_reported+seeds_6_10.md`), the Transformer beats the LSTM without
+a critic on Google in 10 of 10 seeds under both optimizers (-1.2 and -1.6 points), and the
+critic makes the Transformer worse on Azure in 10 of 10 seeds under both optimizers.
+
+### 4b result: `adam_control` (recorded 2026-11-17)
+
+In plain terms: the critic's harm in the Adam cells is not caused by the unusual Adam setting
+(beta1 = 0) that comes with it. With ordinary Adam the critic cells are still worse than the
+no-critic cells.
+
+All 20 runs finished. Files: `results/v2/adam_control/`, table
+`results/v2/summary/adam_control.md`. Test MAPE (%), 5 seeds; the first two columns are the
+reported runs:
+
+| series | architecture | no critic, Adam | critic, Adam beta1 = 0 (reported) | critic, standard Adam (control) | control minus reported, paired |
+| --- | --- | --- | --- | --- | --- |
+| google-10m | LSTM | 22.69 ± 0.34 | 22.87 ± 1.38 | 23.77 ± 0.29 | +0.89 points, better in 2/5, p 0.19 |
+| google-10m | Transformer | 21.40 ± 0.52 | 22.42 ± 0.54 | 22.41 ± 1.21 | -0.01 points, better in 4/5, p 0.99 |
+| azure_functions-5m | LSTM | 2.01 ± 0.05 | 2.25 ± 0.14 | 2.07 ± 0.13 | -0.17 points, better in 4/5, p 0.15 |
+| azure_functions-5m | Transformer | 2.02 ± 0.01 | 2.16 ± 0.05 | 2.14 ± 0.03 | -0.02 points, better in 4/5, p 0.048 |
+
+Standard Adam is at or above the no-critic value in all four cells, and differs from the
+beta1 = 0 cells by less than their seed-to-seed spread except for the Azure LSTM (7.6% lower,
+not significant). The learning rate was tuned under beta1 = 0, which favors the reported
+cells. The two-things-at-once concern of the code review (finding 2) therefore does not change
+the conclusion about the critic.

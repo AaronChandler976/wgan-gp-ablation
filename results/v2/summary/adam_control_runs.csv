@@ -1,0 +1,41 @@
+data_id,config_id,seed,setup,test_points,selected_by,mape,mape_released_units,mape_best_val_epoch,mape_last_epoch,fair
+azure_functions-5m,lstm-critic-adam,1,paper settings (reported runs),807,best_val,2.1196160942279345,,2.1196160942279345,,True
+azure_functions-5m,lstm-critic-adam,2,paper settings (reported runs),807,best_val,2.3861558948442685,,2.3861558948442685,,True
+azure_functions-5m,lstm-critic-adam,3,paper settings (reported runs),807,best_val,2.136495358423493,,2.136495358423493,,True
+azure_functions-5m,lstm-critic-adam,4,paper settings (reported runs),807,best_val,2.409570601787767,,2.409570601787767,,True
+azure_functions-5m,lstm-critic-adam,5,paper settings (reported runs),807,best_val,2.178978609313973,,2.178978609313973,,True
+azure_functions-5m,transformer-critic-adam,1,paper settings (reported runs),807,best_val,2.168788893747369,,2.168788893747369,,True
+azure_functions-5m,transformer-critic-adam,2,paper settings (reported runs),807,best_val,2.1043063655690633,,2.1043063655690633,,True
+azure_functions-5m,transformer-critic-adam,3,paper settings (reported runs),807,best_val,2.2230478037580346,,2.2230478037580346,,True
+azure_functions-5m,transformer-critic-adam,4,paper settings (reported runs),807,best_val,2.1699998002443532,,2.1699998002443532,,True
+azure_functions-5m,transformer-critic-adam,5,paper settings (reported runs),807,best_val,2.1257872165799183,,2.1257872165799183,,True
+google-10m,lstm-critic-adam,1,paper settings (reported runs),836,best_val,21.98479048023406,,21.98479048023406,,True
+google-10m,lstm-critic-adam,2,paper settings (reported runs),836,best_val,22.012044874615334,,22.012044874615334,,True
+google-10m,lstm-critic-adam,3,paper settings (reported runs),836,best_val,21.67777872033793,,21.67777872033793,,True
+google-10m,lstm-critic-adam,4,paper settings (reported runs),836,best_val,24.729068478957544,,24.729068478957544,,True
+google-10m,lstm-critic-adam,5,paper settings (reported runs),836,best_val,23.957171969552604,,23.957171969552604,,True
+google-10m,transformer-critic-adam,1,paper settings (reported runs),836,best_val,22.792821538152968,,22.792821538152968,,True
+google-10m,transformer-critic-adam,2,paper settings (reported runs),836,best_val,21.590399240497856,,21.590399240497856,,True
+google-10m,transformer-critic-adam,3,paper settings (reported runs),836,best_val,22.836993328458945,,22.836993328458945,,True
+google-10m,transformer-critic-adam,4,paper settings (reported runs),836,best_val,22.173710155075185,,22.173710155075185,,True
+google-10m,transformer-critic-adam,5,paper settings (reported runs),836,best_val,22.70907048060584,,22.70907048060584,,True
+azure_functions-5m,lstm-critic-adam,1,adam_control,807,best_val,1.9508038424045728,,1.9508038424045728,3.2300694644849637,True
+azure_functions-5m,lstm-critic-adam,2,adam_control,807,best_val,2.068607551376343,,2.068607551376343,2.882924927570197,True
+azure_functions-5m,lstm-critic-adam,3,adam_control,807,best_val,2.0811504899826487,,2.0811504899826487,2.6054195127497777,True
+azure_functions-5m,lstm-critic-adam,4,adam_control,807,best_val,1.9811833550258844,,1.9811833550258844,3.2211112897556795,True
+azure_functions-5m,lstm-critic-adam,5,adam_control,807,best_val,2.2911253079785867,,2.2911253079785867,3.296598264883278,True
+azure_functions-5m,transformer-critic-adam,1,adam_control,807,best_val,2.1510413262748562,,2.1510413262748562,2.1510413262748562,True
+azure_functions-5m,transformer-critic-adam,2,adam_control,807,best_val,2.105221396043649,,2.105221396043649,2.1330119602266597,True
+azure_functions-5m,transformer-critic-adam,3,adam_control,807,best_val,2.1804025196656736,,2.1804025196656736,2.253510441188393,True
+azure_functions-5m,transformer-critic-adam,4,adam_control,807,best_val,2.139242031867642,,2.139242031867642,2.2096332719454654,True
+azure_functions-5m,transformer-critic-adam,5,adam_control,807,best_val,2.1115208563063046,,2.1115208563063046,2.172156649839497,True
+google-10m,lstm-critic-adam,1,adam_control,836,best_val,23.63398800623165,,23.63398800623165,24.255449527853273,True
+google-10m,lstm-critic-adam,2,adam_control,836,best_val,23.374262414052527,,23.374262414052527,24.353231759355147,True
+google-10m,lstm-critic-adam,3,adam_control,836,best_val,23.97194273023239,,23.97194273023239,24.94867997173098,True
+google-10m,lstm-critic-adam,4,adam_control,836,best_val,24.106704506908862,,24.106704506908862,38.33904863719692,True
+google-10m,lstm-critic-adam,5,adam_control,836,best_val,23.742222753549278,,23.742222753549278,24.905284000497936,True
+google-10m,transformer-critic-adam,1,adam_control,836,best_val,22.291185635907297,,22.291185635907297,23.69937907704244,True
+google-10m,transformer-critic-adam,2,adam_control,836,best_val,21.29656979221986,,21.29656979221986,23.262171386225006,True
+google-10m,transformer-critic-adam,3,adam_control,836,best_val,21.943425118386298,,21.943425118386298,23.17275753486252,True
+google-10m,transformer-critic-adam,4,adam_control,836,best_val,22.073144407619594,,22.073144407619594,24.916549671543315,True
+google-10m,transformer-critic-adam,5,adam_control,836,best_val,24.46851078289183,,24.46851078289183,24.325825798826344,True
