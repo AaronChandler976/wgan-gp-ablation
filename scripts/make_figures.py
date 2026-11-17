@@ -420,9 +420,43 @@ def figure_critic_diagnostics() -> None:
     save(fig, "critic_diagnostics")
 
 
+def figure_effects_all_series() -> None:
+    """Main effects on every series of the reported and `more_data` runs, with the pooled value."""
+    effects_path = V2 / "summary" / "effects_reported+more_data.csv"
+    pooled_path = V2 / "summary" / "pooled_reported+more_data.csv"
+    if missing(effects_path, pooled_path):
+        return
+    effects, pooled = pd.read_csv(effects_path), pd.read_csv(pooled_path).set_index("effect")
+    short = {"google": "Google", "azure_functions": "Azure Functions", "azure_vm_2017": "Azure VM 2017",
+             "wikipedia": "Wikipedia"}
+    data_ids = sorted(effects["data_id"].unique())
+    labels = [f"{short.get(d.rsplit('-', 1)[0], d)}, {d.rsplit('-', 1)[1].rstrip('m')} min" for d in data_ids]
+    fig, axes = plt.subplots(1, len(EFFECT_LABELS), figsize=(TEXT_WIDTH, 2.6), sharey=True)
+    for ax, (effect, title) in zip(axes, EFFECT_LABELS.items()):
+        part = effects[effects["effect"] == effect].set_index("data_id").loc[data_ids]
+        rows = np.arange(len(data_ids))
+        ax.errorbar(part["change_pct"], rows, fmt="o", ms=4, mfc=BLUE, mec="white", mew=0.5, ecolor=BLUE,
+                    xerr=[part["change_pct"] - part["ci_low_pct"], part["ci_high_pct"] - part["change_pct"]],
+                    elinewidth=1.0, capsize=2.5)
+        total = pooled.loc[effect]
+        ax.errorbar(total["pooled_pct"], len(data_ids), fmt="D", ms=5, mfc=INK, mec="white", mew=0.6,
+                    xerr=[[total["pooled_pct"] - total["ci_low_pct"]], [total["ci_high_pct"] - total["pooled_pct"]]],
+                    ecolor=INK, elinewidth=1.2, capsize=3)
+        ax.axvline(0, color=MUTED, lw=0.8)
+        ax.axhline(len(data_ids) - 0.5, color=GRID, lw=0.8)
+        ax.set_title(title.replace("\n", " "))
+        ax.set_xlabel("Change in test MAPE (%)")
+        ax.grid(axis="y", visible=False)
+    axes[0].set_yticks(range(len(data_ids) + 1), labels + ["All six (pooled)"])
+    axes[0].invert_yaxis()
+    fig.tight_layout(w_pad=1.0)
+    save(fig, "effects_all_series")
+
+
 FIGURES = {"mape": figure_mape, "effects": figure_effects, "timing": figure_timing,
            "released": figure_released, "autoscale": figure_autoscale, "forecasts": figure_forecasts,
-           "critic_weight": figure_critic_weight, "critic_diagnostics": figure_critic_diagnostics}
+           "critic_weight": figure_critic_weight, "critic_diagnostics": figure_critic_diagnostics,
+           "effects_all_series": figure_effects_all_series}
 
 
 def main() -> None:
