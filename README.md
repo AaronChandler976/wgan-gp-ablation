@@ -67,7 +67,7 @@ cd wgan-gp-ablation
 conda env create -f environment.yml     # Python 3.11, PyTorch 2.11.0 (CUDA 12.8 build), the rest
 conda activate cwp
 pip install -e .
-pytest                                  # 46 tests, well under a minute; no data download, no GPU
+pytest                                  # 93 tests, about a minute; no data download, no GPU
 ```
 
 [`environment.yml`](environment.yml) pins the versions the reported runs were made with. The
@@ -104,7 +104,7 @@ licenses and file formats are in [`data/README.md`](data/README.md).
 ## Tests
 
 ```bash
-pytest          # 46 tests; `unset PYTHONPATH` first if another Python installation interferes
+pytest          # 93 tests; `unset PYTHONPATH` first if another Python installation interferes
 ```
 
 The same tests run on every push (`.github/workflows/tests.yml`).
@@ -176,11 +176,35 @@ LSTM (one cuDNN kernel on a GPU), the same LSTM with cuDNN off, the same LSTM ru
 at a time, and the Transformer generator. Inference time depends on the machine, so compare
 speeds measured on one machine only.
 
+## Follow-up experiments (v2)
+
+Everything run after the 80 reported runs is additive: each experiment has its own name, its
+runs are saved in `results/v2/<name>/`, and its tables in `results/v2/summary/`. The reported
+runs and `results/summary/` are never rewritten. The plan of each experiment (what is run and
+how a winner is picked, written before the runs) and its result are in
+[`docs/EXPERIMENTS_V2.md`](docs/EXPERIMENTS_V2.md).
+
+```bash
+python -m cwp.train ... --exp NAME [key=value ...]     # one run of a v2 experiment -> results/v2/NAME/
+python -m cwp.train ... --exp NAME --profile released_code   # with the released code's choices
+python -m cwp.screen run configs/screens/critic_s1_weight.yaml      # a screen: short tuning runs,
+python -m cwp.screen summarize configs/screens/critic_s1_weight.yaml  # scored on validation only
+python -m cwp.evaluate v2 NAME --name NAME             # NAME's test results next to the reported runs
+python -m cwp.analysis effects --exp NAME              # factorial effects, intervals, Holm correction
+python -m cwp.analysis pooled --exp reported+more_data # effects across series, and whether they differ
+python -m cwp.analysis pairs --exp NAME                # paired tests, one switch apart
+python -m cwp.analysis autoscale --exp NAME            # provisioning cost of the forecasts
+python -m cwp.analysis workload --exp reported+more_data   # effects next to workload properties
+```
+
+Without `--exp` the `cwp.analysis` commands read the reported runs. Sources joined with `+`
+must share one setup and are labeled by source in the table.
+
 ## Report figures
 
 ```bash
-python scripts/make_figures.py              # all three -> figures/*.png and figures/*.pdf
-python scripts/make_figures.py --only mape  # or: effects, timing
+python scripts/make_figures.py              # all -> figures/*.png and figures/*.pdf
+python scripts/make_figures.py --only mape  # or any other name from --help
 ```
 
 | File in [`figures/`](figures/) | Shows | Read from |
@@ -188,6 +212,12 @@ python scripts/make_figures.py --only mape  # or: effects, timing
 | `mape_by_configuration` | Test MAPE of the 8 configurations on each dataset: one point per seed, mean ± standard deviation | `results/summary/all_runs.csv` |
 | `factorial_main_effects` | Average effect of the Transformer, the critic and MADGRAD on MAPE, per dataset, with p-values | `results/summary/factorial_effects.csv` |
 | `timing_sweep` | Inference time against history length on the GPU and the CPU, log scales | `results/summary/timing_sweep_cuda.csv`, `timing_sweep_cpu.csv` |
+| `effects_all_series` | Effect of each part on all six series, with the pooled value | `results/v2/summary/effects_reported+more_data.csv`, `pooled_reported+more_data.csv` |
+| `released_code_comparison` | The paper's Table 3, the reported runs and the released code's settings | `results/v2/summary/released_code_runs.csv` |
+| `critic_weight_screen` | Validation MAPE against the critic's weight | `results/v2/critic_s1_weight/`, `nocritic_reference/` |
+| `critic_diagnostics` | What the critic's gradient does during training | `results/v2/critic_diagnostics/`, `critic_diagnostics_w0p01/` |
+| `autoscale_tradeoff` | Short intervals against idle machines as spare capacity grows | `results/v2/summary/autoscale_reported_curve.csv` |
+| `forecast_best_worst` | Forecasts of the best and the worst configuration on part of the test set | `results/predictions/` |
 
 The script reads the CSV files and hard-codes no values, so run it again after `compare` or
 `timing_sweep`. It needs matplotlib, which `environment.yml` installs; in an environment made
@@ -198,16 +228,19 @@ for a full text width (6.5 in) with 9 pt serif text; use them with `\includegrap
 
 ```
 configs/      default.yaml (hyperparameters), plan.yaml (runs + seeds), datasets.yaml,
-              tuning.yaml (search grid), tuned/ (chosen settings), paper_reference.yaml
+              tuning.yaml (search grid), tuned/ (chosen settings), paper_reference.yaml,
+              profiles/ (the released code's choices), screens/ (validation-only screens)
 data/         raw/ (downloads, not in git), processed/ (one CSV per series), splits/
 src/cwp/      data, models, train, runs, tune, evaluate, metrics, stats, timing_sweep, config,
-              bench + launch (optional tooling)
-results/      <run_id>.json (one per run), predictions/, baselines/, summary/ (tables and CSVs)
+              screen + analysis (v2 experiments), bench + launch (optional tooling)
+results/      <run_id>.json (one per reported run), predictions/, baselines/, summary/ (tables
+              and CSVs), v2/<experiment>/ (follow-up runs), v2/summary/ (their tables)
 runs/claims/  who ran what (one file per run)
 checkpoints/  trained weights (not in git)
 scripts/      make_figures.py (report figures), hpc/ (Slurm scripts for the SJSU HPC)
 figures/      report figures (PNG and PDF), made by scripts/make_figures.py
-docs/         REPLICATION_NOTES.md, BUILD_PROMPT.md
+docs/         REPLICATION_NOTES.md, EXPERIMENTS_V2.md, REPORT_NOTES.md, CODE_REVIEW.md,
+              BUILD_PROMPT.md
 tests/        pytest
 ```
 
