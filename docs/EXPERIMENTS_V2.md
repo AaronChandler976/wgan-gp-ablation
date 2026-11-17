@@ -441,3 +441,24 @@ the distance between real and forecast sequences stays near zero: the forecasts 
 like real sequences to it, so it has nothing to teach. At weight 0.01 the push is 1% of the L1
 gradient and steady. The Google weight-1 run repeats the reported run exactly (test MAPE
 24.19%). These are single runs chosen for the figure; their test values are not results.
+
+### 2a (matched side) result: `nocritic_reg_lstm` and `nocritic_reg_transformer`
+
+*Recorded 2026-11-16. 136 + 136 trials, none diverged. Files: `results/v2/nocritic_reg_lstm/`
+and `results/v2/nocritic_reg_transformer/` (`screen.md` lists all 34 variants of each).*
+
+In plain terms: giving the no-critic models the same number of extra tries changed almost
+nothing. Their reported settings were already close to the best we can find.
+
+| architecture | best of the 33 new variants | Google | Azure | average | passes the rule? |
+| --- | --- | --- | --- | --- | --- |
+| LSTM | gradient clipping at 1.0 (no output dropout, no weight decay) | -1.7% | -0.7% | -1.2% | yes (both cells, more than 1%) |
+| Transformer | weight decay 1e-4, feed-forward width 128 | -1.6% | +0.2% | -0.7% | no |
+
+- **LSTM:** the three best variants are the three with clipping at 1.0 and no weight decay
+  (-1.2%, -1.2%, -0.8%); 30 of the 33 new variants are worse than the reported setting.
+  Carried forward: `train.grad_clip: 1.0` for the no-critic LSTM. A gain of 1.2% as the best
+  of 33 tries is about what selection alone would produce at this noise level (seed gap in
+  these cells: 2.6% and 7.5% of the value), so little should be expected of it on the test part.
+- **Transformer:** nothing passes; the reported setting stays. 29 of the 33 new variants are
+  worse than it. More dropout, no dropout and weight decay 1e-3 all hurt.

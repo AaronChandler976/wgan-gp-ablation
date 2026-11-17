@@ -1,0 +1,16 @@
+{
+  "experiment": "nocritic_reg_transformer",
+  "cell": "google-10m__transformer-nocritic-madgrad",
+  "variant": "base",
+  "seed": 100,
+  "overrides": {},
+  "tuned_base": true,
+  "val_mape": 18.492590810985444,
+  "best_epoch": 160,
+  "epochs_run": 310,
+  "seconds": 70.2,
+  "git": {
+    "commit": "c948264",
+    "dirty": false
+  }
+}

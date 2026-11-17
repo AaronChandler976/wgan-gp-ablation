@@ -1,0 +1,20 @@
+{
+  "experiment": "nocritic_reg_transformer",
+  "cell": "google-10m__transformer-nocritic-madgrad",
+  "variant": "dropout0.2_weight_decay0.0_dim_ff128",
+  "seed": 0,
+  "overrides": {
+    "model.transformer.dropout": 0.2,
+    "optim.madgrad.weight_decay": 0.0,
+    "model.transformer.dim_ff": 128
+  },
+  "tuned_base": true,
+  "val_mape": 20.764906039825128,
+  "best_epoch": 10,
+  "epochs_run": 160,
+  "seconds": 24.8,
+  "git": {
+    "commit": "e06093c",
+    "dirty": false
+  }
+}

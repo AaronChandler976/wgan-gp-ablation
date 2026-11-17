@@ -1,0 +1,16 @@
+{
+  "experiment": "nocritic_reg_transformer",
+  "cell": "azure_functions-5m__transformer-nocritic-madgrad",
+  "variant": "base",
+  "seed": 0,
+  "overrides": {},
+  "tuned_base": true,
+  "val_mape": 2.333214343185201,
+  "best_epoch": 450,
+  "epochs_run": 600,
+  "seconds": 149.7,
+  "git": {
+    "commit": "e06093c",
+    "dirty": false
+  }
+}

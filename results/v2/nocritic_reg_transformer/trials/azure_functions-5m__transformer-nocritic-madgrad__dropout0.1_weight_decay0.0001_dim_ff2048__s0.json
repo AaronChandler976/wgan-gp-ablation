@@ -1,0 +1,20 @@
+{
+  "experiment": "nocritic_reg_transformer",
+  "cell": "azure_functions-5m__transformer-nocritic-madgrad",
+  "variant": "dropout0.1_weight_decay0.0001_dim_ff2048",
+  "seed": 0,
+  "overrides": {
+    "model.transformer.dropout": 0.1,
+    "optim.madgrad.weight_decay": 0.0001,
+    "model.transformer.dim_ff": 2048
+  },
+  "tuned_base": true,
+  "val_mape": 2.3183535909872237,
+  "best_epoch": 620,
+  "epochs_run": 770,
+  "seconds": 169.0,
+  "git": {
+    "commit": "e06093c",
+    "dirty": false
+  }
+}
