@@ -486,7 +486,7 @@ Average change in validation MAPE over the 4 cells (negative is better):
 | 2 | weight 1, 50 epochs L1 only, then a 100-epoch ramp | -2.8% | +2.6% | no |
 | 2 | weight 1, 50 epochs L1 only | -2.7% | +2.7% | no |
 | 3 | best of 16: 5 critic steps, penalty weight 1, width 32, same learning rate | -5.3% | -0.03% | no (1 of 4 cells) |
-| 3 | median of 16 | -3.3% | +2.1% | no |
+| 3 | median of 16 | -3.3% | +2.0% | no |
 | 3 | worst of 16: 5 critic steps, penalty 10, width 128, critic learning rate x4 | diverged | diverged | no |
 | 5 | first-difference critic, weight 0.01 | -3.4% | +2.0% | no |
 | 5 | conditional critic, weight 0.01 | -2.9% | +2.5% | no |
