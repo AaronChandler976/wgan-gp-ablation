@@ -4,12 +4,17 @@
     python -m cwp.analysis pooled               # the same effects across datasets, and whether they differ
     python -m cwp.analysis autoscale            # provisioning cost of each configuration's forecasts
     python -m cwp.analysis effects --exp NAME   # any command on a v2 experiment (results/v2/NAME/)
+    python -m cwp.analysis effects --exp reported+seeds_6_10   # several sources that share one setup
+    python -m cwp.analysis effects --exp critic_v2_diffs --nocritic-from critic_v2
+    python -m cwp.analysis pairs --exp NAME     # paired tests between configurations one switch apart
+    python -m cwp.analysis workload --exp reported+more_data   # effects next to workload properties
     python -m cwp.analysis screens critic_s1_weight critic_s2_warmup --reference critic_s1_weight:w1 \
         --name critic_screen                    # several screening stages in one table (validation only)
 
 Without `--exp` the commands read the reported runs in results/ and never write there: every
 output goes to results/v2/summary/ with the source in its file name (`reported` or the
-experiment's name), so tables from different setups stay apart.
+experiment's name), so tables from different setups stay apart. Sources joined with `+` must
+not overlap (same series, configuration and seed twice is an error) and are named in the output.
 """
 from __future__ import annotations
 
@@ -31,24 +36,36 @@ HEADROOMS = np.round(np.arange(0.0, 2.0001, 0.01), 2)      # extra capacity on t
 UNDER_TARGETS = (5.0, 1.0)                                 # % of intervals allowed to run short
 
 
-def source_name(exp: str | None) -> str:
-    return exp or "reported"
+def source_name(exp: str | None, nocritic_from: str | None = None) -> str:
+    return (exp or "reported") + (f"+nocritic_of_{nocritic_from}" if nocritic_from else "")
 
 
 def folder(exp: str | None):
-    return config.path("results", "v2", exp) if exp else config.path("results")
+    return config.path("results", "v2", exp) if exp and exp != "reported" else config.path("results")
 
 
-def load_runs(exp: str | None) -> pd.DataFrame:
-    """One row per finished run with every test metric. Runs with a non-finite MAPE are kept."""
+def load_runs(exp: str | None, nocritic_from: str | None = None) -> pd.DataFrame:
+    """One row per finished run with every test metric. Runs with a non-finite MAPE are kept.
+
+    `exp` may join several sources with `+` (`reported` is the reported runs). `nocritic_from`
+    adds the no-critic runs of another experiment, for designs that only reran the critic cells."""
     rows = []
-    for f in sorted(folder(exp).glob("*.json")):
-        r = json.loads(f.read_text())
-        spec = RunSpec.from_run_id(r["run_id"])
-        rows.append({"data_id": spec.data_id, "config_id": spec.config_id, "arch": r["arch"],
-                     "critic": r["critic"], "optimizer": r["optimizer"], "seed": r["seed"],
-                     "run_id": r["run_id"], **r["metrics"]["test"]})
-    return pd.DataFrame(rows)
+    sources = [(e, False) for e in (exp or "reported").split("+")]
+    sources += [(nocritic_from, True)] if nocritic_from else []
+    for source, only_nocritic in sources:
+        for f in sorted(folder(source).glob("*.json")):
+            r = json.loads(f.read_text())
+            if only_nocritic and r["critic"] != "none":
+                continue
+            spec = RunSpec.from_run_id(r["run_id"])
+            rows.append({"data_id": spec.data_id, "config_id": spec.config_id, "arch": r["arch"],
+                         "critic": r["critic"], "optimizer": r["optimizer"], "seed": r["seed"],
+                         "run_id": r["run_id"], "source": source, **r["metrics"]["test"]})
+    df = pd.DataFrame(rows)
+    if not df.empty and df.duplicated(["data_id", "config_id", "seed"]).any():
+        twice = df[df.duplicated(["data_id", "config_id", "seed"], keep=False)]["source"].unique()
+        sys.exit(f"The same run appears in more than one source: {', '.join(twice)}")
+    return df
 
 
 # --------------------------------------------------------------------------- factorial effects
@@ -162,11 +179,11 @@ def headroom_for(curve: pd.DataFrame, target: float) -> dict:
     return ok.iloc[0][["headroom_pct", "idle_vm_pct"]].to_dict()
 
 
-def autoscale_tables(exp: str | None) -> tuple[pd.DataFrame, pd.DataFrame]:
+def autoscale_tables(exp: str | None, nocritic_from: str | None = None) -> tuple[pd.DataFrame, pd.DataFrame]:
     """(one row per run, the headroom curves averaged over seeds). Diverged runs are skipped."""
     runs, curves = [], []
-    for r in load_runs(exp).itertuples(index=False):
-        f = folder(exp) / "predictions" / f"{r.run_id}.csv"
+    for r in load_runs(exp, nocritic_from).itertuples(index=False):
+        f = folder(r.source) / "predictions" / f"{r.run_id}.csv"
         if not f.exists() or not np.isfinite(r.mape):
             continue
         pred = pd.read_csv(f)
@@ -244,16 +261,30 @@ def save(name: str, md: list[str], **frames: pd.DataFrame) -> None:
     print(f"saved to {out / (name + '.md')}")
 
 
-def need_runs(exp: str | None) -> pd.DataFrame:
-    df = load_runs(exp)
+def need_runs(exp: str | None, nocritic_from: str | None = None) -> pd.DataFrame:
+    df = load_runs(exp, nocritic_from)
     if df.empty:
-        sys.exit(f"No finished runs in {folder(exp)}")
+        sys.exit(f"No finished runs in {exp or 'results/'}")
     return df
 
 
-def cmd_effects(exp: str | None) -> None:
-    src = source_name(exp)
-    t = effect_table(contrasts(need_runs(exp)))
+def how(command: str, exp: str | None, nocritic_from: str | None) -> str:
+    return ("Generated by `python -m cwp.analysis " + command + (f" --exp {exp}" if exp else "")
+            + (f" --nocritic-from {nocritic_from}" if nocritic_from else "") + "`.")
+
+
+def seeds_note(df: pd.DataFrame) -> str:
+    """Which seeds each source contributed, and how many runs did not give a finite MAPE."""
+    parts = [f"`{src}` seeds {', '.join(str(x) for x in sorted(g['seed'].unique()))}"
+             for src, g in df.groupby("source", sort=False)]
+    bad = int((~np.isfinite(df["mape"])).sum())
+    return "Sources: " + "; ".join(parts) + f". Runs without a finite test MAPE: {bad}."
+
+
+def cmd_effects(exp: str | None, nocritic_from: str | None = None) -> None:
+    src = source_name(exp, nocritic_from)
+    df = need_runs(exp, nocritic_from)
+    t = effect_table(contrasts(df))
     if t.empty:
         sys.exit("No dataset has all 8 configurations for at least one seed.")
     md = [f"# Factorial effects with intervals and multiple-comparison correction ({src} runs)", "",
@@ -263,15 +294,16 @@ def cmd_effects(exp: str | None) -> None:
           "7 effects tested on that dataset, `p_holm_main` for the main effects of all datasets "
           "together. `p_wilcoxon` is given only with 6 or more seeds: with 5 its smallest possible "
           "value is 0.0625, so it cannot reach 0.05. "
-          f"Generated by `python -m cwp.analysis effects{' --exp ' + exp if exp else ''}`.", ""]
+          + seeds_note(df) + " " + how("effects", exp, nocritic_from), ""]
     for data_id, block in t.groupby("data_id", sort=False):
         md += [f"## {data_id}", "", config.md_table(block.drop(columns=["data_id", "log_effect"]).round(4)), ""]
     save(f"effects_{src}", md, main=t)
 
 
-def cmd_pooled(exp: str | None) -> None:
-    src = source_name(exp)
-    c = contrasts(need_runs(exp))
+def cmd_pooled(exp: str | None, nocritic_from: str | None = None) -> None:
+    src = source_name(exp, nocritic_from)
+    df = need_runs(exp, nocritic_from)
+    c = contrasts(df)
     t = pooled_table(c)
     if t.empty:
         sys.exit("Needs at least 2 datasets with all 8 configurations and 2 seeds.")
@@ -284,16 +316,16 @@ def cmd_pooled(exp: str | None) -> None:
           "dataset. `p_differs` tests whether the effect is the same on every dataset (the "
           "effect-by-dataset interaction): a small value means the effect depends on the workload. "
           "With few datasets the pooled interval is rough; read it together with the per-dataset "
-          f"values. Generated by `python -m cwp.analysis pooled{' --exp ' + exp if exp else ''}`.", "",
+          "values. " + seeds_note(df) + " " + how("pooled", exp, nocritic_from), "",
           config.md_table(t.round(4)), ""]
     save(f"pooled_{src}", md, main=t)
 
 
-def cmd_autoscale(exp: str | None) -> None:
-    src = source_name(exp)
-    runs, curve = autoscale_tables(exp)
+def cmd_autoscale(exp: str | None, nocritic_from: str | None = None) -> None:
+    src = source_name(exp, nocritic_from)
+    runs, curve = autoscale_tables(exp, nocritic_from)
     if runs.empty:
-        sys.exit(f"No runs with saved predictions in {folder(exp)}")
+        sys.exit(f"No runs with saved predictions in {exp or 'results/'}")
     cols = [c for c in runs.columns if c not in ("data_id", "config_id", "seed")]
     table = runs.groupby(["data_id", "config_id"], sort=False).agg(
         seeds=("seed", "count"), **{c: (c, pm) for c in cols}).reset_index()
@@ -304,10 +336,75 @@ def cmd_autoscale(exp: str | None) -> None:
           "(in steps of 1%) on top of the forecast that keeps the share of short intervals at or "
           "under T%, and `idle_vm_pct_at_T` the unused VMs it costs. The headroom is read off the "
           "test part, so it describes each forecast's trade-off curve; it is not a tuned policy. "
-          f"Generated by `python -m cwp.analysis autoscale{' --exp ' + exp if exp else ''}`.", ""]
+          + how("autoscale", exp, nocritic_from), ""]
     for data_id, block in table.groupby("data_id", sort=False):
         md += [f"## {data_id}", "", config.md_table(block.drop(columns="data_id")), ""]
     save(f"autoscale_{src}", md, runs=runs, curve=curve)
+
+
+def cmd_pairs(exp: str | None, nocritic_from: str | None = None) -> None:
+    from .evaluate import one_change_pairs
+    src = source_name(exp, nocritic_from)
+    df = need_runs(exp, nocritic_from)
+    t = one_change_pairs(df[np.isfinite(df["mape"])])
+    if t.empty:
+        sys.exit("No two configurations one switch apart share a seed.")
+    md = [f"# Paired tests between configurations one switch apart ({src} runs)", "",
+          "Each row switches one part on and keeps the other two fixed; runs are paired by seed. "
+          "`mape_change_points` is the change in test MAPE in percentage points (negative is "
+          "better). `p_holm` corrects over the rows of one dataset. " + seeds_note(df) + " "
+          + how("pairs", exp, nocritic_from), ""]
+    for data_id, block in t.groupby("data_id", sort=False):
+        md += [f"## {data_id}", "", config.md_table(block.drop(columns="data_id").round(4)), ""]
+    save(f"pairs_{src}", md, main=t)
+
+
+WORKLOAD_PROPERTIES = ("seasonal_strength", "acf_1_step", "acf_1_day", "cv", "p99_over_median",
+                       "spectral_entropy", "naive_mape", "train_points")
+
+
+def workload_table(effects: pd.DataFrame, stats_table: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """(main effects per series next to its training-part properties, rank correlations).
+
+    The correlations are Spearman's, between a property and an effect over the series. With a
+    handful of series they describe the pattern; they do not test it."""
+    main = effects[effects["kind"] == "main effect"]
+    wide = main.pivot(index="data_id", columns="effect", values="change_pct")
+    wide.columns = [f"{c}_effect_pct" for c in wide.columns]
+    p = main.pivot(index="data_id", columns="effect", values="p_holm_main")
+    wide = wide.join(p.rename(columns=lambda c: f"{c}_p_holm"))
+    st = stats_table.assign(data_id=stats_table["dataset"] + "-" + stats_table["interval_min"].astype(str) + "m")
+    table = wide.join(st.set_index("data_id")[list(WORKLOAD_PROPERTIES)], how="left").reset_index()
+    rows = []
+    for prop in WORKLOAD_PROPERTIES:
+        row = {"property": prop}
+        for eff in ("arch", "critic", "optimizer"):
+            col = f"{eff}_effect_pct"
+            ok = table[[prop, col]].dropna() if col in table else pd.DataFrame()
+            row[f"rho_{eff}"] = (float(stats.spearmanr(ok[prop], ok[col]).statistic)
+                                 if len(ok) >= 3 and ok[prop].nunique() > 1 and ok[col].nunique() > 1 else np.nan)
+        rows.append(row)
+    return table, pd.DataFrame(rows)
+
+
+def cmd_workload(exp: str | None, nocritic_from: str | None = None) -> None:
+    src = source_name(exp, nocritic_from)
+    df = need_runs(exp, nocritic_from)
+    stats_file = config.path("results", "summary", "dataset_stats.csv")
+    if not stats_file.exists():
+        sys.exit("Run `python -m cwp.stats` first.")
+    table, corr = workload_table(effect_table(contrasts(df)), pd.read_csv(stats_file))
+    md = [f"# Effects next to workload properties ({src} runs)", "",
+          "One row per series: the change in test MAPE (%, negative is better) from switching each "
+          "part on, its Holm-corrected p-value over all main effects, and properties of the "
+          "training part from `results/summary/dataset_stats.csv`. " + seeds_note(df) + " "
+          + how("workload", exp, nocritic_from), "", config.md_table(table.round(3)), "",
+          "## Rank correlation between a property and an effect, over the series", "",
+          f"Spearman's rho over {len(table)} series. A positive value means the effect's change in "
+          "MAPE grows with the property (the part helps less, or hurts more). With this few series "
+          "these numbers describe the pattern and are not a test.", "",
+          config.md_table(corr.round(2)), ""]
+    save(f"workload_{src}", md, main=table, correlations=corr)
 
 
 def cmd_screens(exps: list[str], reference: str, name: str) -> None:
@@ -333,9 +430,10 @@ def cmd_screens(exps: list[str], reference: str, name: str) -> None:
 
 def main(argv=None) -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("command", choices=["effects", "pooled", "autoscale", "screens"])
+    ap.add_argument("command", choices=["effects", "pooled", "autoscale", "pairs", "workload", "screens"])
     ap.add_argument("screens", nargs="*", help="for `screens`: the screen experiments to lay side by side")
-    ap.add_argument("--exp", help="read results/v2/<EXP>/ instead of the reported runs")
+    ap.add_argument("--exp", help="read results/v2/<EXP>/ instead of the reported runs; join sources with +")
+    ap.add_argument("--nocritic-from", help="also read the no-critic runs of this experiment")
     ap.add_argument("--reference", help="for `screens`: SCREEN:VARIANT every variant is compared with")
     ap.add_argument("--name", help="for `screens`: name of the output files in results/v2/summary/")
     a = ap.parse_args(argv)
@@ -343,7 +441,8 @@ def main(argv=None) -> None:
         if not (a.screens and a.reference and a.name):
             sys.exit("screens needs: SCREEN [SCREEN ...] --reference SCREEN:VARIANT --name NAME")
         return cmd_screens(a.screens, a.reference, a.name)
-    {"effects": cmd_effects, "pooled": cmd_pooled, "autoscale": cmd_autoscale}[a.command](a.exp)
+    {"effects": cmd_effects, "pooled": cmd_pooled, "autoscale": cmd_autoscale, "pairs": cmd_pairs,
+     "workload": cmd_workload}[a.command](a.exp, a.nocritic_from)
 
 
 if __name__ == "__main__":

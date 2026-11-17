@@ -101,3 +101,34 @@ def test_screen_table_applies_the_noise_rule():
     assert not t.loc["tiny", "beats_reference"]
     assert t.loc["ref", "mean_change_pct"] == pytest.approx(0.0)
     assert t.loc["broad", "c1"] == pytest.approx(9.7)
+
+
+def test_workload_table_relates_effects_to_properties():
+    effects = {"a": -0.10, "b": -0.05, "c": 0.0, "d": 0.05}
+    runs = pd.concat([design({"arch": e}, f"{name}-10m") for name, e in effects.items()])
+    stats_table = pd.DataFrame({"dataset": list(effects), "interval_min": 10,
+                                **{p: [1.0, 2.0, 3.0, 4.0] for p in analysis.WORKLOAD_PROPERTIES}})
+    table, corr = analysis.workload_table(analysis.effect_table(analysis.contrasts(runs)), stats_table)
+    assert len(table) == 4 and {"arch_effect_pct", "arch_p_holm", "seasonal_strength"} <= set(table.columns)
+    assert corr.set_index("property").loc["seasonal_strength", "rho_arch"] == pytest.approx(1.0)
+
+
+def test_load_runs_joins_sources_and_refuses_overlap(tmp_path, monkeypatch):
+    import json
+
+    def write(folder, seed, critic="none"):
+        folder.mkdir(parents=True, exist_ok=True)
+        name = f"d-1m__lstm-{'critic' if critic != 'none' else 'nocritic'}-adam__s{seed}"
+        (folder / f"{name}.json").write_text(json.dumps({
+            "run_id": name, "arch": "lstm", "critic": critic, "optimizer": "adam", "seed": seed,
+            "metrics": {"test": {"mape": 1.0 + seed}}}))
+    monkeypatch.setattr(analysis.config, "path", lambda *parts: tmp_path.joinpath(*parts))
+    write(tmp_path / "results", 1)
+    write(tmp_path / "results" / "v2" / "more", 6)
+    write(tmp_path / "results" / "v2" / "more", 6, critic="wgan-gp")
+    df = analysis.load_runs("reported+more")
+    assert sorted(df["seed"]) == [1, 6, 6] and set(df["source"]) == {"reported", "more"}
+    assert len(analysis.load_runs("reported", nocritic_from="more")) == 2
+    write(tmp_path / "results" / "v2" / "more", 1)
+    with pytest.raises(SystemExit):
+        analysis.load_runs("reported+more")
