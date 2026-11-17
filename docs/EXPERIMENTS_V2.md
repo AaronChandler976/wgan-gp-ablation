@@ -513,3 +513,28 @@ What this shows:
 Carried forward from stage 3 by its rule: the stage-1 setting (weight 0.01, reported critic
 settings). Stage 4 (`configs/screens/critic_s4_norm.yaml`, committed with this note) adds
 spectral and layer normalization to it.
+
+### 1c. `released_item_<name>`: one released-code choice at a time
+
+*Written before the runs (2026-11-16).* Starting from the paper settings (the reported runs),
+exactly one of the released code's choices is switched on per experiment, to see which single
+discrepancy moves the error and in which direction. Seeds 1 to 3, both reported datasets, 78
+runs, each item in its own folder `results/v2/released_item_<name>/`:
+
+| name | change | paper's final model | LSTM baseline |
+| --- | --- | --- | --- |
+| `lr` | learning rate 0.01 | yes | yes |
+| `scaler` | scaler fitted per split (leaks; not a fair evaluation) | yes | yes |
+| `windows` | windows built inside each split | yes | yes |
+| `noshuffle` | no shuffling of training windows | yes | yes |
+| `tanh_critic` | Tanh critic applied to each value | yes | – |
+| `critic_steps` | 1 critic step per generator step, penalty weight 0.1 | yes | – |
+| `adv_plus` | generator loss = L1 plus the critic score | yes | – |
+| `pos_batch` | positional encoding indexed by position in the batch | yes | – |
+| `embed_broadcast` | input value copied to every embedding dimension | yes | – |
+
+Each item is compared with seeds 1 to 3 of the reported runs of the same configuration
+(paired by seed), in true units and at the best validation epoch; the `scaler` item is also
+given in the released code's units and is labeled as not a fair evaluation. Nothing is
+selected from these runs. With 3 seeds only large differences can be told from noise, and the
+report says so.
