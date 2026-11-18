@@ -50,16 +50,24 @@ def load_runs(exp: str | None, nocritic_from: str | None = None) -> pd.DataFrame
     """One row per finished run with every test metric. Runs with a non-finite MAPE are kept.
 
     `exp` may join several sources with `+` (`reported` is the reported runs). `nocritic_from`
-    adds the no-critic runs of another experiment, for designs that only reran the critic cells."""
+    adds the no-critic runs of another experiment, for designs that only reran the critic cells.
+    A source written `rest_of_NAME` adds only the runs of NAME for series the earlier sources
+    have, in configurations they do not have: for experiments that reran some cells of a design."""
     rows = []
     sources = [(e, False) for e in (exp or "reported").split("+")]
     sources += [(nocritic_from, True)] if nocritic_from else []
     for source, only_nocritic in sources:
+        rest = source.startswith("rest_of_")
+        source = source.removeprefix("rest_of_")
+        series = {r["data_id"] for r in rows}
+        cells = {(r["data_id"], r["config_id"]) for r in rows}
         for f in sorted(folder(source).glob("*.json")):
             r = json.loads(f.read_text())
             if only_nocritic and r["critic"] != "none":
                 continue
             spec = RunSpec.from_run_id(r["run_id"])
+            if rest and (spec.data_id not in series or (spec.data_id, spec.config_id) in cells):
+                continue
             rows.append({"data_id": spec.data_id, "config_id": spec.config_id, "arch": r["arch"],
                          "critic": r["critic"], "optimizer": r["optimizer"], "seed": r["seed"],
                          "run_id": r["run_id"], "source": source, **r["metrics"]["test"]})
