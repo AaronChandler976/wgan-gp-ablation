@@ -1,0 +1,106 @@
+experiment: google_history
+description: 'History length on the two Google series, outside the tuning grid (48, 96). 5 and 472 are
+  the ends of the range LoadDynamics selected for Google (its Table IV); 144 and 288 are one and two days
+  at 10 minutes. Only the history length changes: learning rate and model size stay at each cell''s tuned
+  values. `tuned` is the cell''s own tuned history (48 or 96) and is the reference.'
+seeds:
+- 0
+- 100
+fixed:
+  train.patience: 150
+reference: tuned
+cells:
+- dataset: google
+  interval: 10
+  arch: lstm
+  critic: none
+  optimizer: adam
+- dataset: google
+  interval: 10
+  arch: lstm
+  critic: none
+  optimizer: madgrad
+- dataset: google
+  interval: 10
+  arch: lstm
+  critic: wgan-gp
+  optimizer: adam
+- dataset: google
+  interval: 10
+  arch: lstm
+  critic: wgan-gp
+  optimizer: madgrad
+- dataset: google
+  interval: 10
+  arch: transformer
+  critic: none
+  optimizer: adam
+- dataset: google
+  interval: 10
+  arch: transformer
+  critic: none
+  optimizer: madgrad
+- dataset: google
+  interval: 10
+  arch: transformer
+  critic: wgan-gp
+  optimizer: adam
+- dataset: google
+  interval: 10
+  arch: transformer
+  critic: wgan-gp
+  optimizer: madgrad
+- dataset: google
+  interval: 30
+  arch: lstm
+  critic: none
+  optimizer: adam
+- dataset: google
+  interval: 30
+  arch: lstm
+  critic: none
+  optimizer: madgrad
+- dataset: google
+  interval: 30
+  arch: lstm
+  critic: wgan-gp
+  optimizer: adam
+- dataset: google
+  interval: 30
+  arch: lstm
+  critic: wgan-gp
+  optimizer: madgrad
+- dataset: google
+  interval: 30
+  arch: transformer
+  critic: none
+  optimizer: adam
+- dataset: google
+  interval: 30
+  arch: transformer
+  critic: none
+  optimizer: madgrad
+- dataset: google
+  interval: 30
+  arch: transformer
+  critic: wgan-gp
+  optimizer: adam
+- dataset: google
+  interval: 30
+  arch: transformer
+  critic: wgan-gp
+  optimizer: madgrad
+variants:
+  tuned: {}
+  h5:
+    data.window: 5
+  h48:
+    data.window: 48
+  h96:
+    data.window: 96
+  h144:
+    data.window: 144
+  h288:
+    data.window: 288
+  h472:
+    data.window: 472

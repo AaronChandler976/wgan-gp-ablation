@@ -1036,3 +1036,42 @@ over every experiment that recorded it:
 No other configuration has a single such run in these experiments. Lowering the critic's
 weight does not remove the instability. This corrects the wording used earlier in this log
 ("diverges on both series" under critic v2): on Google 10 min it is 1 run of 5.
+
+### 6. `google_history`: history length beyond the tuning grid, Google only (planned 2026-11-18)
+
+**Why.** The tuning grid has two history lengths, 48 and 96. They were our choice, not the
+papers'. Over the 48 tuned files the LSTM picks 96, the largest value, in 15 of 24 cases, and
+LoadDynamics reports selected history lengths for Google from 5 to 472 (its Table IV, as
+summarised in `docs/REPLICATION_NOTES.md`). Google has the highest error of the six series, so
+it is where a too-narrow grid would matter most.
+
+**Stage 1: screen (validation only).** `configs/screens/google_history.yaml`.
+
+- Cells: all 8 configurations on google-10m and google-30m, 16 cells, at the reported
+  settings (critic weight 1).
+- Variants: history 5, 48, 96, 144, 288, 472, plus `tuned` (the cell's own tuned history, 48
+  or 96, the reference). 5 and 472 are the ends of the LoadDynamics range; 144 and 288 are one
+  and two days at 10 minutes (three and six days at 30 minutes).
+- Only the history length changes. Learning rate and model size stay at the cell's tuned
+  values. This is a limit: a longer history might want a different learning rate or size.
+- Tuning seeds 0 and 100, up to 1,000 epochs, patience 150, as in tuning.
+  16 x 7 x 2 = 224 trials.
+
+**How the winner is picked.** Per cell, the history with the lowest mean validation MAPE over
+the two seeds, as in tuning (lowest validation MAPE wins). A history that is not finite in
+either seed cannot win. We also report, per cell, whether the winner's gain over `tuned` is
+larger than the gap between the two seeds, and per variant the average change over cells with
+the screen rule used before (better in at least 3 of 4 cells and more than 1% lower on
+average, here per series over its 8 cells: at least 6 of 8).
+
+**Stage 2: test runs.** For every cell whose winner is not its tuned history, 5 runs with the
+evaluation seeds 1 to 5 and `data.window` set to the winner, saved as experiment
+`google_history`. Cells whose winner is the tuned history keep their existing runs (reported
+for 10 minutes, `more_data` for 30 minutes), which reruns reproduce exactly. Reported: test
+MAPE of each rerun cell against its existing runs paired by seed (`analysis versus`), and the
+2 x 2 x 2 effects per series with the new histories, labelled as a separate setup. The
+reported runs and tables do not change.
+
+**What would change the conclusions.** If the Transformer's advantage on Google shrinks or
+reverses once both models choose from the wider range, the architecture result depends on the
+grid and the report must say so. If nothing moves, the limitation becomes a checked one.
