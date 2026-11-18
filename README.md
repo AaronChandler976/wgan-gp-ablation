@@ -119,7 +119,7 @@ cd wgan-gp-ablation
 conda env create -f environment.yml     # Python 3.11, PyTorch 2.11.0 (CUDA 12.8 build), the rest
 conda activate cwp
 pip install -e .
-pytest                                  # 93 tests, about a minute; no data download, no GPU
+pytest                                  # 94 tests, about a minute; no data download, no GPU
 ```
 
 [`environment.yml`](environment.yml) pins the versions the reported runs were made with. The
