@@ -294,7 +294,8 @@ Table D2 (suggested): effect of switching the critic on, test MAPE, 5 seeds.
 | Critic v2 (weight 0.001), no-critic side given the same search | +3.2% (1.4 to 5.0), Holm 0.037 | +1.7% (-0.4 to 3.8), not significant | +2.5% (1.1 to 3.9) |
 | Critic v2-diffs (critic sees first differences, weight 0.01) | +2.6% (0.3 to 4.9), Holm 0.13 | +0.9% (-0.3 to 2.2), not significant | +1.6% (0.0 to 3.3) |
 
-Each row is a different setup; do not average across rows.
+Each row is a different setup; do not average across rows. Figure: `figures/critic_designs.pdf` shows the same
+three rows with their intervals.
 
 Points to make:
 
@@ -453,6 +454,12 @@ fused kernel.
   off the test part.
 - The critic screen covers the variants listed in `docs/EXPERIMENTS_V2.md`; other critic
   designs (sequence critics over multi-step outputs, feature matching) are untested.
+- The critic search and the critic v2 design were run on the two reported series only, with 5
+  seeds. On Azure Functions the remaining harm (+1.7%) cannot be told from zero.
+- The one-choice-at-a-time runs of the released code use 3 seeds; only the large effects are
+  reliable.
+- The last-epoch error was not recorded for the 80 reported runs, so late divergence is
+  documented from the follow-up runs only.
 - We could not obtain the paper's exact Google input series or its hyperparameter values, so
   the reason for the gap to its Table 3 stays open.
 

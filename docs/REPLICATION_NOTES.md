@@ -49,6 +49,28 @@ Two of these change results on purpose and are worth saying in the report:
   a model with a window of 24 and one with a window of 96 are scored on exactly the same test
   points. That is what makes paired comparisons and the Diebold-Mariano test valid.
 
+### What the released choices do when run
+
+Each difference above was also run, so the report can say what it changes
+(`docs/EXPERIMENTS_V2.md`, sections 1a, 1b and 1c; tables `results/v2/summary/released_code.md`
+and `versus_reported_released_items.md`). These runs explain; they are not fair evaluations
+where the scaler is fitted per part.
+
+| Released choice, switched on alone | Effect on the paper's final model (test MAPE, 3 seeds) |
+| --- | --- |
+| Generator loss = L1 plus the critic score (`train.adv_sign=plus`) | Diverges on both datasets |
+| Learning rate 0.01 | Google 22.5 to 38.6; Azure Functions 2.13 to 6.19, one run not finite |
+| Positional encoding by position in the batch | Google +15%, Azure Functions +56% |
+| Input value copied to every embedding dimension | +9% and +5%, within noise |
+| Tanh critic applied to each value | -7% and -4%, within noise |
+| 1 critic update, penalty weight 0.1 | -6% and +1%, within noise |
+| No shuffling; windows inside each part; scaler per part | Within noise (-2% to +3%) |
+
+All together (`--profile released_code`, last epoch, 5 seeds) the final model gives 30.1 on
+Google 10 min and 3.82 on Azure Functions 5 min, against 22.62 and 2.13 with the paper's
+settings. The data handling alone, scored in the released code's own units, gives 24.9 on
+Google. The paper's Table 3 (10.58) is not reached by any of these.
+
 ## LoadDynamics LSTM
 
 | Item | LoadDynamics paper | This repo |
@@ -77,3 +99,13 @@ Settings LoadDynamics selected (its Table IV, range across intervals), for refer
 
 The paper does not say how it aggregated Azure Functions, so our MAPE values may not match its
 Table 3. Compare the direction and rough size of the differences, not exact numbers.
+
+Two series were added for the follow-up experiments (`more_data` in `docs/EXPERIMENTS_V2.md`).
+Neither is used in the paper's Table 3 in this form:
+
+| Dataset | This repo |
+| --- | --- |
+| Azure VM 2017 | VMs created per 10 minutes, from the public Azure VM trace (CC BY 4.0) |
+| Wikipedia page views 2019 | Hourly human page views of English Wikipedia from the Wikimedia API (CC0). The paper used the older WikiBench trace, which is not this series. |
+
+Sources and licenses are in `configs/datasets.yaml`.

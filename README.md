@@ -59,6 +59,54 @@ Notes for reading these:
   0.35 ms, while the same LSTM run one time step at a time takes 9.8 to 18.8 ms. The LSTM is
   only much slower than the Transformer when it is not run as one fused kernel.
 
+### Follow-up experiments, in short
+
+These came after the 80 reported runs and never change them. Each line names its own setup
+and source; numbers from different setups are not pooled. Details and every variant tried,
+including the ones that failed: [`docs/EXPERIMENTS_V2.md`](docs/EXPERIMENTS_V2.md). Suggested
+text and tables for the report: [`docs/REPORT_NOTES.md`](docs/REPORT_NOTES.md).
+
+- **Ten seeds** (reported runs plus `seeds_6_10`,
+  [`effects_reported+seeds_6_10.md`](results/v2/summary/effects_reported+seeds_6_10.md)): the
+  three conclusions above hold. The critic raises MAPE in 10 of 10 seeds on both datasets
+  (Google +4.4%, Azure Functions +6.4%, Holm p at most 0.0004). The Transformer's gain on
+  Google is -5.2% (10 of 10 seeds). MADGRAD gives -3.4% on Azure Functions (Holm p 0.006) and
+  nothing on Google.
+- **Four more series** (`more_data`: Google 30 min, Azure Functions 10 min, Azure VM 2017
+  10 min, Wikipedia page views 60 min; 5 seeds, tuned with the same budget). Pooled over all
+  six series ([`pooled_reported+more_data.md`](results/v2/summary/pooled_reported+more_data.md)):
+  critic **+5.9%** (95% interval +4.4 to +7.5, worse on every series), Transformer **-3.3%**
+  (-5.8 to -0.6), MADGRAD +0.6% (-1.3 to +2.6, differs by series). The Transformer's gain does
+  not follow seasonality or burstiness
+  ([`workload_reported+more_data.md`](results/v2/summary/workload_reported+more_data.md)).
+- **Can the critic be made to help?** A validation-only screen of 34 critic variants (weight,
+  warm-up, update ratio, penalty, normalization, conditional and first-difference critics),
+  with 34 variants for the no-critic side as well, found that the smaller the critic's weight
+  the better. With the screen's winner (`critic_v2`, weight 0.001) the critic cells improve by
+  1 to 6% against the reported runs, but the critic's effect on test MAPE is still on the
+  wrong side: Google +3.2% (Holm p 0.037), Azure Functions +1.7% (not significant)
+  ([`effects_critic_v2.md`](results/v2/summary/effects_critic_v2.md)).
+- **Standard Adam with the critic** (`adam_control`,
+  [`adam_control.md`](results/v2/summary/adam_control.md)): the critic cells are still no
+  better than the no-critic cells, so the harm does not come from Adam's beta1 = 0.
+- **The released code** (`released_full`, `released_data`, `released_item_*`): its data
+  handling does not explain the paper's Google numbers (24.9 in the released code's own units
+  against the paper's 10.6 to 11.5), and no single released choice does. Three choices break
+  the paper's final model on their own: the sign of the critic term, learning rate 0.01, and
+  positional encoding by batch position
+  ([`released_code.md`](results/v2/summary/released_code.md),
+  [`versus_reported_released_items.md`](results/v2/summary/versus_reported_released_items.md)).
+  These rows include settings that leak test statistics and are labeled as not fair.
+- **Provisioning** ([`autoscale_reported.md`](results/v2/summary/autoscale_reported.md),
+  [`autoscale_more_data.md`](results/v2/summary/autoscale_more_data.md)): the spare capacity
+  needed to keep short intervals at or under 5% is about 3% on Wikipedia, 5 to 11% on Azure
+  Functions, 54 to 67% on Google and over 150% on Azure VM. The workload decides this far more
+  than the model does.
+- **Training stability:** the LSTM with critic and MADGRAD diverges late in training on all
+  four added series with the paper's setting, and on both original series even at weight
+  0.001 (the reported runs did not record the last epoch). Choosing the epoch on validation
+  hides this in the MAPE tables.
+
 ## Setup
 
 ```bash
@@ -195,6 +243,7 @@ python -m cwp.analysis pooled --exp reported+more_data # effects across series, 
 python -m cwp.analysis pairs --exp NAME                # paired tests, one switch apart
 python -m cwp.analysis autoscale --exp NAME            # provisioning cost of the forecasts
 python -m cwp.analysis workload --exp reported+more_data   # effects next to workload properties
+python -m cwp.analysis versus NAME --name NAME         # NAME against the reported run of the same seed
 ```
 
 Without `--exp` the `cwp.analysis` commands read the reported runs. Sources joined with `+`
@@ -216,6 +265,7 @@ python scripts/make_figures.py --only mape  # or any other name from --help
 | `released_code_comparison` | The paper's Table 3, the reported runs and the released code's settings | `results/v2/summary/released_code_runs.csv` |
 | `critic_weight_screen` | Validation MAPE against the critic's weight | `results/v2/critic_s1_weight/`, `nocritic_reference/` |
 | `critic_diagnostics` | What the critic's gradient does during training | `results/v2/critic_diagnostics/`, `critic_diagnostics_w0p01/` |
+| `critic_designs` | The critic's effect under the paper's setting and the two designs the screen chose | `results/v2/summary/effects_reported.csv`, `effects_critic_v2.csv`, `effects_critic_v2_diffs+nocritic_of_critic_v2.csv` |
 | `autoscale_tradeoff` | Short intervals against idle machines as spare capacity grows | `results/v2/summary/autoscale_reported_curve.csv` |
 | `forecast_best_worst` | Forecasts of the best and the worst configuration on part of the test set | `results/predictions/` |
 

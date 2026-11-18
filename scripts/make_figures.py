@@ -453,10 +453,36 @@ def figure_effects_all_series() -> None:
     save(fig, "effects_all_series")
 
 
+def figure_critic_designs() -> None:
+    """The critic's main effect under the paper's setting and under the two designs the screen chose."""
+    designs = {"reported": "Paper's setting\n(weight 1)", "critic_v2": "Critic v2\n(weight 0.001)",
+               "critic_v2_diffs+nocritic_of_critic_v2": "Critic v2-diffs\n(first differences, 0.01)"}
+    paths = [V2 / "summary" / f"effects_{name}.csv" for name in designs]
+    if missing(*paths):
+        return
+    tables = [pd.read_csv(path) for path in paths]
+    data_ids = sorted(tables[0]["data_id"].unique(), reverse=True)
+    fig, axes = plt.subplots(1, len(data_ids), figsize=(TEXT_WIDTH, 2.1), sharey=True)
+    for ax, data_id in zip(axes, data_ids):
+        rows = [t[(t["data_id"] == data_id) & (t["effect"] == "critic")].iloc[0] for t in tables]
+        value = np.array([r["change_pct"] for r in rows])
+        ax.errorbar(value, range(len(rows)), fmt="o", ms=4.5, mfc=BLUE, mec="white", mew=0.5, ecolor=BLUE,
+                    xerr=[value - [r["ci_low_pct"] for r in rows], [r["ci_high_pct"] for r in rows] - value],
+                    elinewidth=1.0, capsize=2.5)
+        ax.axvline(0, color=MUTED, lw=0.8)
+        ax.set_title(dataset_title(data_id))
+        ax.set_xlabel("Change in test MAPE from adding the critic (%)")
+        ax.grid(axis="y", visible=False)
+        ax.set_ylim(len(rows) - 0.5, -0.5)
+    axes[0].set_yticks(range(len(designs)), list(designs.values()))
+    fig.tight_layout(w_pad=1.0)
+    save(fig, "critic_designs")
+
+
 FIGURES = {"mape": figure_mape, "effects": figure_effects, "timing": figure_timing,
            "released": figure_released, "autoscale": figure_autoscale, "forecasts": figure_forecasts,
            "critic_weight": figure_critic_weight, "critic_diagnostics": figure_critic_diagnostics,
-           "effects_all_series": figure_effects_all_series}
+           "effects_all_series": figure_effects_all_series, "critic_designs": figure_critic_designs}
 
 
 def main() -> None:
