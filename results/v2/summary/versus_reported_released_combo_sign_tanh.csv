@@ -1,0 +1,3 @@
+data_id,source,config_id,seeds,not_finite,reference_mape,mape,change_points,change_pct,better_in,p_paired_t
+azure_functions-5m,released_combo_sign_tanh,transformer-critic-madgrad,3,0,2.132677676938671,2.0429877658350133,-0.08968991110365805,-4.174911981365748,2/3,0.33621843528454565
+google-10m,released_combo_sign_tanh,transformer-critic-madgrad,3,0,22.468229976199634,21.051629293968293,-1.4166006822313442,-6.162194006510669,3/3,0.2143412860679251

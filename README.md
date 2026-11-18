@@ -85,7 +85,10 @@ text and tables for the report: [`docs/REPORT_NOTES.md`](docs/REPORT_NOTES.md).
   the better. With the screen's winner (`critic_v2`, weight 0.001) the critic cells improve by
   1 to 6% against the reported runs, but the critic's effect on test MAPE is still on the
   wrong side: Google +3.2% (Holm p 0.037), Azure Functions +1.7% (not significant)
-  ([`effects_critic_v2.md`](results/v2/summary/effects_critic_v2.md)).
+  ([`effects_critic_v2.md`](results/v2/summary/effects_critic_v2.md)). On the four added
+  series the same weight (`critic_v2_more`) leaves +0.1% to +2.3%, none significant, pooled
+  +1.5% (0.2 to 2.8): no gain on any series
+  ([`effects_critic_v2_more+nocritic_of_more_data.md`](results/v2/summary/effects_critic_v2_more+nocritic_of_more_data.md)).
 - **Standard Adam with the critic** (`adam_control`,
   [`adam_control.md`](results/v2/summary/adam_control.md)): the critic cells are still no
   better than the no-critic cells, so the harm does not come from Adam's beta1 = 0.
@@ -93,7 +96,8 @@ text and tables for the report: [`docs/REPORT_NOTES.md`](docs/REPORT_NOTES.md).
   handling does not explain the paper's Google numbers (24.9 in the released code's own units
   against the paper's 10.6 to 11.5), and no single released choice does. Three choices break
   the paper's final model on their own: the sign of the critic term, learning rate 0.01, and
-  positional encoding by batch position
+  positional encoding by batch position. The sign only breaks training with the paper's
+  unbounded critic; with the released Tanh critic it does not
   ([`released_code.md`](results/v2/summary/released_code.md),
   [`versus_reported_released_items.md`](results/v2/summary/versus_reported_released_items.md)).
   These rows include settings that leak test statistics and are labeled as not fair.
@@ -102,10 +106,10 @@ text and tables for the report: [`docs/REPORT_NOTES.md`](docs/REPORT_NOTES.md).
   needed to keep short intervals at or under 5% is about 3% on Wikipedia, 5 to 11% on Azure
   Functions, 54 to 67% on Google and over 150% on Azure VM. The workload decides this far more
   than the model does.
-- **Training stability:** the LSTM with critic and MADGRAD diverges late in training on all
-  four added series with the paper's setting, and on both original series even at weight
-  0.001 (the reported runs did not record the last epoch). Choosing the epoch on validation
-  hides this in the MAPE tables.
+- **Training stability:** the LSTM with critic and MADGRAD diverges late in training on five
+  of the six series (3 to 5 of 5 seeds, at weight 1 and at weight 0.001 alike; on Google
+  10 min 0 and 1 of 5). No other configuration does. Choosing the epoch on validation hides
+  this in the MAPE tables (counts: "5 result" in `docs/EXPERIMENTS_V2.md`).
 
 ## Setup
 

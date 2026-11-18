@@ -103,9 +103,9 @@ at opposite corners (to be drawn in LaTeX; no data needed).
 | E6 | Matched no-critic screen, 34 variants (validation only) | 272 trials | Fair budget for the other side | 6.4 |
 | E7 | Critic diagnostics | 4 | What does the critic do during training? | 6.4 |
 | E8 | Recheck of the screen winners on fresh tuning seeds | 80 trials | Was the screen's gain real? | 6.4 |
-| E9 | Critic v2 full design (`critic_v2`, `critic_v2_diffs`) | 120 | With its best setting, does the critic help on test? | 6.4 |
+| E9 | Critic v2 full design (`critic_v2`, `critic_v2_diffs`), the added series (`critic_v2_more`), last-epoch repeat (`reported_last_epoch`) | 120 + 80 + 10 | With its best setting, does the critic help on test? | 6.4 |
 | E10 | Released code, all choices and data handling only (`released_full`, `released_data`) | 40 | Does the released code explain the paper's numbers? | 6.5 |
-| E11 | Released code, one choice at a time (`released_item_*`) | 78 | Which choice matters? | 6.5 |
+| E11 | Released code, one choice at a time (`released_item_*`), and sign with Tanh critic (`released_combo_sign_tanh`) | 78 + 6 | Which choice matters? | 6.5 |
 | E12 | Provisioning analysis (no new runs) | - | Do the differences matter for autoscaling? | 6.6 |
 | E13 | Inference timing sweep | - | Is the Transformer faster? | 6.7 |
 
@@ -317,9 +317,22 @@ Points to make:
 - **Why the result is believable.** Stage 1 of the screen showed that a critic with weight
   exactly zero already gives most of the gain. A critic at weight 0.001 is close to no critic.
   Every step of the search moved toward removing the critic's influence.
-- **Instability remains.** The LSTM with critic and MADGRAD still diverges late in training
-  under critic v2 on both series. Selection on validation hides this in the MAPE tables, so
-  state it in the text.
+- **The same on the four added series** (`critic_v2_more`, sources
+  `effects_critic_v2_more+nocritic_of_more_data.md`, `versus_more_data_critic_v2_more.md`;
+  record: "5 result" in `docs/EXPERIMENTS_V2.md`). The weight chosen on the two reported
+  series was transferred without tuning. Critic effect at weight 0.001 against weight 1:
+  Google 30 min +0.1% (was +8.0%), Azure Functions 10 min +1.1% (was +14.0%), Azure VM +2.3%
+  (was +5.6%), Wikipedia +1.5% (was +4.2%); pooled +1.5% (0.2 to 2.8). No series shows a
+  gain and none shows a significant harm. This design uses the no-critic runs of `more_data`
+  as they are, so keep it in its own table (suggested Table D3).
+- **Honest detail:** in 4 of those 16 pairs the critic cell is ahead of its partner, once with
+  an uncorrected p of 0.029 (Transformer with MADGRAD on Azure Functions 10 min); nothing
+  survives correction, and one pair in the other direction has the same p.
+- **Instability remains.** The LSTM with critic and MADGRAD diverges late in training on five
+  of the six series, at weight 1 and at weight 0.001 alike (3 to 5 of 5 seeds each); on Google
+  10 min it is 0 of 5 and 1 of 5. Counts per series are in "5 result" of
+  `docs/EXPERIMENTS_V2.md`. No other configuration does this. Selection on validation hides
+  it in the MAPE tables, so state it in the text.
 - Provisioning cost is unchanged (`autoscale_critic_v2.md`).
 
 ### 6.5 Does the released code explain the paper's numbers?
@@ -378,8 +391,9 @@ Points to make:
 - With 3 seeds only the large rows are reliable (the first three). Say so in the caption.
 - The sign of the critic term is the most consequential discrepancy between paper and code.
   With the paper's critic it makes training run away. In the full released profile it did not
-  diverge; a likely reason is that the released critic's Tanh output bounds its score. We did
-  not test that combination separately, so word it as a likely reason.
+  diverge, because the released critic ends in Tanh and its score is bounded: with exactly
+  these two released choices together no run diverges (Google 21.05, Azure Functions 2.04;
+  `results/v2/summary/versus_reported_released_combo_sign_tanh.md`).
 - The two choices that lower the error both weaken the critic, and they land next to the
   Transformer without a critic (20.66 on Google). This is the same message as section 6.4.
 - For the LSTM baseline the four applicable choices are within noise, except per-split scaling
@@ -423,8 +437,9 @@ fused kernel.
 1. **The critic does not help.** With the paper's setting it raises test MAPE on all six
    series (pooled +5.9%, 95% interval +4.4 to +7.5), in every seed of the ten-seed design, and
    with either Adam setting. After a 34-variant search for the best way to use it, checked on
-   unseen tuning seeds, it still raises the error (+2.5% pooled over the two series, +3.2% on
-   Google with Holm p 0.037). The best critic is the one with the least influence.
+   unseen tuning seeds, it still does not lower the error on any of the six series (+2.5%
+   pooled over the two reported series, +1.5% over the four added ones; +3.2% on Google 10 min
+   with Holm p 0.037). The best critic is the one with the least influence.
 2. **The architecture is the only part with a real gain, and it is modest and uneven.** Pooled
    -3.3%; -5.2% on Google 10 min (10 of 10 seeds), nothing on Azure Functions 5 min. The gain
    does not follow seasonality or burstiness across six series.
@@ -454,12 +469,14 @@ fused kernel.
   off the test part.
 - The critic screen covers the variants listed in `docs/EXPERIMENTS_V2.md`; other critic
   designs (sequence critics over multi-step outputs, feature matching) are untested.
-- The critic search and the critic v2 design were run on the two reported series only, with 5
-  seeds. On Azure Functions the remaining harm (+1.7%) cannot be told from zero.
+- The critic search was run on the two reported series only, and its winner was transferred
+  to the other four without tuning. With 5 seeds, the harm that remains at weight 0.001
+  cannot be told from zero on five of the six series.
 - The one-choice-at-a-time runs of the released code use 3 seeds; only the large effects are
   reliable.
-- The last-epoch error was not recorded for the 80 reported runs, so late divergence is
-  documented from the follow-up runs only.
+- The last-epoch error was not recorded for the 80 reported runs. It was recorded in the
+  follow-up runs, and for the one unstable configuration in an exact repeat of the reported
+  runs (`reported_last_epoch`).
 - We could not obtain the paper's exact Google input series or its hyperparameter values, so
   the reason for the gap to its Table 3 stays open.
 

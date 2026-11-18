@@ -1,0 +1,3 @@
+data_id,source,config_id,seeds,not_finite,reference_mape,mape,change_points,change_pct,better_in,p_paired_t
+azure_functions-5m,reported_last_epoch,lstm-critic-madgrad,5,0,2.036250761858762,2.036250761858762,0.0,0.0,0/5,
+google-10m,reported_last_epoch,lstm-critic-madgrad,5,0,23.365686645632554,23.365686645632554,0.0,0.0,0/5,

@@ -944,3 +944,95 @@ its own folder. 10 runs.
   seed. Any difference is reported.
 - Reported: the last-epoch test MAPE of each run. The reported runs themselves stay as they
   are.
+
+### 5 result: the three closing runs (recorded 2026-11-18)
+
+All 96 runs finished with a finite test MAPE at the selected epoch.
+
+**5a. `critic_v2_more`.** In plain terms: on the four added series the critic at weight 0.001
+is again better than the critic at weight 1, and again not better than no critic. The harm
+that is left is small and cannot be told from zero on any single series.
+
+Files: `results/v2/critic_v2_more/`; tables `critic_v2_more.md`,
+`effects_critic_v2_more+nocritic_of_more_data.md`, `pooled_...`, `pairs_...` (same suffix) and
+`versus_more_data_critic_v2_more.md` in `results/v2/summary/`. The no-critic cells are those of
+`more_data`, without gradient clipping; this design is not pooled with 2c.
+
+Test MAPE (%), mean ± SD over 5 seeds:
+
+| configuration | google-30m | azure_functions-10m | azure_vm_2017-10m | wikipedia-60m |
+| --- | --- | --- | --- | --- |
+| lstm-nocritic-adam (`more_data`) | 19.96 ± 0.56 | 1.92 ± 0.08 | 34.80 ± 0.57 | 1.52 ± 0.08 |
+| lstm-nocritic-madgrad (`more_data`) | 20.44 ± 0.36 | 1.80 ± 0.05 | 35.03 ± 0.63 | 1.50 ± 0.04 |
+| transformer-nocritic-adam (`more_data`) | 19.78 ± 0.64 | 2.04 ± 0.07 | 34.42 ± 0.55 | 1.45 ± 0.03 |
+| transformer-nocritic-madgrad (`more_data`) | 19.23 ± 0.60 | 2.10 ± 0.14 | 33.93 ± 0.47 | 1.43 ± 0.04 |
+| lstm-critic-adam, weight 0.001 | 20.24 ± 0.59 | 1.93 ± 0.03 | 35.90 ± 1.11 | 1.56 ± 0.13 |
+| lstm-critic-madgrad, weight 0.001 | 20.50 ± 0.17 | 2.07 ± 0.53 | 37.00 ± 1.83 | 1.54 ± 0.05 |
+| transformer-critic-adam, weight 0.001 | 19.12 ± 0.37 | 2.07 ± 0.06 | 34.22 ± 0.65 | 1.43 ± 0.03 |
+| transformer-critic-madgrad, weight 0.001 | 19.63 ± 0.74 | 1.92 ± 0.07 | 34.28 ± 0.39 | 1.46 ± 0.03 |
+
+Critic main effect (change in test MAPE, 95% interval, 5 seeds):
+
+| series | weight 1 (`more_data`) | weight 0.001 (`critic_v2_more`) |
+| --- | --- | --- |
+| google-30m | +8.0% | +0.1% (-3.3 to 3.6), p 0.95 |
+| azure_functions-10m | +14.0% | +1.1% (-5.9 to 8.8), p 0.69 |
+| azure_vm_2017-10m | +5.6% | +2.3% (-0.3 to 4.9), p 0.074 |
+| wikipedia-60m | +4.2% | +1.5% (-3.2 to 6.5), p 0.44 |
+| pooled over the four | +6.8% (3.9 to 9.8) | +1.5% (0.2 to 2.8), p 0.029 |
+
+- By the rule written before the runs, the critic helps on no series: no critic main effect is
+  negative. None is significantly positive either; the pooled value is small and positive.
+- Against the weight-1 runs of the same seed, 14 of the 16 critic cells improve (the two LSTM
+  Adam cells on Azure get 0.6% and 1.2% worse). The largest gains are where weight 1 was
+  unstable: the LSTM with MADGRAD on Azure Functions 10m (3.14 to 2.07) and Google 30m (24.25
+  to 20.50).
+- Against its no-critic partner, the critic cell is better in 4 of 16 pairs and worse in 12.
+  One of the four has an uncorrected p below 0.05 (Transformer with MADGRAD on Azure Functions
+  10m, -0.18 points, 5 of 5 seeds, p 0.029, Holm 0.23); one pair in the other direction does
+  too (LSTM with MADGRAD on Azure VM, +1.97 points, 0 of 5 seeds, p 0.029). After correction
+  none is significant.
+- On Google 30m the lowest mean of all eight cells is now a critic cell (Transformer, Adam,
+  19.12 against 19.23 for the Transformer without critic and with MADGRAD). The difference is
+  far inside the seed-to-seed spread.
+- The Transformer's effect in this design: -4.2% on Google 30m, -4.1% on Azure VM, -5.4% on
+  Wikipedia, +6.0% on Azure Functions 10m; pooled -3.1% (-5.5 to -0.6).
+
+**5b. `released_combo_sign_tanh`.** In plain terms: the explanation holds. With the released
+Tanh critic, the released sign of the critic term does not make training run away.
+
+Files: `results/v2/released_combo_sign_tanh/`,
+`results/v2/summary/versus_reported_released_combo_sign_tanh.md`. Test MAPE, seeds 1 to 3:
+Google 21.05 (reported runs of the same seeds 22.47; -6.2%, better in 3 of 3, p 0.21), Azure
+2.04 (2.13; -4.2%, 2 of 3, p 0.34). No run diverges, at the best or the last epoch (last
+epoch 23.2 to 23.9 and 2.18 to 2.29). The prediction written before the runs is met. The
+values are the same as with the Tanh critic alone (20.92 and 2.04 in 1c), so with a bounded
+critic the sign makes no visible difference.
+
+**5c. `reported_last_epoch`.** In plain terms: with the paper's settings the LSTM with critic
+and MADGRAD blows up late in training on Azure Functions, but not on Google 10 min.
+
+Files: `results/v2/reported_last_epoch/`,
+`results/v2/summary/versus_reported_reported_last_epoch.md`. All 10 runs reproduce the
+reported test MAPE of the same seed exactly (difference 0.0). Last-epoch test MAPE:
+
+| series | seeds 1 to 5, last epoch | at the best validation epoch |
+| --- | --- | --- |
+| google-10m | 27.39, 23.96, 25.43, 24.69, 24.54 | 23.51, 23.23, 23.37, 23.29, 23.42 |
+| azure_functions-5m | 1.9 million, 0.77 million, not finite, 75 million, 2.29 | 2.01, 2.03, 2.16, 1.96, 2.03 |
+
+Count of runs of this configuration whose last-epoch test MAPE is above 1000% or not finite,
+over every experiment that recorded it:
+
+| series | weight 1 | weight 0.001 |
+| --- | --- | --- |
+| google-10m | 0 of 5 (`reported_last_epoch`) | 1 of 5 (`critic_v2`) |
+| azure_functions-5m | 4 of 5 (`reported_last_epoch`) | 5 of 5 (`critic_v2`) |
+| google-30m | 4 of 5 (`more_data`) | 3 of 5 (`critic_v2_more`) |
+| azure_functions-10m | 5 of 5 | 5 of 5 |
+| azure_vm_2017-10m | 4 of 5 | 5 of 5 |
+| wikipedia-60m | 3 of 5 | 5 of 5 |
+
+No other configuration has a single such run in these experiments. Lowering the critic's
+weight does not remove the instability. This corrects the wording used earlier in this log
+("diverges on both series" under critic v2): on Google 10 min it is 1 run of 5.

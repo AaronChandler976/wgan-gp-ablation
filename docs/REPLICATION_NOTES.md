@@ -58,7 +58,7 @@ where the scaler is fitted per part.
 
 | Released choice, switched on alone | Effect on the paper's final model (test MAPE, 3 seeds) |
 | --- | --- |
-| Generator loss = L1 plus the critic score (`train.adv_sign=plus`) | Diverges on both datasets |
+| Generator loss = L1 plus the critic score (`train.adv_sign=plus`) | Diverges on both datasets with the paper's critic. Together with the released Tanh critic it does not (Google 21.05, Azure Functions 2.04) |
 | Learning rate 0.01 | Google 22.5 to 38.6; Azure Functions 2.13 to 6.19, one run not finite |
 | Positional encoding by position in the batch | Google +15%, Azure Functions +56% |
 | Input value copied to every embedding dimension | +9% and +5%, within noise |
