@@ -236,7 +236,7 @@ def wikipedia_minutes(raw: Path) -> np.ndarray:
         raise FileNotFoundError(f"no pageviews files in {raw}. Run `download` first.")
     items = [it for f in files for it in json.loads(f.read_text())["items"]]
     stamps = pd.to_datetime([it["timestamp"] for it in items], format="%Y%m%d%H")
-    if not (np.diff(stamps.asi8) == 3600 * 10 ** 9).all():
+    if not (stamps[1:] - stamps[:-1] == pd.Timedelta(hours=1)).all():   # any time unit pandas picks
         raise ValueError("the hourly page-view series has a gap or is out of order")
     return np.array([it["views"] for it in items], dtype=np.int64)
 

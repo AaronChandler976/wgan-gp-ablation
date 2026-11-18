@@ -90,7 +90,9 @@ The 80 reported runs and `results/summary/` are frozen. Everything below is addi
    pooling across series with a test of whether the effect differs by series; paired tests one
    switch apart; provisioning cost (headroom needed for at most 5% and 1% short intervals);
    effects next to workload properties; several screens in one table; an experiment against
-   the reported run of the same seed. Sources joined with `+` must not overlap.
+   the reported run of the same seed. Sources joined with `+` must not overlap. A source written
+   `rest_of_NAME` adds only the cells the earlier sources lack, for experiments that reran
+   part of a design (used by `google_history`: history lengths 5 to 472 on the Google series).
 7. **Figures** (`scripts/make_figures.py`) read the CSV files and hard-code no values.
 8. Tests for every new piece; the test part is never used to choose anything.
 

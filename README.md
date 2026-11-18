@@ -106,6 +106,13 @@ text and tables for the report: [`docs/REPORT_NOTES.md`](docs/REPORT_NOTES.md).
   needed to keep short intervals at or under 5% is about 3% on Wikipedia, 5 to 11% on Azure
   Functions, 54 to 67% on Google and over 150% on Azure VM. The workload decides this far more
   than the model does.
+- **History length** (`google_history`): the tuning grid has two history lengths, 48 and 96.
+  On Google, histories from 5 to 472 steps (the range LoadDynamics selected) do not lower the
+  error for either model: test MAPE changes by -3.6% to +0.9% in the six cells where another
+  history won on validation, all within seed noise, and the Transformer's effect on Google
+  10 min goes from -4.8% to -4.0%
+  ([`screen.md`](results/v2/google_history/screen.md), "6 result" in
+  `docs/EXPERIMENTS_V2.md`). Only the history was changed, on Google only.
 - **Training stability:** the LSTM with critic and MADGRAD diverges late in training on five
   of the six series (3 to 5 of 5 seeds, at weight 1 and at weight 0.001 alike; on Google
   10 min 0 and 1 of 5). No other configuration does. Choosing the epoch on validation hides
@@ -248,6 +255,7 @@ python -m cwp.analysis pairs --exp NAME                # paired tests, one switc
 python -m cwp.analysis autoscale --exp NAME            # provisioning cost of the forecasts
 python -m cwp.analysis workload --exp reported+more_data   # effects next to workload properties
 python -m cwp.analysis versus NAME --name NAME         # NAME against the reported run of the same seed
+python -m cwp.analysis effects --exp NAME+rest_of_reported    # NAME reran some cells: take the rest from the reported runs
 ```
 
 Without `--exp` the `cwp.analysis` commands read the reported runs. Sources joined with `+`

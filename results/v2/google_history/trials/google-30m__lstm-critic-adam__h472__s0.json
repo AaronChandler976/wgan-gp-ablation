@@ -1,0 +1,18 @@
+{
+  "experiment": "google_history",
+  "cell": "google-30m__lstm-critic-adam",
+  "variant": "h472",
+  "seed": 0,
+  "overrides": {
+    "data.window": 472
+  },
+  "tuned_base": true,
+  "val_mape": 19.237281868595936,
+  "best_epoch": 160,
+  "epochs_run": 310,
+  "seconds": 12.5,
+  "git": {
+    "commit": "9cb3443",
+    "dirty": false
+  }
+}

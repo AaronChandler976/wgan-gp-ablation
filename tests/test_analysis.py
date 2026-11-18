@@ -129,6 +129,10 @@ def test_load_runs_joins_sources_and_refuses_overlap(tmp_path, monkeypatch):
     df = analysis.load_runs("reported+more")
     assert sorted(df["seed"]) == [1, 6, 6] and set(df["source"]) == {"reported", "more"}
     assert len(analysis.load_runs("reported", nocritic_from="more")) == 2
+    rest = analysis.load_runs("more+rest_of_reported")           # `reported` has no other cell
+    assert len(rest) == 2 and set(rest["source"]) == {"more"}
+    rest = analysis.load_runs("reported+rest_of_more")           # only the cell `reported` lacks
+    assert sorted(rest["seed"]) == [1, 6] and rest.set_index("source").loc["more", "critic"] == "wgan-gp"
     write(tmp_path / "results" / "v2" / "more", 1)
     with pytest.raises(SystemExit):
         analysis.load_runs("reported+more")

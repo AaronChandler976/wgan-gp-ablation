@@ -108,6 +108,7 @@ at opposite corners (to be drawn in LaTeX; no data needed).
 | E11 | Released code, one choice at a time (`released_item_*`), and sign with Tanh critic (`released_combo_sign_tanh`) | 78 + 6 | Which choice matters? | 6.5 |
 | E12 | Provisioning analysis (no new runs) | - | Do the differences matter for autoscaling? | 6.6 |
 | E13 | Inference timing sweep | - | Is the Transformer faster? | 6.7 |
+| E14 | History length beyond the grid on Google (`google_history`) | 224 trials + 30 | Is the two-value history grid too narrow? | 6.8 |
 
 ## 5. Setup and data
 
@@ -432,6 +433,32 @@ Source: `results/summary/timing_sweep_cuda.md`, `timing_sweep_cpu.md`; figure
 time takes 9.8 to 18.8 ms. The Transformer is faster only than an LSTM that is not run as one
 fused kernel.
 
+### 6.8 Is the history grid too narrow? (`google_history`)
+
+**In plain terms.** Our tuning tried only two history lengths, 48 and 96 steps. We checked on
+Google, the series with the highest error, whether much shorter or much longer histories
+would have done better. They do not.
+
+- **Why we checked.** The two values were our choice. The LSTM picked the larger one in 15 of
+  its 24 tunings, and LoadDynamics reports selected histories from 5 to 472 for Google.
+- **What we ran.** Histories 5, 48, 96, 144, 288 and 472 for all 8 configurations on Google
+  10 and 30 min (224 validation-only trials), then 5 test runs for each of the 6 cells where
+  another history had the lowest validation MAPE. Details and tables: "6 result" in
+  `docs/EXPERIMENTS_V2.md`.
+- **Validation.** The Transformer is best at 48 in all 8 cells and gets worse as the history
+  grows (4% to 18% worse at 472). The LSTM prefers 144 to 472 in 5 of 8 cells, by at most 1.4%,
+  which is within the gap between tuning seeds in four of the five. History 5 is worse
+  than the tuned history in all 16 cells.
+- **Test.** Changes of -3.6% to +0.9% against the existing runs, none distinguishable from
+  seed noise (paired p 0.15 to 1.0).
+- **Effects.** Transformer on Google 10 min: -4.0% (-6.3 to -1.7, Holm 0.047) with the new
+  histories, -4.8% before. Google 30 min: -5.4% both ways. Critic: +5.6% and +8.0% (+4.6% and
+  +8.0% before). Tables: `results/v2/summary/effects_google_history+rest_of_reported+rest_of_more_data.md`,
+  `versus_reported_google_history.md`, `versus_more_data_google_history.md`.
+- **For the report.** One short paragraph and the validation table are enough. State that
+  only the history changed (learning rate and size stayed at their tuned values) and that
+  this was done on Google only.
+
 ## 7. Conclusions
 
 1. **The critic does not help.** With the paper's setting it raises test MAPE on all six
@@ -463,6 +490,9 @@ fused kernel.
 - Six series, four traces. The workload-property analysis is a description, not a test.
 - The search spaces are ours. The paper's grid (its Table 2) is only partly specified, and the
   released code has no search.
+- The grid has two history lengths (48, 96) and one batch size (64). Histories from 5 to 472
+  were checked on Google only, with the other settings held at their tuned values, and changed
+  nothing (6.8). The other four series and the batch size were not checked.
 - The Azure VM series is our rebuild from the public trace; the Wikipedia series is a
   substitute for the paper's.
 - The provisioning analysis is a simple one-machine-per-job model with a fixed headroom, read

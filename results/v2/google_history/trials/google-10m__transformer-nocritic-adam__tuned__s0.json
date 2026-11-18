@@ -1,0 +1,16 @@
+{
+  "experiment": "google_history",
+  "cell": "google-10m__transformer-nocritic-adam",
+  "variant": "tuned",
+  "seed": 0,
+  "overrides": {},
+  "tuned_base": true,
+  "val_mape": 17.973652890792234,
+  "best_epoch": 90,
+  "epochs_run": 240,
+  "seconds": 31.9,
+  "git": {
+    "commit": "9cb3443",
+    "dirty": false
+  }
+}
