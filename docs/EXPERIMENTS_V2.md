@@ -901,3 +901,46 @@ What this shows:
   on Google.
 - The `windows` rows are scored on 759 and 788 test points instead of 807 and 836, so they are
   close to, but not exactly, the same test as the reference.
+
+### 5. Three closing runs: `critic_v2_more`, `released_combo_sign_tanh`, `reported_last_epoch`
+
+*Written before the runs (2026-11-17).* Each closes one open point of the results above.
+Nothing is selected from any of them; the test part is used for reporting only.
+
+**5a. `critic_v2_more`: critic v2 on the four added series.** The critic v2 design (2c) covers
+the two reported series only. Here the 4 critic configurations are run with
+`train.adv_weight=0.001` on google-30m, azure_functions-10m, azure_vm_2017-10m and
+wikipedia-60m, seeds 1 to 5, at the tuned settings of `more_data`. 80 runs in
+`results/v2/critic_v2_more/`.
+
+- The weight was chosen on the two reported series and is transferred as it is; no tuning on
+  the new series.
+- The no-critic side is the no-critic runs of `more_data`, unchanged (the table says so).
+  Gradient clipping for the no-critic LSTM is not carried over, because the recheck (2b) did
+  not confirm it. This differs from 2c, so the two designs are not pooled.
+- Reported: test MAPE per configuration next to `more_data`; the critic main effect per series
+  with Holm correction; each critic cell against its `more_data` run of the same seed; whether
+  the last epoch still diverges for the LSTM with MADGRAD.
+- What would count as the critic helping: a negative critic main effect on a series with a
+  95% interval that excludes zero. Anything else is reported as "no gain".
+
+**5b. `released_combo_sign_tanh`: is the Tanh critic what keeps the released sign from
+diverging?** In 1c the released sign of the critic term (`train.adv_sign=plus`) alone made
+the final model diverge, while the full released profile (1a) did not. The suggested reason
+was that the released critic's Tanh output bounds its score. Test: the paper's final model
+with exactly these two released choices (`train.adv_sign=plus`,
+`model.critic.kind=pointwise_tanh`), both reported datasets, seeds 1 to 3. 6 runs.
+
+- Prediction if the reason is right: no run diverges, and test MAPE stays below twice the
+  reported value of the same seed (against 580% and 57598% with the sign alone).
+- If the runs diverge anyway, the explanation is withdrawn from the report notes.
+
+**5c. `reported_last_epoch`: the last epoch of the reported LSTM with critic and MADGRAD.**
+The 80 reported runs did not record the error at the last epoch. The LSTM with critic and
+MADGRAD is run again with no change to any setting, both reported datasets, seeds 1 to 5, in
+its own folder. 10 runs.
+
+- Check: test MAPE at the best validation epoch should equal the reported run of the same
+  seed. Any difference is reported.
+- Reported: the last-epoch test MAPE of each run. The reported runs themselves stay as they
+  are.
