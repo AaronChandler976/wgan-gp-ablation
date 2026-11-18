@@ -1,0 +1,18 @@
+{
+  "experiment": "google_history",
+  "cell": "google-30m__lstm-critic-madgrad",
+  "variant": "h472",
+  "seed": 100,
+  "overrides": {
+    "data.window": 472
+  },
+  "tuned_base": true,
+  "val_mape": 18.15145317650391,
+  "best_epoch": 190,
+  "epochs_run": 340,
+  "seconds": 34.4,
+  "git": {
+    "commit": "9cb3443",
+    "dirty": false
+  }
+}

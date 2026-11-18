@@ -1075,3 +1075,85 @@ reported runs and tables do not change.
 **What would change the conclusions.** If the Transformer's advantage on Google shrinks or
 reverses once both models choose from the wider range, the architecture result depends on the
 grid and the report must say so. If nothing moves, the limitation becomes a checked one.
+
+### 6 result: `google_history` (recorded 2026-11-18)
+
+Files: `results/v2/google_history/` (`screen.md`, `winners.csv`, `trials/`, 30 run files),
+`results/v2/summary/versus_reported_google_history.md`,
+`versus_more_data_google_history.md`, `effects_google_history+rest_of_reported+rest_of_more_data.md`, `pairs_google_history+rest_of_reported+rest_of_more_data.md`.
+
+**Stage 1, screen (224 trials, validation MAPE, two tuning seeds).** Average change against
+each cell's tuned history, over the 8 configurations of a series, and in how many of them the
+history is better:
+
+| history | google-10m | google-30m |
+| --- | --- | --- |
+| 5 | +8.4%, 0 of 8 | +7.9%, 0 of 8 |
+| 48 | +1.2%, 0 of 8 | -0.2%, 2 of 8 |
+| 96 | +1.2%, 0 of 8 | +3.4%, 0 of 8 |
+| 144 | +2.8%, 1 of 8 | +4.6%, 1 of 8 |
+| 288 | +3.3%, 1 of 8 | +4.7%, 2 of 8 |
+| 472 | +4.2%, 1 of 8 | +8.2%, 0 of 8 |
+
+(48 and 96 are not zero because each is the tuned value in some cells only.) No history
+passes the rule (at least 6 of 8 cells and more than 1% lower on average).
+
+- Transformer: 48 is the best history in all 8 cells; the error rises with the history, by
+  4% to 18% at 472. In one cell (google-30m, critic, MADGRAD) tuning had picked 96 on one
+  seed; over two seeds 48 is 1.6% lower.
+- LSTM: a history outside the grid has the lowest validation MAPE in 5 of 8 cells (144, 288
+  or 472), by 0.05% to 1.4%. In four of the five the gain is smaller than the gap between the
+  two seeds; in the fifth (google-30m, no critic, Adam) it is 0.21 against a tuned gap of 0.16.
+- History 5 is worse than the tuned history in all 16 cells and the worst value in 7.
+- Three of five parallel workers ran out of GPU memory on the long-history Transformer
+  trials; the missing trials were rerun two at a time. Every trial is in the table.
+
+**Winners by the rule fixed beforehand (lowest mean validation MAPE):**
+
+| cell | tuned | winner | validation change |
+| --- | --- | --- | --- |
+| google-10m lstm-critic-adam | 96 | 472 | -0.6% |
+| google-10m lstm-critic-madgrad | 96 | 144 | -0.05% |
+| google-10m lstm-nocritic-madgrad | 48 | 288 | -0.7% |
+| google-30m lstm-critic-adam | 48 | 288 | -1.4% |
+| google-30m lstm-nocritic-adam | 96 | 288 | -1.2% |
+| google-30m transformer-critic-madgrad | 96 | 48 | -1.6% |
+
+The other 10 cells keep their tuned history.
+
+**Stage 2, test runs (30 runs, seeds 1 to 5), against the existing runs of the same seed:**
+
+| cell | existing test MAPE | with the winner | change | better in | paired p |
+| --- | --- | --- | --- | --- | --- |
+| google-10m lstm-critic-adam | 22.87 | 22.70 | -0.7% | 3/5 | 0.83 |
+| google-10m lstm-critic-madgrad | 23.37 | 23.58 | +0.9% | 1/5 | 0.16 |
+| google-10m lstm-nocritic-madgrad | 22.56 | 21.72 | -3.6% | 4/5 | 0.15 |
+| google-30m lstm-critic-adam | 20.59 | 20.59 | +0.1% | 3/5 | 1.00 |
+| google-30m lstm-nocritic-adam | 19.96 | 20.06 | +0.5% | 2/5 | 0.68 |
+| google-30m transformer-critic-madgrad | 21.57 | 21.67 | +0.6% | 3/5 | 0.91 |
+
+No change can be told from seed noise. The largest is the no-critic LSTM with MADGRAD on
+Google 10 min at history 288 (two days), 0.8 points lower.
+
+**Effects with the new histories** (the 6 rerun cells from `google_history`, the other 10
+from the reported and `more_data` runs; a separate setup, not pooled with any other table):
+
+| effect | google-10m, before | google-10m, new histories | google-30m, before | google-30m, new histories |
+| --- | --- | --- | --- | --- |
+| Transformer | -4.8% (-6.7 to -3.0) | -4.0% (-6.3 to -1.7), Holm 0.047 | -5.4% (-11.3 to 1.0) | -5.4% (-9.9 to -0.6) |
+| critic | +4.6% (1.0 to 8.3) | +5.6% (2.7 to 8.6), Holm 0.035 | +8.0% (0.4 to 16.1) | +8.0% (-0.9 to 17.7) |
+| MADGRAD | -0.3% (-1.9 to 1.3) | -0.8% (-3.2 to 1.7) | +6.1% (0.5 to 12.0) | +6.1% (0.6 to 12.0) |
+
+**Reading.** Histories from 5 to 472 steps, the range LoadDynamics selected for Google, do
+not lower the error on Google for either model. The Transformer's advantage on Google 10 min
+shrinks from 4.8% to 4.0% and keeps its sign in all 5 seeds; no-critic with MADGRAD, the
+Transformer is still 1.06 points ahead of the LSTM (5 of 5 seeds, was 1.90). The critic's
+harm is unchanged or slightly larger. The conclusions stand.
+
+**Limits.** Only the history changed; learning rate and model size stayed at the values
+tuned for 48 or 96. Google only: the other four series were not screened. Batch size is still
+64 everywhere.
+
+**New code.** `analysis.load_runs` accepts a source written `rest_of_NAME` (the runs of NAME
+for cells the earlier sources do not have), used for the effects table above.
+
