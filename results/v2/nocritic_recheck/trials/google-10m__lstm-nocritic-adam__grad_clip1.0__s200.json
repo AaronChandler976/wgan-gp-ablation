@@ -1,0 +1,18 @@
+{
+  "experiment": "nocritic_recheck",
+  "cell": "google-10m__lstm-nocritic-adam",
+  "variant": "grad_clip1.0",
+  "seed": 200,
+  "overrides": {
+    "train.grad_clip": 1.0
+  },
+  "tuned_base": true,
+  "val_mape": 19.92502435803502,
+  "best_epoch": 40,
+  "epochs_run": 190,
+  "seconds": 25.8,
+  "git": {
+    "commit": "5aa9658",
+    "dirty": false
+  }
+}

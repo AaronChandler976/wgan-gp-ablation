@@ -1,0 +1,18 @@
+{
+  "experiment": "critic_recheck",
+  "cell": "azure_functions-5m__transformer-critic-madgrad",
+  "variant": "w0.01",
+  "seed": 300,
+  "overrides": {
+    "train.adv_weight": 0.01
+  },
+  "tuned_base": true,
+  "val_mape": 2.5308426229759555,
+  "best_epoch": 290,
+  "epochs_run": 440,
+  "seconds": 357.3,
+  "git": {
+    "commit": "480eef1",
+    "dirty": false
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "experiment": "nocritic_recheck",
+  "cell": "azure_functions-5m__lstm-nocritic-madgrad",
+  "variant": "grad_clip1.0",
+  "seed": 200,
+  "overrides": {
+    "train.grad_clip": 1.0
+  },
+  "tuned_base": true,
+  "val_mape": 2.529334948164758,
+  "best_epoch": 290,
+  "epochs_run": 440,
+  "seconds": 64.9,
+  "git": {
+    "commit": "480eef1",
+    "dirty": false
+  }
+}

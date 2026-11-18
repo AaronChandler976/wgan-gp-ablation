@@ -1,0 +1,16 @@
+{
+  "experiment": "nocritic_recheck",
+  "cell": "azure_functions-5m__lstm-nocritic-adam",
+  "variant": "base",
+  "seed": 300,
+  "overrides": {},
+  "tuned_base": true,
+  "val_mape": 2.3861256555969566,
+  "best_epoch": 450,
+  "epochs_run": 600,
+  "seconds": 86.7,
+  "git": {
+    "commit": "480eef1",
+    "dirty": false
+  }
+}

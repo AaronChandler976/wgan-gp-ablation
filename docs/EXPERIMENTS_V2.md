@@ -726,3 +726,178 @@ beta1 = 0 cells by less than their seed-to-seed spread except for the Azure LSTM
 not significant). The learning rate was tuned under beta1 = 0, which favors the reported
 cells. The two-things-at-once concern of the code review (finding 2) therefore does not change
 the conclusion about the critic.
+
+### 2b result: `critic_recheck` and `nocritic_recheck` (recorded 2026-11-17)
+
+In plain terms: on tuning seeds that no choice had used, lowering the critic's weight still
+helps the critic cells, but by about half as much as the screen said. The gradient clipping
+chosen for the no-critic LSTM is not confirmed.
+
+64 and 16 trials, all finished. Validation MAPE only. Files:
+`results/v2/critic_recheck/screen.md`, `results/v2/nocritic_recheck/screen.md`.
+
+| variant (change in validation MAPE against weight 1) | all 8 cells | the 4 MADGRAD cells (as screened) | the 4 Adam cells (new) | cells better |
+| --- | --- | --- | --- | --- |
+| weight 0.001 (critic v2) | -2.4% | -3.4% | -1.3% | 6 of 8 |
+| weight 0.01 | -2.4% | -3.2% | -1.5% | 7 of 8 |
+| first-difference critic at 0.01 (v2-diffs) | -1.4% | -1.7% | -1.1% | 5 of 8 |
+
+- The screen gave weight 0.001 a gain of -5.6% on the MADGRAD cells with seeds 0 and 100; on
+  seeds 200 and 300 the same cells give -3.4%. The difference is the selection effect the
+  recheck was meant to measure.
+- Weights 0.001 and 0.01 cannot be told apart. In the two LSTM Adam cells no variant helps
+  (-0.6% to +1.3%).
+- No-critic LSTM with gradient clipping at 1.0: -0.4% on average, better in 2 of 4 cells
+  (from -5.3% to +5.2%). The screen's -1.2% is within noise. The setting stays in 2c as
+  written, since the variants were fixed before this check.
+
+### 2c result: `critic_v2` and `critic_v2_diffs` (recorded 2026-11-17)
+
+In plain terms: with the critic turned down to the best setting the search found, the critic
+cells get better than in the reported runs, but they still do not beat the same models
+trained without a critic. The best use of the critic found here is one that almost switches
+it off.
+
+All 120 runs finished with a finite test MAPE at the selected epoch. Files:
+`results/v2/critic_v2/`, `results/v2/critic_v2_diffs/`; tables in `results/v2/summary/`:
+`critic_v2.md` (per configuration, next to the reported runs), `effects_critic_v2.md`,
+`pooled_critic_v2.md`, `pairs_critic_v2.md`, `autoscale_critic_v2.md`, the same four with the
+suffix `critic_v2_diffs+nocritic_of_critic_v2`, and `versus_reported_critic_v2.md` (each cell
+against the reported run of the same seed). The two no-critic Transformer cells reproduce the
+reported runs exactly (difference 0.0 in all 20 runs).
+
+Test MAPE (%), mean ± SD over 5 seeds. Three setups side by side; they are not pooled.
+
+| google-10m | reported (paper settings) | critic v2 design | critic v2-diffs |
+| --- | --- | --- | --- |
+| lstm-nocritic-adam | 22.69 ± 0.34 | 22.16 ± 0.67 (clip 1.0) | uses critic v2's |
+| lstm-nocritic-madgrad | 22.56 ± 1.06 | 21.84 ± 0.14 (clip 1.0) | uses critic v2's |
+| transformer-nocritic-adam | 21.40 ± 0.52 | 21.40 ± 0.52 (same runs repeated) | uses critic v2's |
+| transformer-nocritic-madgrad | 20.66 ± 0.21 | 20.66 ± 0.21 (same runs repeated) | uses critic v2's |
+| lstm-critic-adam | 22.87 ± 1.38 | 22.50 ± 1.28 | 22.66 ± 0.94 |
+| lstm-critic-madgrad | 23.37 ± 0.11 | 23.14 ± 0.31 | 23.14 ± 0.62 |
+| transformer-critic-adam | 22.42 ± 0.54 | 22.00 ± 0.51 | 21.71 ± 0.53 |
+| transformer-critic-madgrad | 22.62 ± 1.11 | 21.19 ± 0.70 | 20.84 ± 0.53 |
+
+| azure_functions-5m | reported (paper settings) | critic v2 design | critic v2-diffs |
+| --- | --- | --- | --- |
+| lstm-nocritic-adam | 2.01 ± 0.05 | 2.05 ± 0.05 (clip 1.0) | uses critic v2's |
+| lstm-nocritic-madgrad | 2.03 ± 0.06 | 1.99 ± 0.04 (clip 1.0) | uses critic v2's |
+| transformer-nocritic-adam | 2.02 ± 0.01 | 2.02 ± 0.01 (same runs repeated) | uses critic v2's |
+| transformer-nocritic-madgrad | 2.01 ± 0.02 | 2.01 ± 0.02 (same runs repeated) | uses critic v2's |
+| lstm-critic-adam | 2.25 ± 0.14 | 2.10 ± 0.09 | 2.07 ± 0.06 |
+| lstm-critic-madgrad | 2.04 ± 0.07 | 1.97 ± 0.04 | 1.96 ± 0.04 |
+| transformer-critic-adam | 2.16 ± 0.05 | 2.07 ± 0.04 | 2.07 ± 0.04 |
+| transformer-critic-madgrad | 2.13 ± 0.06 | 2.07 ± 0.04 | 2.04 ± 0.05 |
+
+**The question's answer: the critic main effect.** Change in test MAPE from switching the
+critic on, 95% interval, t-test over 5 seeds, Holm over the main effects of both datasets:
+
+| design | google-10m | azure_functions-5m | pooled over the two |
+| --- | --- | --- | --- |
+| reported (weight 1), 5 seeds | +4.6% | +6.1% | +5.7% (4.2 to 7.1) |
+| critic v2 (weight 0.001) | +3.2% (1.4 to 5.0), 5/5 seeds, p 0.007, Holm 0.037 | +1.7% (-0.4 to 3.8), 5/5 seeds, p 0.092, Holm 0.28 | +2.5% (1.1 to 3.9), p 0.0007 |
+| critic v2-diffs (first differences, 0.01) | +2.6% (0.3 to 4.9), 5/5 seeds, p 0.033, Holm 0.13 | +0.9% (-0.3 to 2.2), 4/5 seeds, p 0.11, Holm 0.25 | +1.6% (0.0 to 3.3), p 0.050 |
+
+The critic is still on the wrong side of zero in every row. On Google the harm stays
+significant after correction for critic v2; elsewhere it is no longer distinguishable from no
+effect. It is never a gain.
+
+**Each critic cell against its no-critic partner** (`pairs_critic_v2.md`, paired by seed). In
+critic v2, 7 of the 8 comparisons have the critic cell worse; the one exception is the LSTM
+with MADGRAD on Azure (-0.015 points, better in 3 of 5 seeds, p 0.62). The largest is the LSTM
+with MADGRAD on Google (+1.30 points, 0 of 5 seeds better, Holm 0.0025). In v2-diffs the best
+critic cell on Google, Transformer with MADGRAD at 20.84, is still behind its no-critic
+partner at 20.66.
+
+**Each critic cell against the reported run of the same seed**
+(`versus_reported_critic_v2.md`). All 8 critic cells improve in both variants: by 1.0 to 6.4%
+with critic v2 and 0.9 to 7.8% with v2-diffs. Uncorrected p below 0.05 in 1 of 8 cells for
+critic v2 (Transformer with Adam on Azure, -4.3%, 5/5 seeds) and 4 of 8 for v2-diffs (largest:
+Transformer with MADGRAD on Google, 22.62 to 20.84, 5/5 seeds, p 0.019). So lowering the
+weight does what the validation screen said, about as much as the recheck said (2 to 3%).
+
+**The matched side.** Gradient clipping moved the no-critic LSTM cells by -3.1% to +2.0%
+against the reported runs, none significant (p 0.22 to 0.40), which agrees with the recheck.
+On Google it happened to help both LSTM cells (22.69 to 22.16, 22.56 to 21.84), and that is
+part of why the critic effect on Google stays at +3.2% in this design.
+
+**Other effects in this design.** The Transformer's gain on Google is unchanged (-4.9%, 5/5
+seeds, Holm 0.034; -5.8% in v2-diffs, Holm 0.007) and still absent on Azure (+0.7%).
+
+**Instability is still there.** At the last epoch the LSTM with critic and MADGRAD diverges
+on both series under critic v2 (mean last-epoch MAPE in the tens of thousands of percent or
+more) and on Azure under v2-diffs. The best-validation epoch hides it, as in the reported
+runs.
+
+**Provisioning.** `autoscale_critic_v2.md`: the headroom needed for at most 5% short intervals
+is 53 to 63% on Google and 5.2 to 5.8% on Azure across the 8 configurations, close to the ranges
+of the reported runs (54 to 61% and 5.2 to 5.8%). No configuration stands out.
+
+**Reading.** The search improved the critic by reducing its influence, and the first step of
+the screen showed that weight exactly zero already gives most of that gain. A design with the
+critic at weight 0.001 is, in effect, the no-critic model with a small disturbance. This is
+the fairest test of the critic we could run with one GPU: 34 variants for each side, a
+recheck on unseen tuning seeds, and the test part used once.
+
+### 1c result: `released_item_<name>` (recorded 2026-11-17)
+
+In plain terms: three of the released code's choices each break the paper's final model on
+their own (the sign of the critic term, the learning rate of 0.01, and the positional
+encoding indexed by batch position). Two choices that weaken the critic make it slightly
+better. None moves the error toward the paper's Table 3.
+
+78 runs, 9 experiments; 77 finished with a finite test MAPE (one `lr` run of the final model
+on Azure, seed 1, gave no finite value). Files: `results/v2/released_item_*/`; tables
+`results/v2/summary/released_items.md` and `versus_reported_released_items.md`. Each row is
+the item's runs against seeds 1 to 3 of the reported runs of the same configuration, paired by
+seed, test MAPE at the best validation epoch. p values are uncorrected and come from 3 seeds.
+
+Paper's final model (Transformer, critic, MADGRAD). Reported runs, seeds 1 to 3: Google 22.47,
+Azure 2.13.
+
+| item | google-10m | change | azure_functions-5m | change |
+| --- | --- | --- | --- | --- |
+| `adv_plus` (L1 plus the critic score) | 57598 | diverges, 0/3 better | 580 | diverges, 0/3 better |
+| `lr` (0.01) | 38.64 | +66%, 0/3, p 0.14 | 6.19 (2 seeds; 1 not finite) | +184%, 0/2, p 0.013 |
+| `pos_batch` | 25.81 | +15%, 0/3, p 0.082 | 3.33 | +56%, 0/3, p 0.005 |
+| `embed_broadcast` | 24.46 | +9.0%, 1/3, p 0.28 | 2.25 | +5.4%, 1/3, p 0.31 |
+| `noshuffle` | 23.02 | +2.6%, 1/3, p 0.64 | 2.17 | +1.7%, 1/3, p 0.68 |
+| `scaler` (not a fair evaluation) | 23.02 | +2.5%, 1/3, p 0.46 | 2.20 | +3.3%, 1/3, p 0.46 |
+| `windows` (48 fewer test points) | 22.69 | +1.0%, 1/3, p 0.23 | 2.09 | -1.8%, 3/3, p 0.016 |
+| `critic_steps` (1 step, penalty 0.1) | 21.01 | -6.3%, 3/3, p 0.20 | 2.14 | +0.5%, 2/3, p 0.90 |
+| `tanh_critic` | 20.92 | -6.7%, 3/3, p 0.20 | 2.04 | -4.4%, 2/3, p 0.29 |
+
+LSTM baseline (no critic, Adam). Reported runs, seeds 1 to 3: Google 22.92, Azure 2.02.
+
+| item | google-10m | change | azure_functions-5m | change |
+| --- | --- | --- | --- | --- |
+| `lr` (0.01) | 22.57 | -1.6%, 2/3, p 0.44 | 2.07 | +2.7%, 2/3, p 0.49 |
+| `scaler` (not a fair evaluation) | 22.04 | -3.8%, 3/3, p 0.17 | 2.34 | +16%, 0/3, p 0.12 |
+| `windows` (48 fewer test points) | 22.31 | -2.7%, 2/3, p 0.33 | 1.99 | -1.5%, 3/3, p 0.090 |
+| `noshuffle` | 22.69 | -1.0%, 3/3, p 0.33 | 2.10 | +4.0%, 1/3, p 0.33 |
+
+What this shows:
+
+- **The sign of the critic term matters most.** With the released sign the forecaster is
+  rewarded for forecasts the critic scores as fake, and with the paper's unbounded critic the
+  forecasts run away (MAPE in the hundreds or tens of thousands of percent, all 6 runs). In
+  the full released profile (1a) the same sign did not diverge (Google 30.1, Azure 3.82); a
+  likely reason, not tested separately, is that the released critic ends in Tanh, so its score
+  is bounded.
+- **Learning rate 0.01 is too high for the Transformer with a critic** (+66% and +184%, one
+  run not finite) and makes no difference to the LSTM.
+- **Positional encoding by batch position hurts** (+15% and +56%): the model loses the order
+  of the time steps.
+- **The two items that weaken the critic lower the error** on Google (-6.3% and -6.7%, 3 of 3
+  seeds each, not significant with 3 seeds). They land at 20.9 to 21.0, next to the
+  Transformer without a critic (20.66). This agrees with the critic screen: less critic is
+  better.
+- **Data-handling items are within noise**, as 1b found for the bundle. The one large value is
+  the LSTM on Azure with per-split scaling (+16%, 0 of 3 seeds better), which is the leak
+  making a result worse, not better.
+- **No single item brings Google near 10 to 11%.** The lowest value in the table is 20.92.
+  The conclusion of 1a and 1b stands: the released code does not explain the paper's Table 3
+  on Google.
+- The `windows` rows are scored on 759 and 788 test points instead of 807 and 836, so they are
+  close to, but not exactly, the same test as the reference.

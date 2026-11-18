@@ -1,0 +1,19 @@
+{
+  "experiment": "critic_recheck",
+  "cell": "azure_functions-5m__transformer-critic-adam",
+  "variant": "w0.01_diffs",
+  "seed": 300,
+  "overrides": {
+    "train.adv_weight": 0.01,
+    "model.critic.input": "diffs"
+  },
+  "tuned_base": true,
+  "val_mape": 2.454357175290738,
+  "best_epoch": 910,
+  "epochs_run": 1000,
+  "seconds": 565.2,
+  "git": {
+    "commit": "480eef1",
+    "dirty": false
+  }
+}

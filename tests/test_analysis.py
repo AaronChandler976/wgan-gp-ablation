@@ -132,3 +132,17 @@ def test_load_runs_joins_sources_and_refuses_overlap(tmp_path, monkeypatch):
     write(tmp_path / "results" / "v2" / "more", 1)
     with pytest.raises(SystemExit):
         analysis.load_runs("reported+more")
+
+
+def test_versus_table_pairs_by_seed_and_counts_diverged_runs():
+    reference = design({}, seeds=(1, 2, 3, 4, 5)).assign(source="reported")
+    runs = design({}, seeds=(1, 2, 3)).assign(source="exp")
+    for df in (reference, runs):
+        df["config_id"] = df["arch"] + "-" + df["critic"] + "-" + df["optimizer"]
+    runs["mape"] = reference.set_index(["config_id", "seed"]).loc[
+        list(zip(runs["config_id"], runs["seed"])), "mape"].to_numpy() * 1.10
+    runs.loc[(runs["seed"] == 1) & (runs["config_id"] == "lstm-none-adam"), "mape"] = np.nan
+    t = analysis.versus_table(runs, reference).set_index("config_id")
+    assert len(t) == 8 and (t["change_pct"].round(6) == 10.0).all()
+    assert t.loc["lstm-none-adam", "seeds"] == 2 and t.loc["lstm-none-adam", "not_finite"] == 1
+    assert t.loc["transformer-none-adam", "seeds"] == 3 and t.loc["transformer-none-adam", "better_in"] == "0/3"

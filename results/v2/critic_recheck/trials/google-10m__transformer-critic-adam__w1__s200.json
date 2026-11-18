@@ -1,0 +1,16 @@
+{
+  "experiment": "critic_recheck",
+  "cell": "google-10m__transformer-critic-adam",
+  "variant": "w1",
+  "seed": 200,
+  "overrides": {},
+  "tuned_base": true,
+  "val_mape": 18.435139378969804,
+  "best_epoch": 80,
+  "epochs_run": 230,
+  "seconds": 235.4,
+  "git": {
+    "commit": "480eef1",
+    "dirty": false
+  }
+}
