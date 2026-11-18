@@ -1,0 +1,13 @@
+{
+  "dataset": "azure_vm_2017",
+  "interval_minutes": 60,
+  "n": 720,
+  "train_end": 432,
+  "val_end": 576,
+  "fractions": [
+    0.6,
+    0.2,
+    0.2
+  ],
+  "processed_sha256": "94c492d9d6527134"
+}

@@ -1,0 +1,5 @@
+cell,variant,seeds,val_mape,seed_gap,seconds,vs_reference_pct
+google-10m__transformer-nocritic-madgrad,base,2,18.216548867518146,0.5520838869345965,91.30000000000001,0.0
+google-10m__lstm-nocritic-madgrad,base,2,19.492837453741842,0.49925013368012827,53.900000000000006,0.0
+azure_functions-5m__transformer-nocritic-madgrad,base,2,2.391676569779263,0.1169244531881235,171.75,0.0
+azure_functions-5m__lstm-nocritic-madgrad,base,2,2.4909195693317896,0.18651120734597315,93.55,0.0

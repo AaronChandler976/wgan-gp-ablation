@@ -1,0 +1,99 @@
+data_id,config_id,seed,setup,test_points,selected_by,mape,mape_released_units,mape_best_val_epoch,mape_last_epoch,fair
+azure_functions-5m,lstm-nocritic-adam,1,paper settings (reported runs),807,best_val,1.9660186857692008,,1.9660186857692008,,True
+azure_functions-5m,lstm-nocritic-adam,2,paper settings (reported runs),807,best_val,1.9953436713693227,,1.9953436713693227,,True
+azure_functions-5m,lstm-nocritic-adam,3,paper settings (reported runs),807,best_val,2.093305919054644,,2.093305919054644,,True
+azure_functions-5m,lstm-nocritic-adam,4,paper settings (reported runs),807,best_val,2.043764727197107,,2.043764727197107,,True
+azure_functions-5m,lstm-nocritic-adam,5,paper settings (reported runs),807,best_val,1.9713854671486735,,1.9713854671486735,,True
+azure_functions-5m,transformer-critic-madgrad,1,paper settings (reported runs),807,best_val,2.0415917407499125,,2.0415917407499125,,True
+azure_functions-5m,transformer-critic-madgrad,2,paper settings (reported runs),807,best_val,2.192541627315434,,2.192541627315434,,True
+azure_functions-5m,transformer-critic-madgrad,3,paper settings (reported runs),807,best_val,2.1638996627506666,,2.1638996627506666,,True
+azure_functions-5m,transformer-critic-madgrad,4,paper settings (reported runs),807,best_val,2.135357475306242,,2.135357475306242,,True
+azure_functions-5m,transformer-critic-madgrad,5,paper settings (reported runs),807,best_val,2.130734645387109,,2.130734645387109,,True
+google-10m,lstm-nocritic-adam,1,paper settings (reported runs),836,best_val,22.850835593125957,,22.850835593125957,,True
+google-10m,lstm-nocritic-adam,2,paper settings (reported runs),836,best_val,22.755264466313836,,22.755264466313836,,True
+google-10m,lstm-nocritic-adam,3,paper settings (reported runs),836,best_val,23.14518039123233,,23.14518039123233,,True
+google-10m,lstm-nocritic-adam,4,paper settings (reported runs),836,best_val,22.293582528179755,,22.293582528179755,,True
+google-10m,lstm-nocritic-adam,5,paper settings (reported runs),836,best_val,22.415245152169426,,22.415245152169426,,True
+google-10m,transformer-critic-madgrad,1,paper settings (reported runs),836,best_val,24.19315987367097,,24.19315987367097,,True
+google-10m,transformer-critic-madgrad,2,paper settings (reported runs),836,best_val,21.219472439026458,,21.219472439026458,,True
+google-10m,transformer-critic-madgrad,3,paper settings (reported runs),836,best_val,21.992057615901476,,21.992057615901476,,True
+google-10m,transformer-critic-madgrad,4,paper settings (reported runs),836,best_val,22.899317901551974,,22.899317901551974,,True
+google-10m,transformer-critic-madgrad,5,paper settings (reported runs),836,best_val,22.783585327145452,,22.783585327145452,,True
+azure_functions-5m,transformer-critic-madgrad,1,released_item_adv_plus,807,best_val,710.1380830631518,,710.1380830631518,,True
+azure_functions-5m,transformer-critic-madgrad,2,released_item_adv_plus,807,best_val,513.2597500454481,,513.2597500454481,,True
+azure_functions-5m,transformer-critic-madgrad,3,released_item_adv_plus,807,best_val,517.8312418676275,,517.8312418676275,,True
+google-10m,transformer-critic-madgrad,1,released_item_adv_plus,836,best_val,66347.44496741329,,66347.44496741329,,True
+google-10m,transformer-critic-madgrad,2,released_item_adv_plus,836,best_val,47909.76890103289,,47909.76890103289,,True
+google-10m,transformer-critic-madgrad,3,released_item_adv_plus,836,best_val,58536.48181840465,,58536.48181840465,,True
+azure_functions-5m,transformer-critic-madgrad,1,released_item_critic_steps,807,best_val,2.2007773394877796,,2.2007773394877796,2.4567878035503377,True
+azure_functions-5m,transformer-critic-madgrad,2,released_item_critic_steps,807,best_val,2.125930030962749,,2.125930030962749,2.52920268030565,True
+azure_functions-5m,transformer-critic-madgrad,3,released_item_critic_steps,807,best_val,2.1028028254092677,,2.1028028254092677,2.509160584454287,True
+google-10m,transformer-critic-madgrad,1,released_item_critic_steps,836,best_val,21.234387367512735,,21.234387367512735,25.413188850322783,True
+google-10m,transformer-critic-madgrad,2,released_item_critic_steps,836,best_val,20.87177773736289,,20.87177773736289,24.0985887646385,True
+google-10m,transformer-critic-madgrad,3,released_item_critic_steps,836,best_val,20.923400502196866,,20.923400502196866,25.37466166726435,True
+azure_functions-5m,transformer-critic-madgrad,1,released_item_embed_broadcast,807,best_val,2.3174898587644925,,2.3174898587644925,2.4394695499836336,True
+azure_functions-5m,transformer-critic-madgrad,2,released_item_embed_broadcast,807,best_val,2.174185374094208,,2.174185374094208,2.5862046621646986,True
+azure_functions-5m,transformer-critic-madgrad,3,released_item_embed_broadcast,807,best_val,2.2541058766792665,,2.2541058766792665,2.8469278791508077,True
+google-10m,transformer-critic-madgrad,1,released_item_embed_broadcast,836,best_val,23.51875955463449,,23.51875955463449,25.094738678084255,True
+google-10m,transformer-critic-madgrad,2,released_item_embed_broadcast,836,best_val,24.829821883262284,,24.829821883262284,27.709504391219742,True
+google-10m,transformer-critic-madgrad,3,released_item_embed_broadcast,836,best_val,25.042597983652843,,25.042597983652843,28.450263037758187,True
+azure_functions-5m,lstm-nocritic-adam,1,released_item_lr,807,best_val,2.1502912974883457,,2.1502912974883457,2.3401539692937776,True
+azure_functions-5m,lstm-nocritic-adam,2,released_item_lr,807,best_val,1.9951817146585862,,1.9951817146585862,3.086247897869659,True
+azure_functions-5m,lstm-nocritic-adam,3,released_item_lr,807,best_val,2.0721220040762454,,2.0721220040762454,2.935068288206838,True
+azure_functions-5m,transformer-critic-madgrad,1,released_item_lr,807,best_val,,,,,True
+azure_functions-5m,transformer-critic-madgrad,2,released_item_lr,807,best_val,6.286879051471622,,6.286879051471622,,True
+azure_functions-5m,transformer-critic-madgrad,3,released_item_lr,807,best_val,6.089053522038046,,6.089053522038046,,True
+google-10m,lstm-nocritic-adam,1,released_item_lr,836,best_val,22.529298074613422,,22.529298074613422,27.40582183589605,True
+google-10m,lstm-nocritic-adam,2,released_item_lr,836,best_val,21.77164775386808,,21.77164775386808,28.07223373198431,True
+google-10m,lstm-nocritic-adam,3,released_item_lr,836,best_val,23.41032716784057,,23.41032716784057,27.623536672751385,True
+google-10m,transformer-critic-madgrad,1,released_item_lr,836,best_val,53.760060489314355,,53.760060489314355,,True
+google-10m,transformer-critic-madgrad,2,released_item_lr,836,best_val,31.649445138874437,,31.649445138874437,,True
+google-10m,transformer-critic-madgrad,3,released_item_lr,836,best_val,30.497325265395336,,30.497325265395336,,True
+azure_functions-5m,lstm-nocritic-adam,1,released_item_noshuffle,807,best_val,2.139408560881465,,2.139408560881465,2.320518352925603,True
+azure_functions-5m,lstm-nocritic-adam,2,released_item_noshuffle,807,best_val,2.1001940960375625,,2.1001940960375625,2.415594398593975,True
+azure_functions-5m,lstm-nocritic-adam,3,released_item_noshuffle,807,best_val,2.055140576822135,,2.055140576822135,3.113911766886684,True
+azure_functions-5m,transformer-critic-madgrad,1,released_item_noshuffle,807,best_val,2.187330616330123,,2.187330616330123,2.262139977298699,True
+azure_functions-5m,transformer-critic-madgrad,2,released_item_noshuffle,807,best_val,2.263754624366907,,2.263754624366907,2.537878031655106,True
+azure_functions-5m,transformer-critic-madgrad,3,released_item_noshuffle,807,best_val,2.055298363631496,,2.055298363631496,2.2432694796610413,True
+google-10m,lstm-nocritic-adam,1,released_item_noshuffle,836,best_val,22.844217234873092,,22.844217234873092,25.550625981807656,True
+google-10m,lstm-nocritic-adam,2,released_item_noshuffle,836,best_val,22.175633674608637,,22.175633674608637,29.41859272750826,True
+google-10m,lstm-nocritic-adam,3,released_item_noshuffle,836,best_val,23.046075455307538,,23.046075455307538,26.232741829664523,True
+google-10m,transformer-critic-madgrad,1,released_item_noshuffle,836,best_val,22.72340733499568,,22.72340733499568,23.568216259617746,True
+google-10m,transformer-critic-madgrad,2,released_item_noshuffle,836,best_val,22.694847140918895,,22.694847140918895,27.23966281202655,True
+google-10m,transformer-critic-madgrad,3,released_item_noshuffle,836,best_val,23.656224101342705,,23.656224101342705,23.178298338753624,True
+azure_functions-5m,transformer-critic-madgrad,1,released_item_pos_batch,807,best_val,3.3965882937231635,,3.3965882937231635,3.4102349746358223,True
+azure_functions-5m,transformer-critic-madgrad,2,released_item_pos_batch,807,best_val,3.2855447181924213,,3.2855447181924213,3.633180218647728,True
+azure_functions-5m,transformer-critic-madgrad,3,released_item_pos_batch,807,best_val,3.2932844908522205,,3.2932844908522205,3.6728307246533074,True
+google-10m,transformer-critic-madgrad,1,released_item_pos_batch,836,best_val,25.496636442591207,,25.496636442591207,25.71362039549451,True
+google-10m,transformer-critic-madgrad,2,released_item_pos_batch,836,best_val,25.49003110904804,,25.49003110904804,26.247746675204365,True
+google-10m,transformer-critic-madgrad,3,released_item_pos_batch,836,best_val,26.433241216581425,,26.433241216581425,29.864936321245445,True
+azure_functions-5m,lstm-nocritic-adam,1,released_item_scaler,807,best_val,2.5138491667215055,5.3166050758575185,2.5138491667215055,3.045155222518712,False
+azure_functions-5m,lstm-nocritic-adam,2,released_item_scaler,807,best_val,2.3216197130901595,4.902177303382911,2.3216197130901595,2.238155952753008,False
+azure_functions-5m,lstm-nocritic-adam,3,released_item_scaler,807,best_val,2.19913420414752,4.616271600709123,2.19913420414752,2.328012644799525,False
+azure_functions-5m,transformer-critic-madgrad,1,released_item_scaler,807,best_val,2.2496488321505232,4.699247189400295,2.2496488321505232,2.4692129668891223,False
+azure_functions-5m,transformer-critic-madgrad,2,released_item_scaler,807,best_val,2.139619795339686,4.481625970942966,2.139619795339686,2.2959835372272366,False
+azure_functions-5m,transformer-critic-madgrad,3,released_item_scaler,807,best_val,2.2165984044794667,4.649594049185749,2.2165984044794667,2.2020634074238665,False
+google-10m,lstm-nocritic-adam,1,released_item_scaler,836,best_val,22.79660985622329,22.138176054924138,22.79660985622329,24.716270821554517,False
+google-10m,lstm-nocritic-adam,2,released_item_scaler,836,best_val,21.64716695489413,21.02252706904722,21.64716695489413,25.917743022463036,False
+google-10m,lstm-nocritic-adam,3,released_item_scaler,836,best_val,21.686250660358514,21.07059703988325,21.686250660358514,25.716538866466355,False
+google-10m,transformer-critic-madgrad,1,released_item_scaler,836,best_val,23.718094341883166,23.054258281252952,23.718094341883166,24.37995503943169,False
+google-10m,transformer-critic-madgrad,2,released_item_scaler,836,best_val,21.69659033827103,21.088307650541157,21.69659033827103,24.14257050322099,False
+google-10m,transformer-critic-madgrad,3,released_item_scaler,836,best_val,23.63977732615667,22.98976496217666,23.63977732615667,25.664558164871853,False
+azure_functions-5m,transformer-critic-madgrad,1,released_item_tanh_critic,807,best_val,2.0728802661421075,,2.0728802661421075,2.264565103120084,True
+azure_functions-5m,transformer-critic-madgrad,2,released_item_tanh_critic,807,best_val,1.9970356819490016,,1.9970356819490016,2.187131416035923,True
+azure_functions-5m,transformer-critic-madgrad,3,released_item_tanh_critic,807,best_val,2.043305745071505,,2.043305745071505,2.2075454968160515,True
+google-10m,transformer-critic-madgrad,1,released_item_tanh_critic,836,best_val,21.091621026291808,,21.091621026291808,23.00233926393949,True
+google-10m,transformer-critic-madgrad,2,released_item_tanh_critic,836,best_val,20.896994638198223,,20.896994638198223,23.204049217212532,True
+google-10m,transformer-critic-madgrad,3,released_item_tanh_critic,836,best_val,20.78511014625593,,20.78511014625593,22.785098546690406,True
+azure_functions-5m,lstm-nocritic-adam,1,released_item_windows,759,best_val,1.9406615723604888,,1.9406615723604888,3.050803062197602,True
+azure_functions-5m,lstm-nocritic-adam,2,released_item_windows,759,best_val,1.9794851507075601,,1.9794851507075601,1.9937838325473147,True
+azure_functions-5m,lstm-nocritic-adam,3,released_item_windows,759,best_val,2.044953583778853,,2.044953583778853,2.2112693541481634,True
+azure_functions-5m,transformer-critic-madgrad,1,released_item_windows,759,best_val,1.9973987459383697,,1.9973987459383697,2.488530547016132,True
+azure_functions-5m,transformer-critic-madgrad,2,released_item_windows,759,best_val,2.16387397788631,,2.16387397788631,2.3950349702082354,True
+azure_functions-5m,transformer-critic-madgrad,3,released_item_windows,759,best_val,2.121264181032893,,2.121264181032893,2.4079173794948217,True
+google-10m,lstm-nocritic-adam,1,released_item_windows,788,best_val,21.61470108154887,,21.61470108154887,26.193051371481594,True
+google-10m,lstm-nocritic-adam,2,released_item_windows,788,best_val,23.067551260089633,,23.067551260089633,27.43635795687713,True
+google-10m,lstm-nocritic-adam,3,released_item_windows,788,best_val,22.251315459089646,,22.251315459089646,26.905113302588052,True
+google-10m,transformer-critic-madgrad,1,released_item_windows,788,best_val,24.596640095572486,,24.596640095572486,23.660138665916,True
+google-10m,transformer-critic-madgrad,2,released_item_windows,788,best_val,21.18535728999226,,21.18535728999226,25.22001740991206,True
+google-10m,transformer-critic-madgrad,3,released_item_windows,788,best_val,22.299945900721212,,22.299945900721212,26.21506360270119,True

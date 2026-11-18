@@ -1,0 +1,19 @@
+{
+  "experiment": "critic_s5_input",
+  "cell": "google-10m__lstm-critic-madgrad",
+  "variant": "w1_conditional",
+  "seed": 0,
+  "overrides": {
+    "train.adv_weight": 1.0,
+    "model.critic.kind": "conditional"
+  },
+  "tuned_base": true,
+  "val_mape": 20.259113050279968,
+  "best_epoch": 130,
+  "epochs_run": 280,
+  "seconds": 82.5,
+  "git": {
+    "commit": "d858457",
+    "dirty": false
+  }
+}

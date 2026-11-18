@@ -1,0 +1,18 @@
+{
+  "experiment": "critic_s1_weight",
+  "cell": "google-10m__transformer-critic-madgrad",
+  "variant": "w0.03",
+  "seed": 0,
+  "overrides": {
+    "train.adv_weight": 0.03
+  },
+  "tuned_base": true,
+  "val_mape": 18.783170447501494,
+  "best_epoch": 160,
+  "epochs_run": 310,
+  "seconds": 348.1,
+  "git": {
+    "commit": "0e18515",
+    "dirty": false
+  }
+}

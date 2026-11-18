@@ -1,0 +1,19 @@
+{
+  "experiment": "critic_s5_input",
+  "cell": "google-10m__transformer-critic-madgrad",
+  "variant": "w1_diffs",
+  "seed": 0,
+  "overrides": {
+    "train.adv_weight": 1.0,
+    "model.critic.input": "diffs"
+  },
+  "tuned_base": true,
+  "val_mape": 19.190635360157028,
+  "best_epoch": 260,
+  "epochs_run": 410,
+  "seconds": 156.4,
+  "git": {
+    "commit": "d858457",
+    "dirty": false
+  }
+}

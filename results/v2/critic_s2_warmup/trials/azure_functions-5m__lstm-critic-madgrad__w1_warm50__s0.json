@@ -1,0 +1,19 @@
+{
+  "experiment": "critic_s2_warmup",
+  "cell": "azure_functions-5m__lstm-critic-madgrad",
+  "variant": "w1_warm50",
+  "seed": 0,
+  "overrides": {
+    "train.adv_weight": 1.0,
+    "train.adv_warmup": 50
+  },
+  "tuned_base": true,
+  "val_mape": 2.472218222692674,
+  "best_epoch": 400,
+  "epochs_run": 550,
+  "seconds": 338.3,
+  "git": {
+    "commit": "e06093c",
+    "dirty": false
+  }
+}

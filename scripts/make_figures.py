@@ -1,7 +1,10 @@
-"""Report figures, drawn from the CSV files in results/summary/.
+"""Report figures, drawn from the CSV files in results/summary/ and results/v2/.
 
-    python scripts/make_figures.py              # all three figures -> figures/*.png and *.pdf
-    python scripts/make_figures.py --only mape  # one of: mape, effects, timing
+    python scripts/make_figures.py              # every figure -> figures/*.png and *.pdf
+    python scripts/make_figures.py --only mape  # one of: mape, effects, timing (reported runs),
+                                                # released, autoscale, forecasts, critic_weight,
+                                                # critic_diagnostics (v2; skipped if their input
+                                                # files are not there yet)
 
 Needs matplotlib (in environment.yml). Nothing is hard-coded: every value is read from
 results/summary/all_runs.csv, factorial_effects.csv and timing_sweep_<device>.csv, so re-running
@@ -17,12 +20,14 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
+import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 from matplotlib.lines import Line2D  # noqa: E402
 from matplotlib.ticker import FuncFormatter  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 SUMMARY = ROOT / "results" / "summary"
+V2 = ROOT / "results" / "v2"
 OUT = ROOT / "figures"
 
 # Colors (colorblind-safe order) and neutral ink.
@@ -221,7 +226,263 @@ def figure_timing() -> None:
     save(fig, "timing_sweep")
 
 
-FIGURES = {"mape": figure_mape, "effects": figure_effects, "timing": figure_timing}
+# --------------------------------------------------------------------------- v2 figures
+
+CONFIG_LABELS = {"lstm-nocritic-adam": "LSTM baseline", "transformer-critic-madgrad": "Paper's final model"}
+CONFIG_COLORS = {"lstm-nocritic-adam": BLUE, "transformer-critic-madgrad": ORANGE}
+
+
+def missing(*paths: Path) -> bool:
+    gone = [p for p in paths if not p.exists()]
+    if gone:
+        print("skipped: no " + ", ".join(str(p.relative_to(ROOT)) for p in gone))
+    return bool(gone)
+
+
+def figure_released() -> None:
+    """The paper's Table 3, our reported runs and the released code's settings, side by side."""
+    path, ref = V2 / "summary" / "released_code_runs.csv", ROOT / "configs" / "paper_reference.yaml"
+    if missing(path, ref):
+        return
+    import yaml
+    runs, paper = pd.read_csv(path), yaml.safe_load(ref.read_text())
+    runs["shown"] = runs["mape_released_units"].fillna(runs["mape"])
+    setups = [("paper settings (reported runs)", "Our runs, paper settings\n(fair evaluation)"),
+              ("released_data", "Released data handling\n(leaks test statistics)"),
+              ("released_full", "Full released settings\n(leaks test statistics)")]
+    data_ids = sorted(runs["data_id"].unique(), reverse=True)
+    fig, axes = plt.subplots(1, len(data_ids), figsize=(TEXT_WIDTH, 2.7), sharey=True)
+    for ax, data_id in zip(axes, data_ids):
+        part = runs[runs["data_id"] == data_id]
+        for k, config_id in enumerate(CONFIG_LABELS):
+            color, dy = CONFIG_COLORS[config_id], (k - 0.5) * 0.3
+            if data_id in paper:
+                ax.plot(paper[data_id][k], dy, "*", ms=9, mfc=color, mec="white", mew=0.6, zorder=3)
+            for row, (setup, _) in enumerate(setups, start=1):
+                values = part[(part["config_id"] == config_id) & (part["setup"] == setup)]["shown"]
+                values = values[np.isfinite(values)]
+                if values.empty:
+                    continue
+                ax.plot(values, [row + dy] * len(values), "o", ms=4, mfc=color, mec="white",
+                        mew=0.5, alpha=0.5, zorder=2)
+                ax.errorbar(values.mean(), row + dy, xerr=values.std(ddof=1), fmt="D", ms=4,
+                            mfc=INK, mec="white", mew=0.6, ecolor=INK, elinewidth=1.0, capsize=2.5,
+                            zorder=3)
+        ax.set_title(dataset_title(data_id, sep="\n"))
+        ax.set_xlabel("Test MAPE (%), as each setup computes it")
+        ax.set_xlim(left=0)
+        ax.grid(axis="y", visible=False)
+    axes[0].set_yticks(range(len(setups) + 1), ["Paper, Table 3"] + [label for _, label in setups])
+    axes[0].invert_yaxis()
+    handles = [Line2D([], [], marker="o", ls="", ms=4.5, mfc=CONFIG_COLORS[c], mec="white",
+                      label=f"{CONFIG_LABELS[c]}, one seed") for c in CONFIG_LABELS]
+    handles += [Line2D([], [], marker="*", ls="", ms=9, mfc=MUTED, mec="white", label="value in the paper"),
+                Line2D([], [], marker="D", ls="-", lw=1.0, ms=4, color=INK, mec="white",
+                       label="mean ± std. dev. over seeds")]
+    fig.legend(handles=handles, loc="lower center", ncols=2, bbox_to_anchor=(0.5, -0.17))
+    fig.tight_layout(w_pad=1.5)
+    save(fig, "released_code_comparison")
+
+
+def config_style(config_id: str) -> tuple[str, str, str]:
+    """(color, line style, label) of one of the 8 configurations."""
+    arch, critic, optimizer = config_id.split("-")
+    critic = "wgan-gp" if critic == "critic" else "none"
+    color = {("lstm", "none"): BLUE, ("lstm", "wgan-gp"): AQUA,
+             ("transformer", "none"): ORANGE, ("transformer", "wgan-gp"): VIOLET}[(arch, critic)]
+    return (color, "-" if optimizer == "madgrad" else (0, (4, 2)),
+            f"{ARCH_LABELS[arch]}, {CRITIC_LABELS[critic]}, {OPTIMIZER_LABELS[optimizer]}")
+
+
+def figure_autoscale() -> None:
+    """Unused capacity against the share of intervals that run short, as headroom is added."""
+    path = V2 / "summary" / "autoscale_reported_curve.csv"
+    if missing(path):
+        return
+    curve = pd.read_csv(path)
+    data_ids = sorted(curve["data_id"].unique(), reverse=True)
+    fig, axes = plt.subplots(1, len(data_ids), figsize=(TEXT_WIDTH, 3.0))
+    for ax, data_id in zip(axes, data_ids):
+        part = curve[(curve["data_id"] == data_id) & (curve["under_rate"] >= 1)]
+        for config_id in sorted(part["config_id"].unique()):
+            color, ls, label = config_style(config_id)
+            line = part[part["config_id"] == config_id]
+            ax.plot(line["under_rate"], line["idle_vm_pct"], color=color, ls=ls, lw=1.3, label=label)
+        ax.set_xscale("log")
+        ax.set_xticks([1, 2, 5, 10, 20, 50], ["1", "2", "5", "10", "20", "50"])
+        ax.minorticks_off()
+        ax.set_title(dataset_title(data_id, sep="\n"))
+        ax.set_xlabel("Intervals with too few VMs (%)")
+    axes[0].set_ylabel("Unused VMs (% of all jobs)")
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="lower center", ncols=2, bbox_to_anchor=(0.5, -0.22))
+    fig.tight_layout(w_pad=1.5)
+    save(fig, "autoscale_tradeoff")
+
+
+def figure_forecasts() -> None:
+    """Forecast against the true series on the test part: the best and the worst reported run."""
+    path = SUMMARY / "all_runs.csv"
+    if missing(path):
+        return
+    runs = pd.read_csv(path)
+    runs = runs[np.isfinite(runs["mape"])]
+    data_ids = sorted(runs["data_id"].unique(), reverse=True)
+    fig, axes = plt.subplots(len(data_ids), 1, figsize=(TEXT_WIDTH, 2.3 * len(data_ids)), squeeze=False)
+    for ax, data_id in zip(axes[:, 0], data_ids):
+        part = runs[runs["data_id"] == data_id].sort_values("mape")
+        truth = None
+        for row, color, word in ((part.iloc[0], BLUE, "best"), (part.iloc[-1], ORANGE, "worst")):
+            pred = pd.read_csv(ROOT / "results" / "predictions" / f"{data_id}__{row['config_id']}__s{row['seed']}.csv")
+            pred = pred.iloc[:288]
+            truth = pred if truth is None else truth
+            label = config_style(row["config_id"])[2]
+            ax.plot(pred["t"], pred["y_pred"], color=color, lw=1.0,
+                    label=f"{word} run: {label}, seed {row['seed']} (MAPE {row['mape']:.2f}%)")
+        ax.plot(truth["t"], truth["y_true"], color=INK, lw=0.8, alpha=0.7, label="true value", zorder=1)
+        ax.set_title(f"{dataset_title(data_id)}: first {len(truth)} test intervals")
+        ax.set_ylabel("Jobs per interval")
+        ax.legend(loc="upper left", fontsize=7.5)
+        ax.yaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:,.0f}"))
+    axes[-1, 0].set_xlabel("Interval index in the series")
+    fig.tight_layout(h_pad=1.2)
+    save(fig, "forecast_best_worst")
+
+
+def figure_critic_weight() -> None:
+    """Critic screen, stage 1: validation MAPE against the weight of the critic term."""
+    path = V2 / "critic_s1_weight" / "screen_cells.csv"
+    ref_path = V2 / "nocritic_reference" / "screen_cells.csv"
+    if missing(path, ref_path):
+        return
+    cells, ref = pd.read_csv(path), pd.read_csv(ref_path)
+    cells["weight"] = cells["variant"].str[1:].astype(float)
+    names = list(dict.fromkeys(cells["cell"]))
+    fig, axes = plt.subplots(1, len(names), figsize=(TEXT_WIDTH, 2.3))
+    floor = cells[cells["weight"] > 0]["weight"].min() / 3          # where weight 0 is drawn
+    for ax, name in zip(axes, names):
+        data_id, config_id = name.split("__")
+        part = cells[cells["cell"] == name].sort_values("weight")
+        x = part["weight"].replace(0, floor)
+        ax.errorbar(x, part["val_mape"], yerr=part["seed_gap"] / 2, fmt="o-", ms=3.5, lw=1.0,
+                    color=VIOLET, mec="white", mew=0.5, elinewidth=0.8, capsize=2)
+        level = ref[ref["cell"] == name.replace("-critic-", "-nocritic-")]
+        if not level.empty:
+            ax.axhline(level["val_mape"].iloc[0], color=INK, lw=0.9, ls=(0, (4, 2)))
+        ax.set_xscale("log")
+        ax.set_xticks([floor, 0.001, 0.01, 0.1, 1], ["0", "0.001", "0.01", "0.1", "1"])
+        ax.tick_params(axis="x", labelsize=7, rotation=45)
+        ax.minorticks_off()
+        ax.set_title(f"{DATASET_TITLES[data_id.rsplit('-', 1)[0]].split()[0]}, "
+                     f"{ARCH_LABELS[config_id.split('-')[0]]}", fontsize=9)
+    axes[0].set_ylabel("Validation MAPE (%)")
+    fig.supxlabel("Weight of the critic term in the forecaster's loss", fontsize=9, y=0.1)
+    handles = [Line2D([], [], color=VIOLET, marker="o", ms=3.5, lw=1.0, mec="white",
+                      label="with critic (bar: the two tuning seeds)"),
+               Line2D([], [], color=INK, lw=0.9, ls=(0, (4, 2)), label="same model without a critic")]
+    fig.legend(handles=handles, loc="lower center", ncols=2, bbox_to_anchor=(0.5, -0.02))
+    fig.tight_layout(w_pad=0.8)
+    save(fig, "critic_weight_screen")
+
+
+def figure_critic_diagnostics() -> None:
+    """What the critic does during training: its gradient next to the L1 gradient, per epoch."""
+    import json
+    files = sorted((V2 / "critic_diagnostics").glob("*.json")) if (V2 / "critic_diagnostics").exists() else []
+    if not files:
+        print("skipped: no runs in results/v2/critic_diagnostics/")
+        return
+    panels = [("adv_to_l1_grad", "Critic gradient /\nL1 gradient", True),
+              ("grad_cosine", "Cosine between\nthe two gradients", False),
+              ("wasserstein", "Critic's Wasserstein\nestimate", False)]
+    fig, axes = plt.subplots(len(panels), len(files), figsize=(TEXT_WIDTH, 4.6), sharex="col", squeeze=False)
+    for col, f in enumerate(files):
+        run = json.loads(f.read_text())
+        diag = pd.DataFrame(run["diagnostics"])
+        low_file = V2 / "critic_diagnostics_w0p01" / f.name
+        low = pd.DataFrame(json.loads(low_file.read_text())["diagnostics"]) if low_file.exists() else None
+        for row, (key, label, log) in enumerate(panels):
+            ax = axes[row, col]
+            ax.plot(diag["epoch"], diag[key], color=VIOLET, lw=0.8, label="weight 1 (reported)")
+            if low is not None:
+                ax.plot(low["epoch"], low[key], color=AQUA, lw=0.8, label="weight 0.01")
+            if log:
+                ax.set_yscale("log")
+            else:
+                ax.axhline(0, color=MUTED, lw=0.6)
+            if col == 0:
+                ax.set_ylabel(label)
+        axes[0, col].set_title(dataset_title(f"{run['dataset']}-{run['interval']}m", sep="\n"))
+        axes[-1, col].set_xlabel("Epoch")
+    handles, labels = axes[0, 0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="lower center", ncols=2, bbox_to_anchor=(0.5, -0.04))
+    fig.tight_layout(w_pad=1.5, h_pad=0.8)
+    save(fig, "critic_diagnostics")
+
+
+def figure_effects_all_series() -> None:
+    """Main effects on every series of the reported and `more_data` runs, with the pooled value."""
+    effects_path = V2 / "summary" / "effects_reported+more_data.csv"
+    pooled_path = V2 / "summary" / "pooled_reported+more_data.csv"
+    if missing(effects_path, pooled_path):
+        return
+    effects, pooled = pd.read_csv(effects_path), pd.read_csv(pooled_path).set_index("effect")
+    short = {"google": "Google", "azure_functions": "Azure Functions", "azure_vm_2017": "Azure VM 2017",
+             "wikipedia": "Wikipedia"}
+    data_ids = sorted(effects["data_id"].unique())
+    labels = [f"{short.get(d.rsplit('-', 1)[0], d)}, {d.rsplit('-', 1)[1].rstrip('m')} min" for d in data_ids]
+    fig, axes = plt.subplots(1, len(EFFECT_LABELS), figsize=(TEXT_WIDTH, 2.6), sharey=True)
+    for ax, (effect, title) in zip(axes, EFFECT_LABELS.items()):
+        part = effects[effects["effect"] == effect].set_index("data_id").loc[data_ids]
+        rows = np.arange(len(data_ids))
+        ax.errorbar(part["change_pct"], rows, fmt="o", ms=4, mfc=BLUE, mec="white", mew=0.5, ecolor=BLUE,
+                    xerr=[part["change_pct"] - part["ci_low_pct"], part["ci_high_pct"] - part["change_pct"]],
+                    elinewidth=1.0, capsize=2.5)
+        total = pooled.loc[effect]
+        ax.errorbar(total["pooled_pct"], len(data_ids), fmt="D", ms=5, mfc=INK, mec="white", mew=0.6,
+                    xerr=[[total["pooled_pct"] - total["ci_low_pct"]], [total["ci_high_pct"] - total["pooled_pct"]]],
+                    ecolor=INK, elinewidth=1.2, capsize=3)
+        ax.axvline(0, color=MUTED, lw=0.8)
+        ax.axhline(len(data_ids) - 0.5, color=GRID, lw=0.8)
+        ax.set_title(title.replace("\n", " "))
+        ax.set_xlabel("Change in test MAPE (%)")
+        ax.grid(axis="y", visible=False)
+    axes[0].set_yticks(range(len(data_ids) + 1), labels + ["All six (pooled)"])
+    axes[0].invert_yaxis()
+    fig.tight_layout(w_pad=1.0)
+    save(fig, "effects_all_series")
+
+
+def figure_critic_designs() -> None:
+    """The critic's main effect under the paper's setting and under the two designs the screen chose."""
+    designs = {"reported": "Paper's setting\n(weight 1)", "critic_v2": "Critic v2\n(weight 0.001)",
+               "critic_v2_diffs+nocritic_of_critic_v2": "Critic v2-diffs\n(first differences, 0.01)"}
+    paths = [V2 / "summary" / f"effects_{name}.csv" for name in designs]
+    if missing(*paths):
+        return
+    tables = [pd.read_csv(path) for path in paths]
+    data_ids = sorted(tables[0]["data_id"].unique(), reverse=True)
+    fig, axes = plt.subplots(1, len(data_ids), figsize=(TEXT_WIDTH, 2.1), sharey=True)
+    for ax, data_id in zip(axes, data_ids):
+        rows = [t[(t["data_id"] == data_id) & (t["effect"] == "critic")].iloc[0] for t in tables]
+        value = np.array([r["change_pct"] for r in rows])
+        ax.errorbar(value, range(len(rows)), fmt="o", ms=4.5, mfc=BLUE, mec="white", mew=0.5, ecolor=BLUE,
+                    xerr=[value - [r["ci_low_pct"] for r in rows], [r["ci_high_pct"] for r in rows] - value],
+                    elinewidth=1.0, capsize=2.5)
+        ax.axvline(0, color=MUTED, lw=0.8)
+        ax.set_title(dataset_title(data_id))
+        ax.set_xlabel("Change in test MAPE from adding the critic (%)")
+        ax.grid(axis="y", visible=False)
+        ax.set_ylim(len(rows) - 0.5, -0.5)
+    axes[0].set_yticks(range(len(designs)), list(designs.values()))
+    fig.tight_layout(w_pad=1.0)
+    save(fig, "critic_designs")
+
+
+FIGURES = {"mape": figure_mape, "effects": figure_effects, "timing": figure_timing,
+           "released": figure_released, "autoscale": figure_autoscale, "forecasts": figure_forecasts,
+           "critic_weight": figure_critic_weight, "critic_diagnostics": figure_critic_diagnostics,
+           "effects_all_series": figure_effects_all_series, "critic_designs": figure_critic_designs}
 
 
 def main() -> None:

@@ -1,0 +1,22 @@
+{
+  "experiment": "critic_s3_knobs",
+  "cell": "google-10m__lstm-critic-madgrad",
+  "variant": "n1_gp1_h128_lr1",
+  "seed": 100,
+  "overrides": {
+    "train.adv_weight": 0.01,
+    "train.n_critic": 1,
+    "train.gp_lambda": 1.0,
+    "model.critic.hidden": 128,
+    "train.critic_lr_scale": 1.0
+  },
+  "tuned_base": true,
+  "val_mape": 20.113885761945358,
+  "best_epoch": 160,
+  "epochs_run": 310,
+  "seconds": 59.5,
+  "git": {
+    "commit": "c948264",
+    "dirty": false
+  }
+}

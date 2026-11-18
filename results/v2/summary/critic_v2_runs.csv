@@ -1,0 +1,201 @@
+data_id,config_id,seed,setup,test_points,selected_by,mape,mape_released_units,mape_best_val_epoch,mape_last_epoch,fair
+azure_functions-5m,lstm-critic-adam,1,paper settings (reported runs),807,best_val,2.1196160942279345,,2.1196160942279345,,True
+azure_functions-5m,lstm-critic-adam,2,paper settings (reported runs),807,best_val,2.3861558948442685,,2.3861558948442685,,True
+azure_functions-5m,lstm-critic-adam,3,paper settings (reported runs),807,best_val,2.136495358423493,,2.136495358423493,,True
+azure_functions-5m,lstm-critic-adam,4,paper settings (reported runs),807,best_val,2.409570601787767,,2.409570601787767,,True
+azure_functions-5m,lstm-critic-adam,5,paper settings (reported runs),807,best_val,2.178978609313973,,2.178978609313973,,True
+azure_functions-5m,lstm-critic-madgrad,1,paper settings (reported runs),807,best_val,2.007948543882887,,2.007948543882887,,True
+azure_functions-5m,lstm-critic-madgrad,2,paper settings (reported runs),807,best_val,2.034088907068084,,2.034088907068084,,True
+azure_functions-5m,lstm-critic-madgrad,3,paper settings (reported runs),807,best_val,2.1581756168021946,,2.1581756168021946,,True
+azure_functions-5m,lstm-critic-madgrad,4,paper settings (reported runs),807,best_val,1.9551825098742828,,1.9551825098742828,,True
+azure_functions-5m,lstm-critic-madgrad,5,paper settings (reported runs),807,best_val,2.025858231666363,,2.025858231666363,,True
+azure_functions-5m,lstm-nocritic-adam,1,paper settings (reported runs),807,best_val,1.9660186857692008,,1.9660186857692008,,True
+azure_functions-5m,lstm-nocritic-adam,2,paper settings (reported runs),807,best_val,1.9953436713693227,,1.9953436713693227,,True
+azure_functions-5m,lstm-nocritic-adam,3,paper settings (reported runs),807,best_val,2.093305919054644,,2.093305919054644,,True
+azure_functions-5m,lstm-nocritic-adam,4,paper settings (reported runs),807,best_val,2.043764727197107,,2.043764727197107,,True
+azure_functions-5m,lstm-nocritic-adam,5,paper settings (reported runs),807,best_val,1.9713854671486735,,1.9713854671486735,,True
+azure_functions-5m,lstm-nocritic-madgrad,1,paper settings (reported runs),807,best_val,1.992618464342664,,1.992618464342664,,True
+azure_functions-5m,lstm-nocritic-madgrad,2,paper settings (reported runs),807,best_val,1.9766516092058297,,1.9766516092058297,,True
+azure_functions-5m,lstm-nocritic-madgrad,3,paper settings (reported runs),807,best_val,2.0645220576649423,,2.0645220576649423,,True
+azure_functions-5m,lstm-nocritic-madgrad,4,paper settings (reported runs),807,best_val,1.9821242379792596,,1.9821242379792596,,True
+azure_functions-5m,lstm-nocritic-madgrad,5,paper settings (reported runs),807,best_val,2.1137126324528075,,2.1137126324528075,,True
+azure_functions-5m,transformer-critic-adam,1,paper settings (reported runs),807,best_val,2.168788893747369,,2.168788893747369,,True
+azure_functions-5m,transformer-critic-adam,2,paper settings (reported runs),807,best_val,2.1043063655690633,,2.1043063655690633,,True
+azure_functions-5m,transformer-critic-adam,3,paper settings (reported runs),807,best_val,2.2230478037580346,,2.2230478037580346,,True
+azure_functions-5m,transformer-critic-adam,4,paper settings (reported runs),807,best_val,2.1699998002443532,,2.1699998002443532,,True
+azure_functions-5m,transformer-critic-adam,5,paper settings (reported runs),807,best_val,2.1257872165799183,,2.1257872165799183,,True
+azure_functions-5m,transformer-critic-madgrad,1,paper settings (reported runs),807,best_val,2.0415917407499125,,2.0415917407499125,,True
+azure_functions-5m,transformer-critic-madgrad,2,paper settings (reported runs),807,best_val,2.192541627315434,,2.192541627315434,,True
+azure_functions-5m,transformer-critic-madgrad,3,paper settings (reported runs),807,best_val,2.1638996627506666,,2.1638996627506666,,True
+azure_functions-5m,transformer-critic-madgrad,4,paper settings (reported runs),807,best_val,2.135357475306242,,2.135357475306242,,True
+azure_functions-5m,transformer-critic-madgrad,5,paper settings (reported runs),807,best_val,2.130734645387109,,2.130734645387109,,True
+azure_functions-5m,transformer-nocritic-adam,1,paper settings (reported runs),807,best_val,2.0167467656116713,,2.0167467656116713,,True
+azure_functions-5m,transformer-nocritic-adam,2,paper settings (reported runs),807,best_val,2.0108891584578306,,2.0108891584578306,,True
+azure_functions-5m,transformer-nocritic-adam,3,paper settings (reported runs),807,best_val,2.0369329224479884,,2.0369329224479884,,True
+azure_functions-5m,transformer-nocritic-adam,4,paper settings (reported runs),807,best_val,2.0089787127837972,,2.0089787127837972,,True
+azure_functions-5m,transformer-nocritic-adam,5,paper settings (reported runs),807,best_val,2.0148740791707245,,2.0148740791707245,,True
+azure_functions-5m,transformer-nocritic-madgrad,1,paper settings (reported runs),807,best_val,1.9935105060919156,,1.9935105060919156,,True
+azure_functions-5m,transformer-nocritic-madgrad,2,paper settings (reported runs),807,best_val,2.012147574312631,,2.012147574312631,,True
+azure_functions-5m,transformer-nocritic-madgrad,3,paper settings (reported runs),807,best_val,2.0470099440486007,,2.0470099440486007,,True
+azure_functions-5m,transformer-nocritic-madgrad,4,paper settings (reported runs),807,best_val,1.9999952822622002,,1.9999952822622002,,True
+azure_functions-5m,transformer-nocritic-madgrad,5,paper settings (reported runs),807,best_val,2.005892279170876,,2.005892279170876,,True
+google-10m,lstm-critic-adam,1,paper settings (reported runs),836,best_val,21.98479048023406,,21.98479048023406,,True
+google-10m,lstm-critic-adam,2,paper settings (reported runs),836,best_val,22.012044874615334,,22.012044874615334,,True
+google-10m,lstm-critic-adam,3,paper settings (reported runs),836,best_val,21.67777872033793,,21.67777872033793,,True
+google-10m,lstm-critic-adam,4,paper settings (reported runs),836,best_val,24.729068478957544,,24.729068478957544,,True
+google-10m,lstm-critic-adam,5,paper settings (reported runs),836,best_val,23.957171969552604,,23.957171969552604,,True
+google-10m,lstm-critic-madgrad,1,paper settings (reported runs),836,best_val,23.511632574843677,,23.511632574843677,,True
+google-10m,lstm-critic-madgrad,2,paper settings (reported runs),836,best_val,23.234338565748025,,23.234338565748025,,True
+google-10m,lstm-critic-madgrad,3,paper settings (reported runs),836,best_val,23.365375869392714,,23.365375869392714,,True
+google-10m,lstm-critic-madgrad,4,paper settings (reported runs),836,best_val,23.294666960212613,,23.294666960212613,,True
+google-10m,lstm-critic-madgrad,5,paper settings (reported runs),836,best_val,23.422419257965732,,23.422419257965732,,True
+google-10m,lstm-nocritic-adam,1,paper settings (reported runs),836,best_val,22.850835593125957,,22.850835593125957,,True
+google-10m,lstm-nocritic-adam,2,paper settings (reported runs),836,best_val,22.755264466313836,,22.755264466313836,,True
+google-10m,lstm-nocritic-adam,3,paper settings (reported runs),836,best_val,23.14518039123233,,23.14518039123233,,True
+google-10m,lstm-nocritic-adam,4,paper settings (reported runs),836,best_val,22.293582528179755,,22.293582528179755,,True
+google-10m,lstm-nocritic-adam,5,paper settings (reported runs),836,best_val,22.415245152169426,,22.415245152169426,,True
+google-10m,lstm-nocritic-madgrad,1,paper settings (reported runs),836,best_val,21.88699633844923,,21.88699633844923,,True
+google-10m,lstm-nocritic-madgrad,2,paper settings (reported runs),836,best_val,21.181932600840643,,21.181932600840643,,True
+google-10m,lstm-nocritic-madgrad,3,paper settings (reported runs),836,best_val,23.385604088505403,,23.385604088505403,,True
+google-10m,lstm-nocritic-madgrad,4,paper settings (reported runs),836,best_val,22.54085784107051,,22.54085784107051,,True
+google-10m,lstm-nocritic-madgrad,5,paper settings (reported runs),836,best_val,23.78308818139543,,23.78308818139543,,True
+google-10m,transformer-critic-adam,1,paper settings (reported runs),836,best_val,22.792821538152968,,22.792821538152968,,True
+google-10m,transformer-critic-adam,2,paper settings (reported runs),836,best_val,21.590399240497856,,21.590399240497856,,True
+google-10m,transformer-critic-adam,3,paper settings (reported runs),836,best_val,22.836993328458945,,22.836993328458945,,True
+google-10m,transformer-critic-adam,4,paper settings (reported runs),836,best_val,22.173710155075185,,22.173710155075185,,True
+google-10m,transformer-critic-adam,5,paper settings (reported runs),836,best_val,22.70907048060584,,22.70907048060584,,True
+google-10m,transformer-critic-madgrad,1,paper settings (reported runs),836,best_val,24.19315987367097,,24.19315987367097,,True
+google-10m,transformer-critic-madgrad,2,paper settings (reported runs),836,best_val,21.219472439026458,,21.219472439026458,,True
+google-10m,transformer-critic-madgrad,3,paper settings (reported runs),836,best_val,21.992057615901476,,21.992057615901476,,True
+google-10m,transformer-critic-madgrad,4,paper settings (reported runs),836,best_val,22.899317901551974,,22.899317901551974,,True
+google-10m,transformer-critic-madgrad,5,paper settings (reported runs),836,best_val,22.783585327145452,,22.783585327145452,,True
+google-10m,transformer-nocritic-adam,1,paper settings (reported runs),836,best_val,20.739022916997765,,20.739022916997765,,True
+google-10m,transformer-nocritic-adam,2,paper settings (reported runs),836,best_val,21.21503737932273,,21.21503737932273,,True
+google-10m,transformer-nocritic-adam,3,paper settings (reported runs),836,best_val,21.981350435145355,,21.981350435145355,,True
+google-10m,transformer-nocritic-adam,4,paper settings (reported runs),836,best_val,21.212695243334093,,21.212695243334093,,True
+google-10m,transformer-nocritic-adam,5,paper settings (reported runs),836,best_val,21.86637370562056,,21.86637370562056,,True
+google-10m,transformer-nocritic-madgrad,1,paper settings (reported runs),836,best_val,20.472922131820088,,20.472922131820088,,True
+google-10m,transformer-nocritic-madgrad,2,paper settings (reported runs),836,best_val,20.59986613011788,,20.59986613011788,,True
+google-10m,transformer-nocritic-madgrad,3,paper settings (reported runs),836,best_val,20.606738632130572,,20.606738632130572,,True
+google-10m,transformer-nocritic-madgrad,4,paper settings (reported runs),836,best_val,20.59110660327069,,20.59110660327069,,True
+google-10m,transformer-nocritic-madgrad,5,paper settings (reported runs),836,best_val,21.014128066555813,,21.014128066555813,,True
+azure_functions-5m,lstm-critic-adam,1,critic_v2,807,best_val,2.25832219218519,,2.25832219218519,3.05254499816025,True
+azure_functions-5m,lstm-critic-adam,2,critic_v2,807,best_val,2.071132072776339,,2.071132072776339,2.2701083845731693,True
+azure_functions-5m,lstm-critic-adam,3,critic_v2,807,best_val,2.0194328606645597,,2.0194328606645597,3.064256021981549,True
+azure_functions-5m,lstm-critic-adam,4,critic_v2,807,best_val,2.0819513310862203,,2.0819513310862203,2.733448574113715,True
+azure_functions-5m,lstm-critic-adam,5,critic_v2,807,best_val,2.0693405705070456,,2.0693405705070456,2.5995273795086704,True
+azure_functions-5m,lstm-critic-madgrad,1,critic_v2,807,best_val,1.9426844584382632,,1.9426844584382632,6048789.96698634,True
+azure_functions-5m,lstm-critic-madgrad,2,critic_v2,807,best_val,1.978321590923665,,1.978321590923665,1596973.662142519,True
+azure_functions-5m,lstm-critic-madgrad,3,critic_v2,807,best_val,1.9770600277260768,,1.9770600277260768,160768.31571736847,True
+azure_functions-5m,lstm-critic-madgrad,4,critic_v2,807,best_val,1.9290797140371085,,1.9290797140371085,244867.2518026075,True
+azure_functions-5m,lstm-critic-madgrad,5,critic_v2,807,best_val,2.0306888056537713,,2.0306888056537713,12738413.145472884,True
+azure_functions-5m,lstm-nocritic-adam,1,critic_v2,807,best_val,2.0783538856938857,,2.0783538856938857,2.210604543086197,True
+azure_functions-5m,lstm-nocritic-adam,2,critic_v2,807,best_val,1.989277898610406,,1.989277898610406,2.8353569487672705,True
+azure_functions-5m,lstm-nocritic-adam,3,critic_v2,807,best_val,2.108542838957492,,2.108542838957492,2.205001869677263,True
+azure_functions-5m,lstm-nocritic-adam,4,critic_v2,807,best_val,2.0145293437872605,,2.0145293437872605,2.202864069252355,True
+azure_functions-5m,lstm-nocritic-adam,5,critic_v2,807,best_val,2.0760707302806165,,2.0760707302806165,2.1001272630643797,True
+azure_functions-5m,lstm-nocritic-madgrad,1,critic_v2,807,best_val,1.9803226455976677,,1.9803226455976677,2.1927927740979305,True
+azure_functions-5m,lstm-nocritic-madgrad,2,critic_v2,807,best_val,2.0461424132568773,,2.0461424132568773,2.0795594748826365,True
+azure_functions-5m,lstm-nocritic-madgrad,3,critic_v2,807,best_val,1.9231282488187185,,1.9231282488187185,3.15703631776329,True
+azure_functions-5m,lstm-nocritic-madgrad,4,critic_v2,807,best_val,2.00304212477075,,2.00304212477075,2.180563959368841,True
+azure_functions-5m,lstm-nocritic-madgrad,5,critic_v2,807,best_val,1.981023899836511,,1.981023899836511,2.2632199295624873,True
+azure_functions-5m,transformer-critic-adam,1,critic_v2,807,best_val,2.1250798495058016,,2.1250798495058016,2.1294734695636843,True
+azure_functions-5m,transformer-critic-adam,2,critic_v2,807,best_val,2.0375632133364805,,2.0375632133364805,2.356998341475969,True
+azure_functions-5m,transformer-critic-adam,3,critic_v2,807,best_val,2.0851144476128494,,2.0851144476128494,2.1327863059232652,True
+azure_functions-5m,transformer-critic-adam,4,critic_v2,807,best_val,2.0547013672326564,,2.0547013672326564,2.2665528535688737,True
+azure_functions-5m,transformer-critic-adam,5,critic_v2,807,best_val,2.024235823613787,,2.024235823613787,2.262811835119935,True
+azure_functions-5m,transformer-critic-madgrad,1,critic_v2,807,best_val,2.1247449551345032,,2.1247449551345032,2.2146336193595397,True
+azure_functions-5m,transformer-critic-madgrad,2,critic_v2,807,best_val,2.0937202393620535,,2.0937202393620535,2.150175490817808,True
+azure_functions-5m,transformer-critic-madgrad,3,critic_v2,807,best_val,2.035022292066824,,2.035022292066824,2.1685728437430933,True
+azure_functions-5m,transformer-critic-madgrad,4,critic_v2,807,best_val,2.0259871057432064,,2.0259871057432064,2.2957175460882397,True
+azure_functions-5m,transformer-critic-madgrad,5,critic_v2,807,best_val,2.0789402101061953,,2.0789402101061953,2.2559391046537356,True
+azure_functions-5m,transformer-nocritic-adam,1,critic_v2,807,best_val,2.0167467656116713,,2.0167467656116713,2.1187486887349376,True
+azure_functions-5m,transformer-nocritic-adam,2,critic_v2,807,best_val,2.0108891584578306,,2.0108891584578306,2.155015496738071,True
+azure_functions-5m,transformer-nocritic-adam,3,critic_v2,807,best_val,2.0369329224479884,,2.0369329224479884,2.1820256723012026,True
+azure_functions-5m,transformer-nocritic-adam,4,critic_v2,807,best_val,2.0089787127837972,,2.0089787127837972,2.14731166777435,True
+azure_functions-5m,transformer-nocritic-adam,5,critic_v2,807,best_val,2.0148740791707245,,2.0148740791707245,2.109310922652901,True
+azure_functions-5m,transformer-nocritic-madgrad,1,critic_v2,807,best_val,1.9935105060919156,,1.9935105060919156,2.0336108406110105,True
+azure_functions-5m,transformer-nocritic-madgrad,2,critic_v2,807,best_val,2.012147574312631,,2.012147574312631,2.00617182669318,True
+azure_functions-5m,transformer-nocritic-madgrad,3,critic_v2,807,best_val,2.0470099440486007,,2.0470099440486007,2.0210895148563033,True
+azure_functions-5m,transformer-nocritic-madgrad,4,critic_v2,807,best_val,1.9999952822622002,,1.9999952822622002,2.0757189976881847,True
+azure_functions-5m,transformer-nocritic-madgrad,5,critic_v2,807,best_val,2.005892279170876,,2.005892279170876,1.990769499771754,True
+google-10m,lstm-critic-adam,1,critic_v2,836,best_val,21.639559371427563,,21.639559371427563,31.46492839852043,True
+google-10m,lstm-critic-adam,2,critic_v2,836,best_val,23.536349776827443,,23.536349776827443,31.647330562171387,True
+google-10m,lstm-critic-adam,3,critic_v2,836,best_val,21.660603017496165,,21.660603017496165,26.152667219469972,True
+google-10m,lstm-critic-adam,4,critic_v2,836,best_val,21.44209268627265,,21.44209268627265,30.018665975848112,True
+google-10m,lstm-critic-adam,5,critic_v2,836,best_val,24.20236931254997,,24.20236931254997,26.537715638276165,True
+google-10m,lstm-critic-madgrad,1,critic_v2,836,best_val,23.336827387637467,,23.336827387637467,22.999955878396356,True
+google-10m,lstm-critic-madgrad,2,critic_v2,836,best_val,23.347841967206925,,23.347841967206925,22.389486316046003,True
+google-10m,lstm-critic-madgrad,3,critic_v2,836,best_val,22.6688785274311,,22.6688785274311,23.24023353611041,True
+google-10m,lstm-critic-madgrad,4,critic_v2,836,best_val,23.3505877848414,,23.3505877848414,24.976895919924942,True
+google-10m,lstm-critic-madgrad,5,critic_v2,836,best_val,22.975519261124262,,22.975519261124262,222871.55826558956,True
+google-10m,lstm-nocritic-adam,1,critic_v2,836,best_val,23.188043721740247,,23.188043721740247,26.108309385313532,True
+google-10m,lstm-nocritic-adam,2,critic_v2,836,best_val,21.84524406667388,,21.84524406667388,27.524407377106357,True
+google-10m,lstm-nocritic-adam,3,critic_v2,836,best_val,21.385187018639037,,21.385187018639037,26.378744316705717,True
+google-10m,lstm-nocritic-adam,4,critic_v2,836,best_val,22.078909377678347,,22.078909377678347,25.91144898924443,True
+google-10m,lstm-nocritic-adam,5,critic_v2,836,best_val,22.280833234638923,,22.280833234638923,26.960071166834194,True
+google-10m,lstm-nocritic-madgrad,1,critic_v2,836,best_val,21.77344171720448,,21.77344171720448,22.24870763373136,True
+google-10m,lstm-nocritic-madgrad,2,critic_v2,836,best_val,21.93179088690891,,21.93179088690891,23.716703259204902,True
+google-10m,lstm-nocritic-madgrad,3,critic_v2,836,best_val,21.705365149782168,,21.705365149782168,22.421870249377037,True
+google-10m,lstm-nocritic-madgrad,4,critic_v2,836,best_val,22.026877294097524,,22.026877294097524,23.961725107059266,True
+google-10m,lstm-nocritic-madgrad,5,critic_v2,836,best_val,21.75292244508071,,21.75292244508071,26.098366011857767,True
+google-10m,transformer-critic-adam,1,critic_v2,836,best_val,21.88307118794497,,21.88307118794497,24.645645632732215,True
+google-10m,transformer-critic-adam,2,critic_v2,836,best_val,21.51343389299575,,21.51343389299575,23.56197960767557,True
+google-10m,transformer-critic-adam,3,critic_v2,836,best_val,22.265673573030963,,22.265673573030963,22.86818622354481,True
+google-10m,transformer-critic-adam,4,critic_v2,836,best_val,21.595149256795587,,21.595149256795587,24.20867581412713,True
+google-10m,transformer-critic-adam,5,critic_v2,836,best_val,22.74306484250038,,22.74306484250038,25.32390840114437,True
+google-10m,transformer-critic-madgrad,1,critic_v2,836,best_val,20.79630826115003,,20.79630826115003,24.129141829216863,True
+google-10m,transformer-critic-madgrad,2,critic_v2,836,best_val,21.085325581047755,,21.085325581047755,23.12841096267863,True
+google-10m,transformer-critic-madgrad,3,critic_v2,836,best_val,20.554979485794846,,20.554979485794846,23.32670983532806,True
+google-10m,transformer-critic-madgrad,4,critic_v2,836,best_val,22.37008104471323,,22.37008104471323,24.26012722962585,True
+google-10m,transformer-critic-madgrad,5,critic_v2,836,best_val,21.156228244965543,,21.156228244965543,23.962172672420543,True
+google-10m,transformer-nocritic-adam,1,critic_v2,836,best_val,20.739022916997765,,20.739022916997765,24.984306247795043,True
+google-10m,transformer-nocritic-adam,2,critic_v2,836,best_val,21.21503737932273,,21.21503737932273,24.147655836791895,True
+google-10m,transformer-nocritic-adam,3,critic_v2,836,best_val,21.981350435145355,,21.981350435145355,25.13518350687866,True
+google-10m,transformer-nocritic-adam,4,critic_v2,836,best_val,21.212695243334093,,21.212695243334093,23.894764473202194,True
+google-10m,transformer-nocritic-adam,5,critic_v2,836,best_val,21.86637370562056,,21.86637370562056,25.331125065926912,True
+google-10m,transformer-nocritic-madgrad,1,critic_v2,836,best_val,20.472922131820088,,20.472922131820088,21.338378192893025,True
+google-10m,transformer-nocritic-madgrad,2,critic_v2,836,best_val,20.59986613011788,,20.59986613011788,21.844928655290712,True
+google-10m,transformer-nocritic-madgrad,3,critic_v2,836,best_val,20.606738632130572,,20.606738632130572,22.221501985314454,True
+google-10m,transformer-nocritic-madgrad,4,critic_v2,836,best_val,20.59110660327069,,20.59110660327069,22.14145324046745,True
+google-10m,transformer-nocritic-madgrad,5,critic_v2,836,best_val,21.014128066555813,,21.014128066555813,22.01125569262144,True
+azure_functions-5m,lstm-critic-adam,1,critic_v2_diffs,807,best_val,2.0939406313063267,,2.0939406313063267,2.241620415689872,True
+azure_functions-5m,lstm-critic-adam,2,critic_v2_diffs,807,best_val,2.003883442592511,,2.003883442592511,2.4772092959625054,True
+azure_functions-5m,lstm-critic-adam,3,critic_v2_diffs,807,best_val,2.0846556745841114,,2.0846556745841114,2.2526727788164975,True
+azure_functions-5m,lstm-critic-adam,4,critic_v2_diffs,807,best_val,2.1466387037993235,,2.1466387037993235,2.9846179578818064,True
+azure_functions-5m,lstm-critic-adam,5,critic_v2_diffs,807,best_val,2.035241359302349,,2.035241359302349,2.910715340595411,True
+azure_functions-5m,lstm-critic-madgrad,1,critic_v2_diffs,807,best_val,2.006703772043958,,2.006703772043958,98927.75375520525,True
+azure_functions-5m,lstm-critic-madgrad,2,critic_v2_diffs,807,best_val,2.0122312822641133,,2.0122312822641133,419239.39405573776,True
+azure_functions-5m,lstm-critic-madgrad,3,critic_v2_diffs,807,best_val,1.95228202838919,,1.95228202838919,2.317076788715439,True
+azure_functions-5m,lstm-critic-madgrad,4,critic_v2_diffs,807,best_val,1.9181183526334387,,1.9181183526334387,,True
+azure_functions-5m,lstm-critic-madgrad,5,critic_v2_diffs,807,best_val,1.9293340138198094,,1.9293340138198094,1.9479079547526528,True
+azure_functions-5m,transformer-critic-adam,1,critic_v2_diffs,807,best_val,2.1311478296524453,,2.1311478296524453,2.1779954547443925,True
+azure_functions-5m,transformer-critic-adam,2,critic_v2_diffs,807,best_val,2.042135280531476,,2.042135280531476,2.3618397608416117,True
+azure_functions-5m,transformer-critic-adam,3,critic_v2_diffs,807,best_val,2.1089350108371523,,2.1089350108371523,2.1269691388965892,True
+azure_functions-5m,transformer-critic-adam,4,critic_v2_diffs,807,best_val,2.0598151673938405,,2.0598151673938405,2.3219091042900426,True
+azure_functions-5m,transformer-critic-adam,5,critic_v2_diffs,807,best_val,2.0250838329589818,,2.0250838329589818,2.2620949609526186,True
+azure_functions-5m,transformer-critic-madgrad,1,critic_v2_diffs,807,best_val,2.0234743521610343,,2.0234743521610343,2.2519250207879473,True
+azure_functions-5m,transformer-critic-madgrad,2,critic_v2_diffs,807,best_val,2.112125233184574,,2.112125233184574,2.2143227815135615,True
+azure_functions-5m,transformer-critic-madgrad,3,critic_v2_diffs,807,best_val,2.0041886578792223,,2.0041886578792223,2.175708606632413,True
+azure_functions-5m,transformer-critic-madgrad,4,critic_v2_diffs,807,best_val,1.982820959646171,,1.982820959646171,2.308298217456667,True
+azure_functions-5m,transformer-critic-madgrad,5,critic_v2_diffs,807,best_val,2.0545281976340624,,2.0545281976340624,2.287263737154254,True
+google-10m,lstm-critic-adam,1,critic_v2_diffs,836,best_val,22.196243993265384,,22.196243993265384,40.136338802674814,True
+google-10m,lstm-critic-adam,2,critic_v2_diffs,836,best_val,22.437193783967036,,22.437193783967036,28.970255291090925,True
+google-10m,lstm-critic-adam,3,critic_v2_diffs,836,best_val,22.002107031513553,,22.002107031513553,33.453861143344234,True
+google-10m,lstm-critic-adam,4,critic_v2_diffs,836,best_val,24.310580643875447,,24.310580643875447,28.860496441767058,True
+google-10m,lstm-critic-adam,5,critic_v2_diffs,836,best_val,22.34931044043364,,22.34931044043364,34.433720535113856,True
+google-10m,lstm-critic-madgrad,1,critic_v2_diffs,836,best_val,22.298592539080854,,22.298592539080854,25.774388511545187,True
+google-10m,lstm-critic-madgrad,2,critic_v2_diffs,836,best_val,23.01929325120912,,23.01929325120912,24.129770283112126,True
+google-10m,lstm-critic-madgrad,3,critic_v2_diffs,836,best_val,23.07315918575088,,23.07315918575088,23.960758750432227,True
+google-10m,lstm-critic-madgrad,4,critic_v2_diffs,836,best_val,23.260842696526083,,23.260842696526083,23.623389670022444,True
+google-10m,lstm-critic-madgrad,5,critic_v2_diffs,836,best_val,24.04078530431383,,24.04078530431383,22.854406654640812,True
+google-10m,transformer-critic-adam,1,critic_v2_diffs,836,best_val,22.003789188740146,,22.003789188740146,25.68548252628828,True
+google-10m,transformer-critic-adam,2,critic_v2_diffs,836,best_val,20.923705271898463,,20.923705271898463,24.132533198517926,True
+google-10m,transformer-critic-adam,3,critic_v2_diffs,836,best_val,21.618183971886502,,21.618183971886502,23.115750551534344,True
+google-10m,transformer-critic-adam,4,critic_v2_diffs,836,best_val,21.65350060005067,,21.65350060005067,24.082073371783054,True
+google-10m,transformer-critic-adam,5,critic_v2_diffs,836,best_val,22.354344814783552,,22.354344814783552,25.276307175391977,True
+google-10m,transformer-critic-madgrad,1,critic_v2_diffs,836,best_val,20.63775171692909,,20.63775171692909,24.134600068199212,True
+google-10m,transformer-critic-madgrad,2,critic_v2_diffs,836,best_val,20.414998908635965,,20.414998908635965,23.438019185688468,True
+google-10m,transformer-critic-madgrad,3,critic_v2_diffs,836,best_val,20.328064747201957,,20.328064747201957,23.716333220415287,True
+google-10m,transformer-critic-madgrad,4,critic_v2_diffs,836,best_val,21.389176112681866,,21.389176112681866,24.317492428846954,True
+google-10m,transformer-critic-madgrad,5,critic_v2_diffs,836,best_val,21.439203806896273,,21.439203806896273,24.227244457628622,True

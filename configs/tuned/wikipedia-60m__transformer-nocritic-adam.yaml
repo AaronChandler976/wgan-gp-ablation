@@ -1,0 +1,285 @@
+lr: 0.0003
+overrides:
+  data.window: 48
+  model.transformer.d_model: 16
+  model.transformer.nhead: 8
+val_mape: 1.2718
+epochs: 1000
+grid_id: eb9693b3e1
+grid:
+  data.window:
+  - 48
+  - 96
+  lr:
+  - 1.0e-05
+  - 3.0e-05
+  - 0.0001
+  - 0.0003
+  model.transformer.d_model:
+  - 16
+  - 32
+  - 64
+  - 128
+  model.transformer.nhead:
+  - 8
+fixed:
+  train.patience: 150
+trials:
+- setting:
+    data.window: 48
+    lr: 1.0e-05
+    model.transformer.d_model: 16
+    model.transformer.nhead: 8
+  val_mape: 1.4403081656490346
+  best_epoch: 990
+  epochs_run: 1000
+- setting:
+    data.window: 48
+    lr: 1.0e-05
+    model.transformer.d_model: 32
+    model.transformer.nhead: 8
+  val_mape: 1.343402324757177
+  best_epoch: 740
+  epochs_run: 890
+- setting:
+    data.window: 48
+    lr: 1.0e-05
+    model.transformer.d_model: 64
+    model.transformer.nhead: 8
+  val_mape: 1.3655198941006976
+  best_epoch: 530
+  epochs_run: 680
+- setting:
+    data.window: 48
+    lr: 1.0e-05
+    model.transformer.d_model: 128
+    model.transformer.nhead: 8
+  val_mape: 1.3682283418752808
+  best_epoch: 390
+  epochs_run: 540
+- setting:
+    data.window: 48
+    lr: 3.0e-05
+    model.transformer.d_model: 16
+    model.transformer.nhead: 8
+  val_mape: 1.3154748340638769
+  best_epoch: 1000
+  epochs_run: 1000
+- setting:
+    data.window: 48
+    lr: 3.0e-05
+    model.transformer.d_model: 32
+    model.transformer.nhead: 8
+  val_mape: 1.3466642165553246
+  best_epoch: 360
+  epochs_run: 510
+- setting:
+    data.window: 48
+    lr: 3.0e-05
+    model.transformer.d_model: 64
+    model.transformer.nhead: 8
+  val_mape: 1.352701258557938
+  best_epoch: 520
+  epochs_run: 670
+- setting:
+    data.window: 48
+    lr: 3.0e-05
+    model.transformer.d_model: 128
+    model.transformer.nhead: 8
+  val_mape: 1.3742849723412005
+  best_epoch: 280
+  epochs_run: 430
+- setting:
+    data.window: 48
+    lr: 0.0001
+    model.transformer.d_model: 16
+    model.transformer.nhead: 8
+  val_mape: 1.344765217855318
+  best_epoch: 280
+  epochs_run: 430
+- setting:
+    data.window: 48
+    lr: 0.0001
+    model.transformer.d_model: 32
+    model.transformer.nhead: 8
+  val_mape: 1.2928221166347176
+  best_epoch: 360
+  epochs_run: 510
+- setting:
+    data.window: 48
+    lr: 0.0001
+    model.transformer.d_model: 64
+    model.transformer.nhead: 8
+  val_mape: 1.3507603922099514
+  best_epoch: 490
+  epochs_run: 640
+- setting:
+    data.window: 48
+    lr: 0.0001
+    model.transformer.d_model: 128
+    model.transformer.nhead: 8
+  val_mape: 1.3460289807058345
+  best_epoch: 70
+  epochs_run: 220
+- setting:
+    data.window: 48
+    lr: 0.0003
+    model.transformer.d_model: 16
+    model.transformer.nhead: 8
+  val_mape: 1.2717612012977115
+  best_epoch: 720
+  epochs_run: 870
+- setting:
+    data.window: 48
+    lr: 0.0003
+    model.transformer.d_model: 32
+    model.transformer.nhead: 8
+  val_mape: 1.355502848452153
+  best_epoch: 160
+  epochs_run: 310
+- setting:
+    data.window: 48
+    lr: 0.0003
+    model.transformer.d_model: 64
+    model.transformer.nhead: 8
+  val_mape: 1.3987068356813788
+  best_epoch: 370
+  epochs_run: 520
+- setting:
+    data.window: 48
+    lr: 0.0003
+    model.transformer.d_model: 128
+    model.transformer.nhead: 8
+  val_mape: 1.360513448152146
+  best_epoch: 130
+  epochs_run: 280
+- setting:
+    data.window: 96
+    lr: 1.0e-05
+    model.transformer.d_model: 16
+    model.transformer.nhead: 8
+  val_mape: 1.6221501820245219
+  best_epoch: 880
+  epochs_run: 1000
+- setting:
+    data.window: 96
+    lr: 1.0e-05
+    model.transformer.d_model: 32
+    model.transformer.nhead: 8
+  val_mape: 1.4556920297799874
+  best_epoch: 870
+  epochs_run: 1000
+- setting:
+    data.window: 96
+    lr: 1.0e-05
+    model.transformer.d_model: 64
+    model.transformer.nhead: 8
+  val_mape: 1.5187092515573637
+  best_epoch: 450
+  epochs_run: 600
+- setting:
+    data.window: 96
+    lr: 1.0e-05
+    model.transformer.d_model: 128
+    model.transformer.nhead: 8
+  val_mape: 1.3472706871265068
+  best_epoch: 610
+  epochs_run: 760
+- setting:
+    data.window: 96
+    lr: 3.0e-05
+    model.transformer.d_model: 16
+    model.transformer.nhead: 8
+  val_mape: 1.3862832414604527
+  best_epoch: 990
+  epochs_run: 1000
+- setting:
+    data.window: 96
+    lr: 3.0e-05
+    model.transformer.d_model: 32
+    model.transformer.nhead: 8
+  val_mape: 1.4392356192489604
+  best_epoch: 300
+  epochs_run: 450
+- setting:
+    data.window: 96
+    lr: 3.0e-05
+    model.transformer.d_model: 64
+    model.transformer.nhead: 8
+  val_mape: 1.3692778629455111
+  best_epoch: 530
+  epochs_run: 680
+- setting:
+    data.window: 96
+    lr: 3.0e-05
+    model.transformer.d_model: 128
+    model.transformer.nhead: 8
+  val_mape: 1.4302366193431995
+  best_epoch: 150
+  epochs_run: 300
+- setting:
+    data.window: 96
+    lr: 0.0001
+    model.transformer.d_model: 16
+    model.transformer.nhead: 8
+  val_mape: 1.320144899150058
+  best_epoch: 610
+  epochs_run: 760
+- setting:
+    data.window: 96
+    lr: 0.0001
+    model.transformer.d_model: 32
+    model.transformer.nhead: 8
+  val_mape: 1.3537899093624592
+  best_epoch: 500
+  epochs_run: 650
+- setting:
+    data.window: 96
+    lr: 0.0001
+    model.transformer.d_model: 64
+    model.transformer.nhead: 8
+  val_mape: 1.32836268843224
+  best_epoch: 440
+  epochs_run: 590
+- setting:
+    data.window: 96
+    lr: 0.0001
+    model.transformer.d_model: 128
+    model.transformer.nhead: 8
+  val_mape: 1.3469471388599423
+  best_epoch: 140
+  epochs_run: 290
+- setting:
+    data.window: 96
+    lr: 0.0003
+    model.transformer.d_model: 16
+    model.transformer.nhead: 8
+  val_mape: 1.3035314507761318
+  best_epoch: 710
+  epochs_run: 860
+- setting:
+    data.window: 96
+    lr: 0.0003
+    model.transformer.d_model: 32
+    model.transformer.nhead: 8
+  val_mape: 1.3428680938706816
+  best_epoch: 300
+  epochs_run: 450
+- setting:
+    data.window: 96
+    lr: 0.0003
+    model.transformer.d_model: 64
+    model.transformer.nhead: 8
+  val_mape: 1.42105444368303
+  best_epoch: 140
+  epochs_run: 290
+- setting:
+    data.window: 96
+    lr: 0.0003
+    model.transformer.d_model: 128
+    model.transformer.nhead: 8
+  val_mape: 1.4099247990840245
+  best_epoch: 80
+  epochs_run: 230
+tuned_by: AaronChandler976
+date: '2026-11-17'

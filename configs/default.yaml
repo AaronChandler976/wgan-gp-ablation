@@ -5,12 +5,17 @@
 data:
   window: 48              # history length n (number of past intervals the model sees)
   split: [0.6, 0.2, 0.2]  # train / validation / test, in time order
+  # The next three reproduce the released code's data handling (docs/REPLICATION_NOTES.md).
+  scaler: train           # train (fitted on the training part) | per_split (each part on its own; leaks)
+  windows: continuous     # continuous (history may reach into the previous part) | inside_split
+  drop_empty: false       # true removes intervals with no jobs before splitting
 
 model:
   lstm:                   # LoadDynamics-style LSTM
     hidden: 64            # cell state size ("C size")
     layers: 1
-    dropout: 0.0
+    dropout: 0.0          # between stacked layers (does nothing with 1 layer)
+    out_dropout: 0.0      # on the last hidden state, before the output layer
   transformer:            # generator of the WGAN-gp Transformer
     d_model: 64
     nhead: 4
@@ -19,14 +24,20 @@ model:
     dim_ff: 2048          # PyTorch default, which the released code uses
     dropout: 0.1
     input_embed: linear   # linear | broadcast (see docs/REPLICATION_NOTES.md)
+    pos_encoding: time    # time | batch (released code: indexed by position in the batch)
   critic:                 # 3 fully connected layers, LeakyReLU
     hidden: 64
     leaky_slope: 0.2
+    kind: mlp             # mlp (one score per sequence) | pointwise_tanh (released code)
+                          # | conditional (history and forecast enter separately)
+    norm: none            # none | spectral | layer (batch norm is not valid with a gradient penalty)
+    input: levels         # levels | diffs (the critic sees first differences)
 
 optim:
   adam:
     lr: 0.001
     betas: [0.9, 0.999]
+    weight_decay: 0.0
   adam_with_critic:       # the paper's Adam settings for its WGAN-gp + Adam run
     enabled: true
     lr: 0.0001
@@ -44,6 +55,13 @@ train:
   n_critic: 5             # critic updates per generator update
   gp_lambda: 10.0         # gradient penalty weight
   adv_weight: 1.0         # weight of the critic term in the generator loss
+  adv_sign: minus         # minus (paper Eq. 4: L1 - critic score) | plus (released code)
+  critic_batch: random    # random (own batches for the critic) | same (the generator's batch)
+  critic_rng: shared      # shared (critic batches draw from the batch-order generator) | own
+  critic_lr_scale: 1.0    # critic learning rate = this x the forecaster's (two time-scale rule)
+  adv_warmup: 0           # epochs of L1-only training before the critic is switched on
+  adv_ramp: 0             # epochs over which the critic weight then rises linearly to adv_weight
+  shuffle: true           # false keeps the batches in time order (released code)
   eval_every: 10          # epochs between validation checks
   patience: 0             # stop after this many epochs without improvement (0 = off)
   select: best_val        # best_val | last

@@ -1,8 +1,8 @@
 """Datasets: download, preprocess into job-arrival-rate (JAR) series, split, scale, window.
 
 Commands:
-    python -m cwp.data download   --dataset google|azure_functions
-    python -m cwp.data preprocess --dataset google|azure_functions
+    python -m cwp.data download   --dataset google|azure_functions|azure_vm_2017|wikipedia
+    python -m cwp.data preprocess --dataset google|azure_functions|azure_vm_2017|wikipedia
     python -m cwp.data synthetic
     python -m cwp.data list
 """
@@ -29,6 +29,13 @@ GOOGLE_START_US = 600_000_000          # the trace starts 600 s after its time o
 GOOGLE_MINUTES = 29 * 24 * 60          # 29 days
 AZURE_URL = ("https://github.com/Azure/AzurePublicDataset/releases/download/dataset-functions-2019/"
              "azurefunctions_dataset2019_azurefunctions-dataset2019.tar.xz")
+AZURE_VM_2017_URL = ("https://github.com/Azure/AzurePublicDataset/releases/download/dataset-v1/"
+                     "trace_data_vmtable_vmtable.csv.gz")          # the VM table only, about 160 MB
+AZURE_VM_MINUTES = 30 * 24 * 60        # 30 days
+WIKI_URL = ("https://wikimedia.org/api/rest_v1/metrics/pageviews/aggregate/en.wikipedia/"
+            "all-access/user/hourly/{start}/{end}")
+WIKI_MONTHS = ["201901", "201902", "201903", "201904", "201905", "201906"]   # 181 days, hourly
+DOWNLOADABLE = ["google", "azure_functions", "azure_vm_2017", "wikipedia"]
 
 
 # --------------------------------------------------------------------------- loading
@@ -116,14 +123,17 @@ class MinMaxScaler:
         return {"lo": self.lo, "hi": self.hi}
 
 
-def make_windows(series: np.ndarray, window: int, start: int, end: int):
+def make_windows(series: np.ndarray, window: int, start: int, end: int, inside: bool = False):
     """Inputs X [N, window] and targets y [N] for target positions t in [start, end).
 
     The history of a target may reach back before `start` (into the previous part of the
     series). It never contains the target or anything after it, so nothing leaks, and every
     model is scored on the same target points whatever its window size.
+
+    `inside=True` builds the windows inside [start, end) only, as the released code does, so
+    the first `window` points of the part are never predicted.
     """
-    first = max(start, window)
+    first = start + window if inside else max(start, window)
     if first >= end:
         raise ValueError(f"window {window} leaves no targets in [{start}, {end})")
     idx = np.arange(first, end)
@@ -138,7 +148,8 @@ def _fetch(url: str, dest: Path) -> None:
     if dest.exists() and dest.stat().st_size > 0:
         return
     tmp = dest.with_suffix(dest.suffix + ".part")
-    with urllib.request.urlopen(url, timeout=120) as r, open(tmp, "wb") as f:
+    request = urllib.request.Request(url, headers={"User-Agent": "cwp-research-script/1.0"})
+    with urllib.request.urlopen(request, timeout=120) as r, open(tmp, "wb") as f:
         while chunk := r.read(1 << 20):
             f.write(chunk)
     tmp.rename(dest)
@@ -158,6 +169,15 @@ def download(dataset: str) -> None:
         with tarfile.open(archive) as tar:
             members = [m for m in tar.getmembers() if "invocations_per_function" in m.name]
             tar.extractall(raw, members=members, filter="data")
+    elif dataset == "azure_vm_2017":
+        print("  downloading the Azure VM 2017 VM table (about 160 MB)", flush=True)
+        _fetch(AZURE_VM_2017_URL, raw / "vmtable.csv.gz")
+    elif dataset == "wikipedia":
+        import calendar
+        for month in WIKI_MONTHS:
+            last = calendar.monthrange(int(month[:4]), int(month[4:]))[1]
+            _fetch(WIKI_URL.format(start=f"{month}0100", end=f"{month}{last:02d}23"),
+                   raw / f"pageviews_{month}.json")
     else:
         raise ValueError(f"no download for dataset '{dataset}'")
     print(f"raw files are in {raw}")
@@ -195,6 +215,32 @@ def azure_minutes(raw: Path) -> np.ndarray:
     return np.concatenate(days)
 
 
+def azure_vm_2017_minutes(raw: Path) -> np.ndarray:
+    """VMs created per minute over the 30 days, from the VM table's creation timestamp.
+
+    VMs with creation time 0 were already running when the trace began (their real creation
+    time is not in the trace), so they are not arrivals and are left out."""
+    f = raw / "vmtable.csv.gz"
+    if not f.exists():
+        raise FileNotFoundError(f"{f} not found. Run `download` first.")
+    created = pd.read_csv(f, header=None, usecols=[3], names=["created"])["created"].to_numpy()
+    created = created[(created > 0) & (created < AZURE_VM_MINUTES * 60)]
+    return np.bincount(created // 60, minlength=AZURE_VM_MINUTES)
+
+
+def wikipedia_minutes(raw: Path) -> np.ndarray:
+    """Hourly page views of English Wikipedia (human traffic), as a per-"minute" array whose
+    unit is one hour, so `aggregate(..., interval // 60)` applies. Hours must be complete."""
+    files = sorted(raw.glob("pageviews_*.json"))
+    if not files:
+        raise FileNotFoundError(f"no pageviews files in {raw}. Run `download` first.")
+    items = [it for f in files for it in json.loads(f.read_text())["items"]]
+    stamps = pd.to_datetime([it["timestamp"] for it in items], format="%Y%m%d%H")
+    if not (np.diff(stamps.asi8) == 3600 * 10 ** 9).all():
+        raise ValueError("the hourly page-view series has a gap or is out of order")
+    return np.array([it["views"] for it in items], dtype=np.int64)
+
+
 def aggregate(minutes: np.ndarray, interval: int) -> np.ndarray:
     """Sum per-minute counts into `interval`-minute blocks, dropping an incomplete last block."""
     n = len(minutes) // interval
@@ -212,9 +258,13 @@ def write_processed(dataset: str, interval: int, series: np.ndarray) -> None:
 
 def preprocess(dataset: str, intervals: list[int] | None = None) -> None:
     raw = config.path("data", "raw", dataset)
-    minutes = {"google": google_minutes, "azure_functions": azure_minutes}[dataset](raw)
+    minutes = {"google": google_minutes, "azure_functions": azure_minutes,
+               "azure_vm_2017": azure_vm_2017_minutes, "wikipedia": wikipedia_minutes}[dataset](raw)
+    unit = 60 if dataset == "wikipedia" else 1            # the Wikipedia source is hourly
     for interval in intervals or config.datasets()[dataset]["intervals"]:
-        write_processed(dataset, interval, aggregate(minutes, interval))
+        if interval % unit:
+            raise ValueError(f"{dataset} is only available in multiples of {unit} minutes")
+        write_processed(dataset, interval, aggregate(minutes, interval // unit))
 
 
 def synthetic() -> None:
@@ -237,7 +287,7 @@ def main(argv=None) -> None:
     sub = ap.add_subparsers(dest="cmd", required=True)
     for name in ("download", "preprocess"):
         p = sub.add_parser(name)
-        p.add_argument("--dataset", required=True, choices=["google", "azure_functions"])
+        p.add_argument("--dataset", required=True, choices=DOWNLOADABLE)
         if name == "preprocess":
             p.add_argument("--intervals", type=int, nargs="*", help="minutes (default: from datasets.yaml)")
     sub.add_parser("synthetic")

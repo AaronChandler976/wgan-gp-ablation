@@ -1,0 +1,717 @@
+{
+  "run_id": "azure_functions-5m__transformer-critic-madgrad__s1",
+  "tag": null,
+  "dataset": "azure_functions",
+  "interval": 5,
+  "arch": "transformer",
+  "critic": "wgan-gp",
+  "optimizer": "madgrad",
+  "seed": 1,
+  "experiment": "released_item_adv_plus",
+  "profile": null,
+  "metrics": {
+    "val": {
+      "mape": 747.9425421343233,
+      "mae": 22630643.17446855,
+      "rmse": 22632707.82658237,
+      "wape": 742.137982452832,
+      "mase": 188.91729827558254,
+      "under_rate": 100.0,
+      "over_rate": 0.0,
+      "missing_vm_pct": 100.0,
+      "idle_vm_pct": 0.0
+    },
+    "test": {
+      "mape": 710.1380830631518,
+      "mae": 22806216.920414552,
+      "rmse": 22807372.68852617,
+      "wape": 706.9744410524581,
+      "mase": 190.38296221966624,
+      "under_rate": 100.0,
+      "over_rate": 0.0,
+      "missing_vm_pct": 100.0,
+      "idle_vm_pct": 0.0
+    }
+  },
+  "metrics_by_selection": {
+    "last": {
+      "epoch": 1000,
+      "val": {
+        "mape": NaN,
+        "mae": NaN,
+        "rmse": NaN,
+        "wape": NaN,
+        "mase": NaN,
+        "under_rate": 0.0,
+        "over_rate": 0.0,
+        "missing_vm_pct": NaN,
+        "idle_vm_pct": NaN
+      },
+      "test": {
+        "mape": NaN,
+        "mae": NaN,
+        "rmse": NaN,
+        "wape": NaN,
+        "mase": NaN,
+        "under_rate": 0.0,
+        "over_rate": 0.0,
+        "missing_vm_pct": NaN,
+        "idle_vm_pct": NaN
+      }
+    },
+    "best_val": {
+      "epoch": 10,
+      "val": {
+        "mape": 747.9425421343233,
+        "mae": 22630643.17446855,
+        "rmse": 22632707.82658237,
+        "wape": 742.137982452832,
+        "mase": 188.91729827558254,
+        "under_rate": 100.0,
+        "over_rate": 0.0,
+        "missing_vm_pct": 100.0,
+        "idle_vm_pct": 0.0
+      },
+      "test": {
+        "mape": 710.1380830631518,
+        "mae": 22806216.920414552,
+        "rmse": 22807372.68852617,
+        "wape": 706.9744410524581,
+        "mase": 190.38296221966624,
+        "under_rate": 100.0,
+        "over_rate": 0.0,
+        "missing_vm_pct": 100.0,
+        "idle_vm_pct": 0.0
+      }
+    }
+  },
+  "selected_epoch": 10,
+  "epochs_run": 1000,
+  "train_seconds": 996.8,
+  "inference_ms": 2.933493997261394,
+  "n_params": 279521,
+  "config": {
+    "data": {
+      "window": 48,
+      "split": [
+        0.6,
+        0.2,
+        0.2
+      ],
+      "scaler": "train",
+      "windows": "continuous",
+      "drop_empty": false
+    },
+    "model": {
+      "lstm": {
+        "hidden": 64,
+        "layers": 1,
+        "dropout": 0.0,
+        "out_dropout": 0.0
+      },
+      "transformer": {
+        "d_model": 32,
+        "nhead": 8,
+        "enc_layers": 1,
+        "dec_layers": 1,
+        "dim_ff": 2048,
+        "dropout": 0.1,
+        "input_embed": "linear",
+        "pos_encoding": "time"
+      },
+      "critic": {
+        "hidden": 64,
+        "leaky_slope": 0.2,
+        "kind": "mlp",
+        "norm": "none",
+        "input": "levels"
+      }
+    },
+    "optim": {
+      "adam": {
+        "lr": 0.001,
+        "betas": [
+          0.9,
+          0.999
+        ],
+        "weight_decay": 0.0
+      },
+      "adam_with_critic": {
+        "enabled": true,
+        "lr": 0.0001,
+        "betas": [
+          0.0,
+          0.9
+        ]
+      },
+      "madgrad": {
+        "lr": 0.0001,
+        "momentum": 0.9,
+        "weight_decay": 0.0,
+        "eps": 1e-06
+      }
+    },
+    "train": {
+      "epochs": 1000,
+      "batch_size": 64,
+      "loss": "l1",
+      "n_critic": 5,
+      "gp_lambda": 10.0,
+      "adv_weight": 1.0,
+      "adv_sign": "plus",
+      "critic_batch": "random",
+      "critic_rng": "shared",
+      "critic_lr_scale": 1.0,
+      "adv_warmup": 0,
+      "adv_ramp": 0,
+      "shuffle": true,
+      "eval_every": 10,
+      "patience": 0,
+      "select": "best_val",
+      "grad_clip": 0.0
+    },
+    "eval": {
+      "timing_reps": 200
+    }
+  },
+  "tuned": true,
+  "scaler": {
+    "lo": 2323695.0,
+    "hi": 4224391.0
+  },
+  "scalers": {
+    "train": {
+      "lo": 2323695.0,
+      "hi": 4224391.0
+    },
+    "val": {
+      "lo": 2323695.0,
+      "hi": 4224391.0
+    },
+    "test": {
+      "lo": 2323695.0,
+      "hi": 4224391.0
+    }
+  },
+  "split": {
+    "n": 4032,
+    "train_end": 2419,
+    "val_end": 3225
+  },
+  "history": [
+    {
+      "epoch": 10,
+      "train_loss": 20.76299035624581,
+      "val_mape": 747.9425421343233
+    },
+    {
+      "epoch": 20,
+      "train_loss": 224.02947435576118,
+      "val_mape": 7957.5679355517705
+    },
+    {
+      "epoch": 30,
+      "train_loss": 2536.363663472691,
+      "val_mape": 90872.06531063837
+    },
+    {
+      "epoch": 40,
+      "train_loss": 37611.08863118146,
+      "val_mape": 1366153.8103911174
+    },
+    {
+      "epoch": 50,
+      "train_loss": 731621.3293441585,
+      "val_mape": 26996001.74918178
+    },
+    {
+      "epoch": 60,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 70,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 80,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 90,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 100,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 110,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 120,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 130,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 140,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 150,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 160,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 170,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 180,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 190,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 200,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 210,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 220,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 230,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 240,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 250,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 260,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 270,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 280,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 290,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 300,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 310,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 320,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 330,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 340,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 350,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 360,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 370,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 380,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 390,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 400,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 410,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 420,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 430,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 440,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 450,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 460,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 470,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 480,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 490,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 500,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 510,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 520,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 530,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 540,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 550,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 560,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 570,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 580,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 590,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 600,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 610,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 620,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 630,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 640,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 650,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 660,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 670,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 680,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 690,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 700,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 710,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 720,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 730,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 740,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 750,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 760,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 770,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 780,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 790,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 800,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 810,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 820,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 830,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 840,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 850,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 860,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 870,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 880,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 890,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 900,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 910,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 920,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 930,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 940,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 950,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 960,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 970,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 980,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 990,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    },
+    {
+      "epoch": 1000,
+      "train_loss": NaN,
+      "val_mape": Infinity
+    }
+  ],
+  "owner": "AaronChandler976",
+  "env": {
+    "host": "aaron-MS-7E51",
+    "platform": "Linux-7.0.0-43-generic-x86_64-with-glibc2.43",
+    "python": "3.11.18",
+    "torch": "2.11.0+cu128",
+    "device": "cuda",
+    "gpu": "NVIDIA GeForce RTX 5070 Ti",
+    "git": {
+      "commit": "480eef1",
+      "dirty": false
+    }
+  },
+  "finished_at": "2026-11-18T00:10:49+00:00"
+}

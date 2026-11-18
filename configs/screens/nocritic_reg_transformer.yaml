@@ -1,0 +1,155 @@
+experiment: nocritic_reg_transformer
+description: 'Matched tuning budget for the no-critic Transformer: 34 variants (the reported setting plus
+  33 of the 35 other combinations of dropout, weight decay and feed-forward width, drawn with a fixed
+  seed).'
+seeds:
+- 0
+- 100
+fixed:
+  train.patience: 150
+reference: base
+cells:
+- dataset: google
+  interval: 10
+  arch: transformer
+  critic: none
+  optimizer: madgrad
+- dataset: azure_functions
+  interval: 5
+  arch: transformer
+  critic: none
+  optimizer: madgrad
+variants:
+  base: {}
+  dropout0.0_weight_decay0.001_dim_ff128:
+    model.transformer.dropout: 0.0
+    optim.madgrad.weight_decay: 0.001
+    model.transformer.dim_ff: 128
+  dropout0.3_weight_decay0.0_dim_ff128:
+    model.transformer.dropout: 0.3
+    optim.madgrad.weight_decay: 0.0
+    model.transformer.dim_ff: 128
+  dropout0.2_weight_decay0.0001_dim_ff512:
+    model.transformer.dropout: 0.2
+    optim.madgrad.weight_decay: 0.0001
+    model.transformer.dim_ff: 512
+  dropout0.1_weight_decay0.001_dim_ff512:
+    model.transformer.dropout: 0.1
+    optim.madgrad.weight_decay: 0.001
+    model.transformer.dim_ff: 512
+  dropout0.0_weight_decay0.0001_dim_ff128:
+    model.transformer.dropout: 0.0
+    optim.madgrad.weight_decay: 0.0001
+    model.transformer.dim_ff: 128
+  dropout0.1_weight_decay0.001_dim_ff2048:
+    model.transformer.dropout: 0.1
+    optim.madgrad.weight_decay: 0.001
+    model.transformer.dim_ff: 2048
+  dropout0.1_weight_decay0.001_dim_ff128:
+    model.transformer.dropout: 0.1
+    optim.madgrad.weight_decay: 0.001
+    model.transformer.dim_ff: 128
+  dropout0.3_weight_decay0.001_dim_ff512:
+    model.transformer.dropout: 0.3
+    optim.madgrad.weight_decay: 0.001
+    model.transformer.dim_ff: 512
+  dropout0.2_weight_decay0.001_dim_ff128:
+    model.transformer.dropout: 0.2
+    optim.madgrad.weight_decay: 0.001
+    model.transformer.dim_ff: 128
+  dropout0.2_weight_decay0.0_dim_ff2048:
+    model.transformer.dropout: 0.2
+    optim.madgrad.weight_decay: 0.0
+    model.transformer.dim_ff: 2048
+  dropout0.3_weight_decay0.0001_dim_ff512:
+    model.transformer.dropout: 0.3
+    optim.madgrad.weight_decay: 0.0001
+    model.transformer.dim_ff: 512
+  dropout0.1_weight_decay0.0001_dim_ff128:
+    model.transformer.dropout: 0.1
+    optim.madgrad.weight_decay: 0.0001
+    model.transformer.dim_ff: 128
+  dropout0.3_weight_decay0.0001_dim_ff128:
+    model.transformer.dropout: 0.3
+    optim.madgrad.weight_decay: 0.0001
+    model.transformer.dim_ff: 128
+  dropout0.0_weight_decay0.0001_dim_ff2048:
+    model.transformer.dropout: 0.0
+    optim.madgrad.weight_decay: 0.0001
+    model.transformer.dim_ff: 2048
+  dropout0.2_weight_decay0.0001_dim_ff128:
+    model.transformer.dropout: 0.2
+    optim.madgrad.weight_decay: 0.0001
+    model.transformer.dim_ff: 128
+  dropout0.2_weight_decay0.0001_dim_ff2048:
+    model.transformer.dropout: 0.2
+    optim.madgrad.weight_decay: 0.0001
+    model.transformer.dim_ff: 2048
+  dropout0.3_weight_decay0.001_dim_ff128:
+    model.transformer.dropout: 0.3
+    optim.madgrad.weight_decay: 0.001
+    model.transformer.dim_ff: 128
+  dropout0.3_weight_decay0.001_dim_ff2048:
+    model.transformer.dropout: 0.3
+    optim.madgrad.weight_decay: 0.001
+    model.transformer.dim_ff: 2048
+  dropout0.1_weight_decay0.0001_dim_ff2048:
+    model.transformer.dropout: 0.1
+    optim.madgrad.weight_decay: 0.0001
+    model.transformer.dim_ff: 2048
+  dropout0.3_weight_decay0.0_dim_ff512:
+    model.transformer.dropout: 0.3
+    optim.madgrad.weight_decay: 0.0
+    model.transformer.dim_ff: 512
+  dropout0.3_weight_decay0.0_dim_ff2048:
+    model.transformer.dropout: 0.3
+    optim.madgrad.weight_decay: 0.0
+    model.transformer.dim_ff: 2048
+  dropout0.2_weight_decay0.0_dim_ff128:
+    model.transformer.dropout: 0.2
+    optim.madgrad.weight_decay: 0.0
+    model.transformer.dim_ff: 128
+  dropout0.1_weight_decay0.0001_dim_ff512:
+    model.transformer.dropout: 0.1
+    optim.madgrad.weight_decay: 0.0001
+    model.transformer.dim_ff: 512
+  dropout0.2_weight_decay0.001_dim_ff2048:
+    model.transformer.dropout: 0.2
+    optim.madgrad.weight_decay: 0.001
+    model.transformer.dim_ff: 2048
+  dropout0.2_weight_decay0.001_dim_ff512:
+    model.transformer.dropout: 0.2
+    optim.madgrad.weight_decay: 0.001
+    model.transformer.dim_ff: 512
+  dropout0.1_weight_decay0.0_dim_ff512:
+    model.transformer.dropout: 0.1
+    optim.madgrad.weight_decay: 0.0
+    model.transformer.dim_ff: 512
+  dropout0.3_weight_decay0.0001_dim_ff2048:
+    model.transformer.dropout: 0.3
+    optim.madgrad.weight_decay: 0.0001
+    model.transformer.dim_ff: 2048
+  dropout0.0_weight_decay0.001_dim_ff512:
+    model.transformer.dropout: 0.0
+    optim.madgrad.weight_decay: 0.001
+    model.transformer.dim_ff: 512
+  dropout0.0_weight_decay0.001_dim_ff2048:
+    model.transformer.dropout: 0.0
+    optim.madgrad.weight_decay: 0.001
+    model.transformer.dim_ff: 2048
+  dropout0.0_weight_decay0.0_dim_ff2048:
+    model.transformer.dropout: 0.0
+    optim.madgrad.weight_decay: 0.0
+    model.transformer.dim_ff: 2048
+  dropout0.0_weight_decay0.0_dim_ff128:
+    model.transformer.dropout: 0.0
+    optim.madgrad.weight_decay: 0.0
+    model.transformer.dim_ff: 128
+  dropout0.0_weight_decay0.0001_dim_ff512:
+    model.transformer.dropout: 0.0
+    optim.madgrad.weight_decay: 0.0001
+    model.transformer.dim_ff: 512
+  dropout0.0_weight_decay0.0_dim_ff512:
+    model.transformer.dropout: 0.0
+    optim.madgrad.weight_decay: 0.0
+    model.transformer.dim_ff: 512

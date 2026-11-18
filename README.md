@@ -59,6 +59,58 @@ Notes for reading these:
   0.35 ms, while the same LSTM run one time step at a time takes 9.8 to 18.8 ms. The LSTM is
   only much slower than the Transformer when it is not run as one fused kernel.
 
+### Follow-up experiments, in short
+
+These came after the 80 reported runs and never change them. Each line names its own setup
+and source; numbers from different setups are not pooled. Details and every variant tried,
+including the ones that failed: [`docs/EXPERIMENTS_V2.md`](docs/EXPERIMENTS_V2.md). Suggested
+text and tables for the report: [`docs/REPORT_NOTES.md`](docs/REPORT_NOTES.md).
+
+- **Ten seeds** (reported runs plus `seeds_6_10`,
+  [`effects_reported+seeds_6_10.md`](results/v2/summary/effects_reported+seeds_6_10.md)): the
+  three conclusions above hold. The critic raises MAPE in 10 of 10 seeds on both datasets
+  (Google +4.4%, Azure Functions +6.4%, Holm p at most 0.0004). The Transformer's gain on
+  Google is -5.2% (10 of 10 seeds). MADGRAD gives -3.4% on Azure Functions (Holm p 0.006) and
+  nothing on Google.
+- **Four more series** (`more_data`: Google 30 min, Azure Functions 10 min, Azure VM 2017
+  10 min, Wikipedia page views 60 min; 5 seeds, tuned with the same budget). Pooled over all
+  six series ([`pooled_reported+more_data.md`](results/v2/summary/pooled_reported+more_data.md)):
+  critic **+5.9%** (95% interval +4.4 to +7.5, worse on every series), Transformer **-3.3%**
+  (-5.8 to -0.6), MADGRAD +0.6% (-1.3 to +2.6, differs by series). The Transformer's gain does
+  not follow seasonality or burstiness
+  ([`workload_reported+more_data.md`](results/v2/summary/workload_reported+more_data.md)).
+- **Can the critic be made to help?** A validation-only screen of 34 critic variants (weight,
+  warm-up, update ratio, penalty, normalization, conditional and first-difference critics),
+  with 34 variants for the no-critic side as well, found that the smaller the critic's weight
+  the better. With the screen's winner (`critic_v2`, weight 0.001) the critic cells improve by
+  1 to 6% against the reported runs, but the critic's effect on test MAPE is still on the
+  wrong side: Google +3.2% (Holm p 0.037), Azure Functions +1.7% (not significant)
+  ([`effects_critic_v2.md`](results/v2/summary/effects_critic_v2.md)). On the four added
+  series the same weight (`critic_v2_more`) leaves +0.1% to +2.3%, none significant, pooled
+  +1.5% (0.2 to 2.8): no gain on any series
+  ([`effects_critic_v2_more+nocritic_of_more_data.md`](results/v2/summary/effects_critic_v2_more+nocritic_of_more_data.md)).
+- **Standard Adam with the critic** (`adam_control`,
+  [`adam_control.md`](results/v2/summary/adam_control.md)): the critic cells are still no
+  better than the no-critic cells, so the harm does not come from Adam's beta1 = 0.
+- **The released code** (`released_full`, `released_data`, `released_item_*`): its data
+  handling does not explain the paper's Google numbers (24.9 in the released code's own units
+  against the paper's 10.6 to 11.5), and no single released choice does. Three choices break
+  the paper's final model on their own: the sign of the critic term, learning rate 0.01, and
+  positional encoding by batch position. The sign only breaks training with the paper's
+  unbounded critic; with the released Tanh critic it does not
+  ([`released_code.md`](results/v2/summary/released_code.md),
+  [`versus_reported_released_items.md`](results/v2/summary/versus_reported_released_items.md)).
+  These rows include settings that leak test statistics and are labeled as not fair.
+- **Provisioning** ([`autoscale_reported.md`](results/v2/summary/autoscale_reported.md),
+  [`autoscale_more_data.md`](results/v2/summary/autoscale_more_data.md)): the spare capacity
+  needed to keep short intervals at or under 5% is about 3% on Wikipedia, 5 to 11% on Azure
+  Functions, 54 to 67% on Google and over 150% on Azure VM. The workload decides this far more
+  than the model does.
+- **Training stability:** the LSTM with critic and MADGRAD diverges late in training on five
+  of the six series (3 to 5 of 5 seeds, at weight 1 and at weight 0.001 alike; on Google
+  10 min 0 and 1 of 5). No other configuration does. Choosing the epoch on validation hides
+  this in the MAPE tables (counts: "5 result" in `docs/EXPERIMENTS_V2.md`).
+
 ## Setup
 
 ```bash
@@ -67,7 +119,7 @@ cd wgan-gp-ablation
 conda env create -f environment.yml     # Python 3.11, PyTorch 2.11.0 (CUDA 12.8 build), the rest
 conda activate cwp
 pip install -e .
-pytest                                  # 41 tests, well under a minute; no data download, no GPU
+pytest                                  # 94 tests, about a minute; no data download, no GPU
 ```
 
 [`environment.yml`](environment.yml) pins the versions the reported runs were made with. The
@@ -104,7 +156,7 @@ licenses and file formats are in [`data/README.md`](data/README.md).
 ## Tests
 
 ```bash
-pytest          # 41 tests; `unset PYTHONPATH` first if another Python installation interferes
+pytest          # 93 tests; `unset PYTHONPATH` first if another Python installation interferes
 ```
 
 The same tests run on every push (`.github/workflows/tests.yml`).
@@ -176,11 +228,36 @@ LSTM (one cuDNN kernel on a GPU), the same LSTM with cuDNN off, the same LSTM ru
 at a time, and the Transformer generator. Inference time depends on the machine, so compare
 speeds measured on one machine only.
 
+## Follow-up experiments (v2)
+
+Everything run after the 80 reported runs is additive: each experiment has its own name, its
+runs are saved in `results/v2/<name>/`, and its tables in `results/v2/summary/`. The reported
+runs and `results/summary/` are never rewritten. The plan of each experiment (what is run and
+how a winner is picked, written before the runs) and its result are in
+[`docs/EXPERIMENTS_V2.md`](docs/EXPERIMENTS_V2.md).
+
+```bash
+python -m cwp.train ... --exp NAME [key=value ...]     # one run of a v2 experiment -> results/v2/NAME/
+python -m cwp.train ... --exp NAME --profile released_code   # with the released code's choices
+python -m cwp.screen run configs/screens/critic_s1_weight.yaml      # a screen: short tuning runs,
+python -m cwp.screen summarize configs/screens/critic_s1_weight.yaml  # scored on validation only
+python -m cwp.evaluate v2 NAME --name NAME             # NAME's test results next to the reported runs
+python -m cwp.analysis effects --exp NAME              # factorial effects, intervals, Holm correction
+python -m cwp.analysis pooled --exp reported+more_data # effects across series, and whether they differ
+python -m cwp.analysis pairs --exp NAME                # paired tests, one switch apart
+python -m cwp.analysis autoscale --exp NAME            # provisioning cost of the forecasts
+python -m cwp.analysis workload --exp reported+more_data   # effects next to workload properties
+python -m cwp.analysis versus NAME --name NAME         # NAME against the reported run of the same seed
+```
+
+Without `--exp` the `cwp.analysis` commands read the reported runs. Sources joined with `+`
+must share one setup and are labeled by source in the table.
+
 ## Report figures
 
 ```bash
-python scripts/make_figures.py              # all three -> figures/*.png and figures/*.pdf
-python scripts/make_figures.py --only mape  # or: effects, timing
+python scripts/make_figures.py              # all -> figures/*.png and figures/*.pdf
+python scripts/make_figures.py --only mape  # or any other name from --help
 ```
 
 | File in [`figures/`](figures/) | Shows | Read from |
@@ -188,6 +265,13 @@ python scripts/make_figures.py --only mape  # or: effects, timing
 | `mape_by_configuration` | Test MAPE of the 8 configurations on each dataset: one point per seed, mean ± standard deviation | `results/summary/all_runs.csv` |
 | `factorial_main_effects` | Average effect of the Transformer, the critic and MADGRAD on MAPE, per dataset, with p-values | `results/summary/factorial_effects.csv` |
 | `timing_sweep` | Inference time against history length on the GPU and the CPU, log scales | `results/summary/timing_sweep_cuda.csv`, `timing_sweep_cpu.csv` |
+| `effects_all_series` | Effect of each part on all six series, with the pooled value | `results/v2/summary/effects_reported+more_data.csv`, `pooled_reported+more_data.csv` |
+| `released_code_comparison` | The paper's Table 3, the reported runs and the released code's settings | `results/v2/summary/released_code_runs.csv` |
+| `critic_weight_screen` | Validation MAPE against the critic's weight | `results/v2/critic_s1_weight/`, `nocritic_reference/` |
+| `critic_diagnostics` | What the critic's gradient does during training | `results/v2/critic_diagnostics/`, `critic_diagnostics_w0p01/` |
+| `critic_designs` | The critic's effect under the paper's setting and the two designs the screen chose | `results/v2/summary/effects_reported.csv`, `effects_critic_v2.csv`, `effects_critic_v2_diffs+nocritic_of_critic_v2.csv` |
+| `autoscale_tradeoff` | Short intervals against idle machines as spare capacity grows | `results/v2/summary/autoscale_reported_curve.csv` |
+| `forecast_best_worst` | Forecasts of the best and the worst configuration on part of the test set | `results/predictions/` |
 
 The script reads the CSV files and hard-codes no values, so run it again after `compare` or
 `timing_sweep`. It needs matplotlib, which `environment.yml` installs; in an environment made
@@ -198,16 +282,19 @@ for a full text width (6.5 in) with 9 pt serif text; use them with `\includegrap
 
 ```
 configs/      default.yaml (hyperparameters), plan.yaml (runs + seeds), datasets.yaml,
-              tuning.yaml (search grid), tuned/ (chosen settings), paper_reference.yaml
+              tuning.yaml (search grid), tuned/ (chosen settings), paper_reference.yaml,
+              profiles/ (the released code's choices), screens/ (validation-only screens)
 data/         raw/ (downloads, not in git), processed/ (one CSV per series), splits/
 src/cwp/      data, models, train, runs, tune, evaluate, metrics, stats, timing_sweep, config,
-              bench + launch (optional tooling)
-results/      <run_id>.json (one per run), predictions/, baselines/, summary/ (tables and CSVs)
+              screen + analysis (v2 experiments), bench + launch (optional tooling)
+results/      <run_id>.json (one per reported run), predictions/, baselines/, summary/ (tables
+              and CSVs), v2/<experiment>/ (follow-up runs), v2/summary/ (their tables)
 runs/claims/  who ran what (one file per run)
 checkpoints/  trained weights (not in git)
 scripts/      make_figures.py (report figures), hpc/ (Slurm scripts for the SJSU HPC)
 figures/      report figures (PNG and PDF), made by scripts/make_figures.py
-docs/         REPLICATION_NOTES.md, BUILD_PROMPT.md
+docs/         REPLICATION_NOTES.md, EXPERIMENTS_V2.md, REPORT_NOTES.md, CODE_REVIEW.md,
+              BUILD_PROMPT.md
 tests/        pytest
 ```
 

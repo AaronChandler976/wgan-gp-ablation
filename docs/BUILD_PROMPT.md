@@ -61,6 +61,39 @@ the MADGRAD optimizer.
    entropy, share of near-zero intervals, and naive / seasonal-naive error.
 8. **Hyperparameter tuning** with the same budget for every configuration: a shared grid (learning rate, history length) plus a per-architecture part (LSTM cell size and layers; Transformer width and heads) of equal size. Tuned files record a fingerprint of the grid, so a changed grid forces re-tuning.
 
+## Follow-up experiments (v2), added after the reported runs
+
+The 80 reported runs and `results/summary/` are frozen. Everything below is additive.
+
+1. **Named experiments.** `python -m cwp.train ... --exp NAME [key=value ...]` writes to
+   `results/v2/NAME/` and never to `results/`. `--profile NAME` loads a set of overrides from
+   `configs/profiles/` (one profile switches on every choice of the released code). The plan of
+   each experiment, and how a winner is picked, is written in `docs/EXPERIMENTS_V2.md` before
+   it runs; the result is appended afterwards, including variants that failed.
+2. **Config keys for every released-code choice**, each defaulting to the paper's version:
+   scaler per part, windows inside each part, no shuffling, last-epoch selection, pointwise
+   Tanh critic, critic updates and penalty weight, sign of the critic term, critic batch,
+   positional encoding by batch position, broadcast input embedding.
+3. **Critic options:** adversarial weight, warm-up and ramp, critic learning-rate ratio, width,
+   spectral or layer normalization, conditional and first-difference inputs. Per-epoch
+   diagnostics of the critic (its gradient next to the L1 gradient).
+4. **Screens** (`python -m cwp.screen run|summarize configs/screens/NAME.yaml`): short tuning
+   runs of named variants on named cells, scored on validation MAPE only, with tuning seeds
+   that are not evaluation seeds. A variant counts as better than the reference only if it is
+   better in at least 3 of 4 cells and more than 1% lower on average. Whatever budget the
+   critic side gets, the no-critic side gets the same number of variants over its own knobs.
+   Winners are rechecked on tuning seeds no choice has used.
+5. **More series** through the unchanged pipeline, tuned with the same budget: Google 30 min,
+   Azure Functions 10 min, Azure VM 2017 10 min, Wikipedia page views 60 min.
+6. **Analysis** (`python -m cwp.analysis`, output in `results/v2/summary/` with the source in
+   every file name): factorial effects with 95% intervals and Holm correction; random-effects
+   pooling across series with a test of whether the effect differs by series; paired tests one
+   switch apart; provisioning cost (headroom needed for at most 5% and 1% short intervals);
+   effects next to workload properties; several screens in one table; an experiment against
+   the reported run of the same seed. Sources joined with `+` must not overlap.
+7. **Figures** (`scripts/make_figures.py`) read the CSV files and hard-code no values.
+8. Tests for every new piece; the test part is never used to choose anything.
+
 ## Optional tooling, on a separate branch (`tools/hpc-launcher`)
 
 - `bench`: train each kind of run for a few epochs and estimate the time for a full run and

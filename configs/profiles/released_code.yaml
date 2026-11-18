@@ -1,0 +1,19 @@
+description: >
+  The released code's choices where they differ from the paper (docs/REPLICATION_NOTES.md),
+  all switched on together. Sizes the released code takes from the command line (history
+  length, d_model, heads, batch size) stay at this repo's values. NOT a fair evaluation:
+  per-split scaling uses the test part's own minimum and maximum.
+lr: 0.01                                  # released code: MADGRAD(lr=0.01) for both networks
+overrides:
+  data.scaler: per_split                  # scaler fitted separately on train, validation, test
+  data.windows: inside_split              # windows built inside each part
+  data.drop_empty: true                   # empty intervals disappear (none exist at 10 / 30 min)
+  model.transformer.input_embed: broadcast
+  model.transformer.pos_encoding: batch
+  model.critic.kind: pointwise_tanh       # Tanh after every layer, each value scored on its own
+  train.n_critic: 1
+  train.gp_lambda: 0.1
+  train.adv_sign: plus                    # generator loss = L1 + critic score
+  train.critic_batch: same                # the critic is updated on the generator's batch
+  train.shuffle: false
+  train.select: last                      # the last epoch is reported

@@ -166,8 +166,37 @@ def tuned_is_current(spec: RunSpec) -> bool:
     return tuned.get("grid_id") == tuning_grid_id(spec.arch)
 
 
-def resolve_config(spec: RunSpec, overrides=None, lr: float | None = None, use_tuned: bool = True):
-    """Default config + tuned file (if any) + command-line overrides. Returns (cfg, tuned_used)."""
+def with_defaults(cfg: dict) -> dict:
+    """An older saved config, completed with defaults for keys added since it was written."""
+    def merge(base: dict, over: dict) -> dict:
+        out = dict(base)
+        for k, v in over.items():
+            out[k] = merge(base[k], v) if isinstance(v, dict) and isinstance(base.get(k), dict) else v
+        return out
+    return merge(default_config(), cfg)
+
+
+def profile_path(name: str) -> Path:
+    return path("configs", "profiles", f"{name}.yaml")
+
+
+def load_profile(name: str) -> dict:
+    """A named set of overrides (configs/profiles/<name>.yaml): `overrides` and optionally `lr`."""
+    p = profile_path(name)
+    if not p.exists():
+        raise SystemExit(f"no profile '{name}' ({p})")
+    prof = yaml.safe_load(p.read_text()) or {}
+    unknown = set(prof) - {"description", "lr", "overrides"}
+    if unknown:
+        raise KeyError(f"profile '{name}' has unknown entries {sorted(unknown)}")
+    return prof
+
+
+def resolve_config(spec: RunSpec, overrides=None, lr: float | None = None, use_tuned: bool = True,
+                   profile: str | None = None):
+    """Default config + tuned file (if any) + profile (if any) + command-line overrides.
+
+    Later ones win. Returns (cfg, tuned_used)."""
     cfg = default_config()
     tuned_used = False
     tp = tuned_path(spec)
@@ -180,6 +209,11 @@ def resolve_config(spec: RunSpec, overrides=None, lr: float | None = None, use_t
         if lr is None and tuned.get("lr") is not None:
             lr = float(tuned["lr"])
         tuned_used = True
+    if profile:
+        prof = load_profile(profile)
+        cfg = apply_overrides(cfg, prof.get("overrides"))
+        if lr is None and prof.get("lr") is not None:
+            lr = float(prof["lr"])
     cfg = apply_overrides(cfg, overrides)
     if lr is not None:  # one learning rate for whichever optimizer this run uses
         cfg["optim"][spec.optimizer]["lr"] = float(lr)
